@@ -240,24 +240,29 @@ module.exports = ({ strapi }) => ({
                                 const item = await strapi.entityService.findOne(col, recs[r].item_id, {
                                     populate: populateAttrib['populate']
                                 })
-                                const indexItemId = helper.getIndexItemId({collectionName: col, itemId: item.id})
 
-                                // FAILS
-                                // let dataToIndex = await this.assembleDataToIndex(col, item)
+                                if (item) {
+                                    
 
-                                // -------------------------
-                                //WORKS
-                                const collectionConfig = await configureIndexingService.getCollectionConfig({collectionName: col})
-                                let dataToIndex = await helper.extractDataToIndex({
-                                    collectionName: col, data: item, collectionConfig
-                                })
-                                dataToIndex['posttype'] = col.split('.').pop()
-                                dataToIndex = this.processGeoLocation(dataToIndex)
-                                console.log("Kal - dataToIndex: ", dataToIndex)
-                                // -------------------------
+                                    const indexItemId = helper.getIndexItemId({collectionName: col, itemId: item.id})
 
-                                await esInterface.indexData({itemId : indexItemId, itemData: dataToIndex})
-                                await scheduleIndexingService.markIndexingTaskComplete(recs[r].id)
+                                    // FAILS
+                                    // let dataToIndex = await this.assembleDataToIndex(col, item)
+
+                                    // -------------------------
+                                    //WORKS
+                                    const collectionConfig = await configureIndexingService.getCollectionConfig({collectionName: col})
+                                    let dataToIndex = await helper.extractDataToIndex({
+                                        collectionName: col, data: item, collectionConfig
+                                    })
+                                    dataToIndex['posttype'] = col.split('.').pop()
+                                    dataToIndex = this.processGeoLocation(dataToIndex)
+                                    //console.log("Kal - dataToIndex: ", dataToIndex)
+                                    // -------------------------
+
+                                    await esInterface.indexData({itemId : indexItemId, itemData: dataToIndex})
+                                    await scheduleIndexingService.markIndexingTaskComplete(recs[r].id)
+                                }
                             } else {
                                 const indexItemId = helper.getIndexItemId({collectionName: col, itemId: recs[r].item_id})
                                 await esInterface.removeItemFromIndex({itemId : indexItemId})
