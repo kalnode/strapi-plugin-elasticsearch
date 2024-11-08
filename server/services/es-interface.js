@@ -41,14 +41,17 @@ module.exports = ({ strapi }) => ({
                 await client.indices.create({
                     index: indexName,
 
-                    // Kal - Define mapping for map pin
+                    // Kal - Define mappings
                     mappings: {
                         properties: {
                             "pin": {
                                 type: "geo_point",
                                 index: true
+                            },
+                            "Participants": {
+                                type: "nested"
                             }
-                        }
+                        }                        
                     }
 
                 })
