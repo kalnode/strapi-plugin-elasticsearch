@@ -131,12 +131,17 @@ module.exports = ({ strapi }) => ({
 
     async indexDataToSpecificIndex({ itemId, itemData }, iName) {
         try {
-            await client.index({
-                index: iName,
+
+            //let indexName = 'strapi-plugin-elasticsearch-index_000035'
+            let indexName = iName
+            let work = await client.index({
+                index: indexName,
                 id: itemId,
                 document: itemData
             })
-            await client.indices.refresh({ index: iName })
+            console.log("ES plugin indexDataToSpecificIndex work", work)
+            let workRefresh = await client.indices.refresh({ index: indexName })
+            console.log("ES plugin indexDataToSpecificIndex workRefresh", workRefresh)
         } catch(err) {
             console.log('SPE - Error encountered while indexing data to ElasticSearch.')
             console.log(err)
@@ -145,6 +150,7 @@ module.exports = ({ strapi }) => ({
     },
 
     async indexData({itemId, itemData}) {
+        console.log("ES plugin indexData", itemId)
         const pluginConfig = await strapi.config.get('plugin.elasticsearch')
         return await this.indexDataToSpecificIndex({ itemId, itemData }, pluginConfig.indexAliasName)
     },
@@ -179,5 +185,26 @@ module.exports = ({ strapi }) => ({
             console.log('SPE - Search: elasticClient.searchData: Error encountered while making a search request to ElasticSearch.')
             throw err
         }
-    }
+    },
+
+
+    // async updateDataToSpecificIndex({ itemId, itemData }, iName) {
+    //     try {
+    //         await client.index({
+    //             index: iName,
+    //             id: itemId,
+    //             document: itemData
+    //         })
+    //         await client.indices.refresh({ index: iName })
+    //     } catch(err) {
+    //         console.log('SPE - Error encountered while indexing data to ElasticSearch.')
+    //         console.log(err)
+    //         throw err
+    //     }
+    // },
+
+    // async updateData({itemId, itemData}) {
+    //     const pluginConfig = await strapi.config.get('plugin.elasticsearch')
+    //     return await this.indexDataToSpecificIndex({ itemId, itemData }, pluginConfig.indexAliasName)
+    // },
 })
