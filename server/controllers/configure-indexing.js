@@ -48,19 +48,20 @@ module.exports = ({ strapi }) => {
       }    
   }
 
-  const getCollectionConfig = async (ctx) => {
-    if (ctx.params.collectionname)
-      return configureIndexingService.getCollectionConfig({collectionName: ctx.params.collectionname})
-    else
-      return null;
-  }
+    const getCollectionConfig = async (ctx) => {
+        if (ctx.params.collectionname) {
+            return configureIndexingService.getCollectionConfig({collectionName: ctx.params.collectionname})
+        } else {
+            return null
+        }
+    }
 
-  return {
-    getContentConfig,
-    setContentConfig,
-    getCollectionConfig,
-    saveCollectionConfig,
-    exportContentConfig, 
-    importContentConfig
-  };  
-};
+    return {
+        getContentConfig,
+        setContentConfig,
+        getCollectionConfig,
+        saveCollectionConfig,
+        exportContentConfig, 
+        importContentConfig
+    }
+}

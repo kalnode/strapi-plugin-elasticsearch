@@ -1,69 +1,69 @@
 
 ///START : via https://raw.githubusercontent.com/Barelydead/strapi-plugin-populate-deep/main/server/helpers/index.js
 
-const { isEmpty, merge } = require("lodash/fp");
-const transformServiceProvider = require('./transform-content');
+const { isEmpty, merge } = require("lodash/fp")
+const transformServiceProvider = require('./transform-content')
 
 const getPluginStore = () => {
     return strapi.store({
-      environment: '',
-      type: 'plugin',
-      name: 'elasticsearch',
-    });
-  }
+        environment: '',
+        type: 'plugin',
+        name: 'elasticsearch'
+    })
+}
 
 
 const getModelPopulationAttributes = (model) => {
-  if (model.uid === "plugin::upload.file") {
-    const { related, ...attributes } = model.attributes;
-    return attributes;
-  }
+    if (model.uid === "plugin::upload.file") {
+        const { related, ...attributes } = model.attributes
+        return attributes
+    }
 
-  return model.attributes;
-};
+    return model.attributes
+}
 
 const getFullPopulateObject = (modelUid, maxDepth = 20, ignore) => {
-  const skipCreatorFields = true;
+    const skipCreatorFields = true
 
-  if (maxDepth <= 1) {
-    return true;
-  }
-  if (modelUid === "admin::user" && skipCreatorFields) {
-    return undefined;
-  }
-
-  const populate = {};
-  const model = strapi.getModel(modelUid);
-  if (ignore && !ignore.includes(model.collectionName)) ignore.push(model.collectionName)
-  for (const [key, value] of Object.entries(
-    getModelPopulationAttributes(model)
-  )) {
-    if (ignore?.includes(key)) continue
-    if (value) {
-      if (value.type === "component") {
-        populate[key] = getFullPopulateObject(value.component, maxDepth - 1);
-      } else if (value.type === "dynamiczone") {
-        const dynamicPopulate = value.components.reduce((prev, cur) => {
-          const curPopulate = getFullPopulateObject(cur, maxDepth - 1);
-          return curPopulate === true ? prev : merge(prev, curPopulate);
-        }, {});
-        populate[key] = isEmpty(dynamicPopulate) ? true : dynamicPopulate;
-      } else if (value.type === "relation") {
-        const relationPopulate = getFullPopulateObject(
-          value.target,
-          (key === 'localizations') && maxDepth > 2 ? 1 : maxDepth - 1,
-          ignore
-        );
-        if (relationPopulate) {
-          populate[key] = relationPopulate;
-        }
-      } else if (value.type === "media") {
-        populate[key] = true;
-      }
+    if (maxDepth <= 1) {
+        return true
     }
-  }
-  return isEmpty(populate) ? true : { populate };
-};
+    if (modelUid === "admin::user" && skipCreatorFields) {
+        return undefined
+    }
+
+    const populate = {}
+    const model = strapi.getModel(modelUid)
+    if (ignore && !ignore.includes(model.collectionName)) ignore.push(model.collectionName)
+    for (const [key, value] of Object.entries(
+        getModelPopulationAttributes(model)
+    )) {
+        if (ignore?.includes(key)) continue
+        if (value) {
+            if (value.type === "component") {
+                populate[key] = getFullPopulateObject(value.component, maxDepth - 1)
+            } else if (value.type === "dynamiczone") {
+                const dynamicPopulate = value.components.reduce((prev, cur) => {
+                    const curPopulate = getFullPopulateObject(cur, maxDepth - 1)
+                    return curPopulate === true ? prev : merge(prev, curPopulate)
+                }, {})
+                populate[key] = isEmpty(dynamicPopulate) ? true : dynamicPopulate
+            } else if (value.type === "relation") {
+                const relationPopulate = getFullPopulateObject(
+                    value.target,
+                    (key === 'localizations') && maxDepth > 2 ? 1 : maxDepth - 1,
+                    ignore
+                )
+                if (relationPopulate) {
+                    populate[key] = relationPopulate
+                }
+            } else if (value.type === "media") {
+                populate[key] = true
+            }
+        }
+    }
+    return isEmpty(populate) ? true : { populate }
+}
 
 ///END : via https://raw.githubusercontent.com/Barelydead/strapi-plugin-populate-deep/main/server/helpers/index.js
   
@@ -178,12 +178,12 @@ function extractSubfieldData({config, data }) {
 
 module.exports = ({ strapi }) => ({
     async getElasticsearchInfo() {
-        const configureService = strapi.plugins['elasticsearch'].services.configureIndexing;
-        const esInterface = strapi.plugins['elasticsearch'].services.esInterface;
-        const pluginConfig = await strapi.config.get('plugin.elasticsearch');
+        const configureService = strapi.plugins['elasticsearch'].services.configureIndexing
+        const esInterface = strapi.plugins['elasticsearch'].services.esInterface
+        const pluginConfig = await strapi.config.get('plugin.elasticsearch')
       
         const connected = pluginConfig.searchConnector && pluginConfig.searchConnector.host
-         ? await esInterface.checkESConnection() : false;
+         ? await esInterface.checkESConnection() : false
 
         return {
             indexingCronSchedule : pluginConfig.indexingCronSchedule || "Not configured",
@@ -198,108 +198,178 @@ module.exports = ({ strapi }) => ({
             initialized : configureService.isInitialized()
         }
     },
+
     isCollectionDraftPublish({collectionName}) {
-        const model = strapi.getModel(collectionName);
+        const model = strapi.getModel(collectionName)
         return model.attributes.publishedAt ? true : false
     },
+
     getPopulateAttribute({collectionName}) {
         //TODO : We currently have set populate to upto 4 levels, should
         //this be configurable or a different default value?
-        return getFullPopulateObject(collectionName, 4, []);
+        return getFullPopulateObject(collectionName, 4, [])
     },
+
     getIndexItemId ({collectionName, itemId}) {
-        return collectionName+'::' + itemId;
+        return collectionName+'::' + itemId
     },
+
     async getCurrentIndexName () {
-        const pluginStore = getPluginStore();
-        const settings = await pluginStore.get({ key: 'configsettings' });
-        let indexName = 'strapi-plugin-elasticsearch-index_000001';
-        if (settings)
-        {
-          const objSettings = JSON.parse(settings);
-          if (Object.keys(objSettings).includes('indexConfig'))
-          {
-            const idxConfig = objSettings['indexConfig'];
-            indexName = idxConfig['name'];
-          }
+        const pluginStore = getPluginStore()
+        const settings = await pluginStore.get({ key: 'configsettings' })
+        let indexName = 'strapi-plugin-elasticsearch-index_000001'
+        if (settings) {
+            const objSettings = JSON.parse(settings)
+            if (Object.keys(objSettings).includes('indexConfig')) {
+                const idxConfig = objSettings['indexConfig']
+                indexName = idxConfig['name']
+            }
         }
-        return indexName;
+        return indexName
     },
+
     async getIncrementedIndexName () {
-        const currentIndexName = await this.getCurrentIndexName();
-        const number = parseInt(currentIndexName.split('index_')[1]);
-        return 'strapi-plugin-elasticsearch-index_' + String(number+1).padStart(6,'0');
+        const currentIndexName = await this.getCurrentIndexName()
+        const number = parseInt(currentIndexName.split('index_')[1])
+        return 'strapi-plugin-elasticsearch-index_' + String(number+1).padStart(6,'0')
     },
+
     async storeCurrentIndexName (indexName) {
-        const pluginStore = getPluginStore();
-        const settings = await pluginStore.get({ key: 'configsettings' });
-        if (settings)
-        {
-            const objSettings = JSON.parse(settings);
-            objSettings['indexConfig'] = {'name' : indexName};
-            await pluginStore.set({ key: 'configsettings', value : JSON.stringify(objSettings)});      
-        }
-        else
-        {
+        const pluginStore = getPluginStore()
+        const settings = await pluginStore.get({ key: 'configsettings' })
+        if (settings) {
+            const objSettings = JSON.parse(settings)
+            objSettings['indexConfig'] = {'name' : indexName}
+            await pluginStore.set({ key: 'configsettings', value : JSON.stringify(objSettings)})
+        } else {
             const newSettings =  JSON.stringify({'indexConfig' : {'name' : indexName}})
-            await pluginStore.set({ key: 'configsettings', value : newSettings});      
+            await pluginStore.set({ key: 'configsettings', value : newSettings})
         }
     },
+
+    async storeToggleSettingInstantIndex () {
+
+        //console.log("ES helper II 111")
+        const pluginStore = getPluginStore()
+        const settings = await pluginStore.get({ key: 'configsettings' })
+        if (settings) {
+            const objSettings = JSON.parse(settings)
+            //objSettings['settingInstantIndex'] = {'instantIndexing' : value}
+            objSettings['settingInstantIndex'] = !objSettings['settingInstantIndex']
+            //console.log("storeToggleSettingInstantIndex objSettings 111", objSettings['settingInstantIndex'])
+            await pluginStore.set({ key: 'configsettings', value : JSON.stringify(objSettings)})
+            //console.log("storeToggleSettingInstantIndex objSettings 222", objSettings['settingInstantIndex'])
+            return objSettings['settingInstantIndex']
+        } else {
+            const newSettings = JSON.stringify({'settingInstantIndex' : false})
+            await pluginStore.set({ key: 'configsettings', value: newSettings})
+            //console.log("ES helper II 333")
+            return false
+        }
+    },
+
+    async storeSettingInstantIndex () {
+        //console.log("storeSettingInstantIndex 111")
+        const pluginStore = getPluginStore()
+        const settings = await pluginStore.get({ key: 'configsettings' })
+        //console.log("storeSettingInstantIndex 111bbb", settings)
+        const objSettings = JSON.parse(settings)
+        if (objSettings && objSettings['settingInstantIndex'] != undefined) {
+            //console.log("storeSettingInstantIndex 222", objSettings['settingInstantIndex'])
+            return objSettings['settingInstantIndex']
+        } else {
+            //console.log("storeSettingInstantIndex 333")
+            return "Store settings not found"
+        }
+    },
+
+    async storeSettingToggleInstantIndexing () {
+
+        //console.log("ES helper II 111")
+        const pluginStore = getPluginStore()
+        const settings = await pluginStore.get({ key: 'configsettings' })
+        if (settings) {
+            const objSettings = JSON.parse(settings)
+            //objSettings['settingIndexingEnabled'] = {'instantIndexing' : value}
+            objSettings['settingIndexingEnabled'] = !objSettings['settingIndexingEnabled']
+            //console.log("storeSettingToggleInstantIndexing objSettings 111", objSettings['settingIndexingEnabled'])
+            await pluginStore.set({ key: 'configsettings', value : JSON.stringify(objSettings)})
+            //console.log("storeSettingToggleInstantIndexing objSettings 222", objSettings['settingIndexingEnabled'])
+            return objSettings['settingIndexingEnabled']
+        } else {
+            const newSettings = JSON.stringify({'settingIndexingEnabled' : false})
+            await pluginStore.set({ key: 'configsettings', value: newSettings})
+            //console.log("ES helper II 333")
+            return false
+        }
+    },
+
+    async storeSettingIndexingEnabled () {
+        //console.log("storeSettingIndexingEnabled 111")
+        const pluginStore = getPluginStore()
+        const settings = await pluginStore.get({ key: 'configsettings' })
+        //console.log("storeSettingIndexingEnabled 111bbb", settings)
+        const objSettings = JSON.parse(settings)
+        if (objSettings && objSettings['settingIndexingEnabled'] != undefined) {
+            //console.log("storeSettingIndexingEnabled 222", objSettings['settingIndexingEnabled'])
+            return objSettings['settingIndexingEnabled']
+        } else {
+            //console.log("storeSettingIndexingEnabled 333")
+            return "Store settings not found"
+        }
+    },
+
+
+
     modifySubfieldsConfigForExtractor(collectionConfig) {
-        const collectionName = Object.keys(collectionConfig)[0];
-        const attributes = Object.keys(collectionConfig[collectionName]);
-        for (let r=0; r< attributes.length; r++)
-        {
-            const attr = attributes[r];
-            const attribFields = Object.keys(collectionConfig[collectionName][attr]);
-            if (attribFields.includes('subfields'))
-            {
-                const subfielddata = collectionConfig[collectionName][attr]['subfields'];
-                if (subfielddata.length > 0)
-                {
+        const collectionName = Object.keys(collectionConfig)[0]
+        const attributes = Object.keys(collectionConfig[collectionName])
+        for (let r=0; r< attributes.length; r++) {
+            const attr = attributes[r]
+            const attribFields = Object.keys(collectionConfig[collectionName][attr])
+            if (attribFields.includes('subfields')) {
+                const subfielddata = collectionConfig[collectionName][attr]['subfields']
+                if (subfielddata.length > 0) {
                     try {
                         const subfieldjson = JSON.parse(subfielddata)
-                        if (Object.keys(subfieldjson).includes('subfields'))
+                        if (Object.keys(subfieldjson).includes('subfields')) {
                             collectionConfig[collectionName][attr]['subfields'] = subfieldjson['subfields']
-                    }
-                    catch(err)
-                    {
-                        continue;
+                        }
+                    } catch(err) {
+                        continue
                     }
                 }
             }
         }
-        return collectionConfig;
+        return collectionConfig
     },
+
     extractDataToIndex({collectionName, data, collectionConfig}) {
-        collectionConfig = this.modifySubfieldsConfigForExtractor(collectionConfig);
-        const fti = Object.keys(collectionConfig[collectionName]);
+        collectionConfig = this.modifySubfieldsConfigForExtractor(collectionConfig)
+        const fti = Object.keys(collectionConfig[collectionName])
         const document = {}
-        for (let k = 0; k < fti.length; k++)
-        {
-            const fieldConfig = collectionConfig[collectionName][fti[k]];
-            if (fieldConfig.index)
-            {
-                let val = null;
-                if (Object.keys(fieldConfig).includes('subfields'))
-                {
+        for (let k = 0; k < fti.length; k++) {
+            const fieldConfig = collectionConfig[collectionName][fti[k]]
+            if (fieldConfig.index) {
+                let val = null
+                if (Object.keys(fieldConfig).includes('subfields')) {
                     val = extractSubfieldData({config: fieldConfig['subfields'], data: data[fti[k]]})
                     val = val ? val.trim() : val
-                }
-                else
-                {
-                    val = data[fti[k]];
+                } else {
+                    val = data[fti[k]]
                     if (Object.keys(fieldConfig).includes('transform') && 
-                        fieldConfig['transform'] === 'markdown')
-                        val = transformServiceProvider.transform({content: val, from: 'markdown'});
+                        fieldConfig['transform'] === 'markdown') {
+                        val = transformServiceProvider.transform({content: val, from: 'markdown'})
+                    }
                 }
                     
-                if (Object.keys(fieldConfig).includes('searchFieldName'))
-                    document[fieldConfig['searchFieldName']] = val;
-                else
-                    document[fti[k]] = val;
+                if (Object.keys(fieldConfig).includes('searchFieldName')) {
+                    document[fieldConfig['searchFieldName']] = val
+                } else {
+                    document[fti[k]] = val
+                }
             }
         }
-        return document;
+        return document
     }    
-});
+})

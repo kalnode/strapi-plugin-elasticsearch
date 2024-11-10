@@ -1,29 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import  { SubNavigation } from '../../components/SubNavigation';;
-import { Box, Flex, Tab } from '@strapi/design-system';
-import { Typography } from '@strapi/design-system';
-import { apiGetElasticsearchSetupInfo, apiRequestReIndexing,
-    apiTriggerIndexing } from '../../utils/apiUrls';
-import axiosInstance  from '../../utils/axiosInstance';
-import { IconButton } from '@strapi/design-system';
-import { Table, Tr, Td } from '@strapi/design-system';
-import { Refresh } from '@strapi/icons';
-import { TwoColsLayout, Button } from '@strapi/design-system';
-import { Grid, GridItem, Divider } from '@strapi/design-system';
-import {LoadingIndicatorPage, useNotification} from '@strapi/helper-plugin';
+import React, { useState, useEffect } from 'react'
+import { SubNavigation } from '../../components/SubNavigation'
+import { Box, Flex, Tab } from '@strapi/design-system'
+import { Typography } from '@strapi/design-system'
+import { Switch } from '@strapi/design-system'
+import { apiGetElasticsearchSetupInfo, apiRequestReIndexing, apiTriggerIndexing, apiIndexingEnabled, apiToggleIndexingEnabled, apiInstantIndexing, apiToggleInstantIndexing } from '../../utils/apiUrls'
+import axiosInstance  from '../../utils/axiosInstance'
+import { IconButton } from '@strapi/design-system'
+import { Table, Tr, Td } from '@strapi/design-system'
+import { Refresh } from '@strapi/icons'
+import { TwoColsLayout, Button } from '@strapi/design-system'
+import { Grid, GridItem, Divider } from '@strapi/design-system'
+import {LoadingIndicatorPage, useNotification} from '@strapi/helper-plugin'
 
 const loadElasticsearchSetupInfo = () => {
     return axiosInstance.get(apiGetElasticsearchSetupInfo)
         .then((resp) => resp.data)
         .then((data) => {
-          return data;
-        });
+            return data
+        })
 }
 
 const Homepage = () => {
-    const [setupInfo, setSetupInfo] = useState(null);
-    const [isInProgress, setIsInProgress] = useState(false);
-    const toggleNotification = useNotification();
+    const [setupInfo, setSetupInfo] = useState(null)
+    const [isInProgress, setIsInProgress] = useState(false)
+    const [indexingEnabled, setIndexingEnabled] = useState(false)
+    const [instantIndexing, setInstantIndexing] = useState(false)
+    const toggleNotification = useNotification()
+
 
     const displayLabels = {'connected' : 'Connected',
         'elasticCertificate' : 'Certificate',
@@ -34,52 +37,104 @@ const Homepage = () => {
         'initialized' : 'Elasticsearch configuration loaded'};
 
     const reloadElasticsearchSetupInfo = ({showNotification}) => {
-        setIsInProgress(true);
+
+        console.log("Rload elastic 435435435")
+        setIsInProgress(true)
         loadElasticsearchSetupInfo()
         .then(setSetupInfo)
         .then(() => {
             if (showNotification)
                 toggleNotification({
                     type: "success", message: "Elasticsearch setup information reloaded.", timeout: 5000
-                });
+                })
         })
-        .finally(() => setIsInProgress(false));
+        .finally(() => setIsInProgress(false))
     }
 
     const requestFullSiteReindexing = () => {
-        setIsInProgress(true);
+        setIsInProgress(true)
         return axiosInstance.get(apiRequestReIndexing)
             .then(() => {
                 toggleNotification({
                     type: "success", message: "Rebuilding the index is triggered.", timeout: 5000
-                });
+                })
             })
             .catch(() => {
                 toggleNotification({
                     type: "warning", message: "An error was encountered.", timeout: 5000
-                });
+                })
             })
-            .finally(() => setIsInProgress(false));
+            .finally(() => setIsInProgress(false))
     }
 
     const triggerIndexingRun = () => {
-        setIsInProgress(true);
+        setIsInProgress(true)
         return axiosInstance.get(apiTriggerIndexing)
         .then(() => {
             toggleNotification({
                 type: "success", message: "The indexing job to process the pending tasks is started.", timeout: 5000
-            });
+            })
         })
         .catch(() => {
             toggleNotification({
                 type: "warning", message: "An error was encountered.", timeout: 5000
-            });
+            })
         })
-        .finally(() => setIsInProgress(false));
+        .finally(() => setIsInProgress(false))
     }
+
+
+    const getIndexingEnabled = async () => {
+        let work = await axiosInstance.get(apiIndexingEnabled)
+        if (work) {
+            console.log("home getIndexingEnabled work.data is: ", work.data)
+            setIndexingEnabled(work.data)
+        }
+    }
+
+    const toggleIndexingEnabled = async () => {
+        setIsInProgress(true)
+        let work = await axiosInstance.get(apiToggleIndexingEnabled)
+        
+        if (work) {
+            console.log("home toggleIndexingEnabled work.data is: ", work.data)
+            setIndexingEnabled(work.data)
+        } else {
+            toggleNotification({
+                type: "warning", message: "An error was encountered trying to set Instant Indexing.", timeout: 5000
+            })
+        }
+        setIsInProgress(false)
+    }
+
+    const getInstantIndexing = async () => {
+        let work = await axiosInstance.get(apiInstantIndexing)
+        if (work) {
+            console.log("home getInstantIndexing work.data is: ", work.data)
+            setInstantIndexing(work.data)
+        }
+    }
+
+    const toggleInstantIndexing = async () => {
+        setIsInProgress(true)
+        let work = await axiosInstance.get(apiToggleInstantIndexing)
+        
+        if (work) {
+            console.log("home toggleInstantIndexing work.data is: ", work.data)
+            setInstantIndexing(work.data)
+        } else {
+            toggleNotification({
+                type: "warning", message: "An error was encountered trying to set Instant Indexing.", timeout: 5000
+            })
+        }
+        setIsInProgress(false)
+    }
+
     useEffect(() => {
-        reloadElasticsearchSetupInfo({showNotification: false});
-    }, []);
+        getIndexingEnabled()
+        getInstantIndexing()
+        reloadElasticsearchSetupInfo({showNotification: false})
+    }, [])
 
     if (setupInfo === null)
         return <LoadingIndicatorPage />
@@ -90,8 +145,27 @@ const Homepage = () => {
         <Box padding={8} background="neutral100" width="100%">
         <Box paddingBottom={4}>
             <Typography variant="alpha">Setup Information</Typography>
-        </Box>   
-        <Box  width="100%" paddingBottom={4}>
+        </Box>
+
+        <Box paddingBottom={4}>
+
+
+            Indexing enabled: <Switch 
+            onClick={toggleIndexingEnabled}
+            selected={indexingEnabled}
+                visibleLabels
+            />
+
+            Instant indexing: <Switch 
+            onClick={toggleInstantIndexing}
+            selected={instantIndexing}
+                visibleLabels
+            />
+            {/* onCheckedChange={toggleInstantIndexing()} */}
+            {/* {instantIndexing && (<div>instantIndexing: true</div>)} */}
+        </Box>
+
+        <Box width="100%" paddingBottom={4}>
             <TwoColsLayout startCol={
                 <>
             <Table>

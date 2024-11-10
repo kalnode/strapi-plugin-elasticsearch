@@ -2,6 +2,15 @@
 
 module.exports = async ({ strapi }) => {
 
+    const getPluginStore = () => {
+        return strapi.store({
+            environment: '',
+            type: 'plugin',
+            name: 'elasticsearch'
+        })
+    }
+    
+
     const pluginConfig = await strapi.config.get('plugin.elasticsearch')
     const configureIndexingService = strapi.plugins['elasticsearch'].services.configureIndexing
     const scheduleIndexingService = strapi.plugins['elasticsearch'].services.scheduleIndexing
@@ -18,18 +27,27 @@ module.exports = async ({ strapi }) => {
             console.warn("The plugin strapi-plugin-elasticsearch is enabled but the searchConnector is not configured.")
         } else {
             const connector = pluginConfig['searchConnector']
-            await esInterface.initializeSearchEngine({host : connector.host, uname: connector.username, 
-                password: connector.password, cert: connector.certificate})
-            // strapi.cron.add({
-            //   elasticsearchIndexing: {
-            //     task: async ({ strapi }) => {
-            //       await indexer.indexPendingData()
-            //     },
-            //     options: {
-            //       rule: pluginConfig['indexingCronSchedule']
-            //     }
-            //   }
-            // })
+            await esInterface.initializeSearchEngine({host : connector.host, uname: connector.username, password: connector.password, cert: connector.certificate})
+            strapi.cron.add({
+                elasticsearchIndexing: {
+                    task: async ({ strapi }) => {
+                        const pluginStore = getPluginStore()
+                        const settings = await pluginStore.get({ key: 'configsettings' })
+                        if (settings) {
+                            const objSettings = JSON.parse(settings)
+                            if (objSettings['settingIndexingEnabled'] && !objSettings['settingInstantIndex']) {
+                                console.log("CRON TASK: settingIndexingEnabled is enabled; doing work")
+                                await indexer.indexPendingData()
+                            } else {
+                                console.log("CRON TASK: NOT doing work")
+                            }
+                        }
+                    },
+                    options: {
+                        rule: pluginConfig['indexingCronSchedule']
+                    }
+                }
+            })
         
             if (await esInterface.checkESConnection()) {
                 //Attach the alias to the current index:
@@ -85,8 +103,15 @@ module.exports = async ({ strapi }) => {
                         }
                     }
 
-                    await indexer.indexPendingData()
-
+                    const pluginStore = getPluginStore()
+                    const settings = await pluginStore.get({ key: 'configsettings' })
+                    if (settings) {
+                        const objSettings = JSON.parse(settings)
+                        if (objSettings['settingIndexingEnabled'] && objSettings['settingInstantIndex']) {
+                            console.log("instantIndex enabled, doing index work")
+                            await indexer.indexPendingData()
+                        }
+                    }
 
                     // Get the request config
                     //const ctx = strapi.requestContext.get()
@@ -124,7 +149,16 @@ module.exports = async ({ strapi }) => {
                             }
                         }
 
-                        await indexer.indexPendingData()
+                        const pluginStore = getPluginStore()
+                        const settings = await pluginStore.get({ key: 'configsettings' })
+                        if (settings) {
+                            const objSettings = JSON.parse(settings)
+                            if (objSettings['settingIndexingEnabled'] && objSettings['settingInstantIndex']) {
+                                console.log("instantIndex enabled, doing index work")
+                                await indexer.indexPendingData()
+                            }
+                        }
+
                         const ctx = strapi.requestContext.get()   
                         ctx.response.body = { status: 'success', data: 'foooooooo' }
                     }
@@ -138,7 +172,16 @@ module.exports = async ({ strapi }) => {
                         recordId: event.result.id
                     })
 
-                    await indexer.indexPendingData()
+                    const pluginStore = getPluginStore()
+                    const settings = await pluginStore.get({ key: 'configsettings' })
+                    if (settings) {
+                        const objSettings = JSON.parse(settings)
+                        if (objSettings['settingIndexingEnabled'] && objSettings['settingInstantIndex']) {
+                            console.log("instantIndex enabled, doing index work")
+                            await indexer.indexPendingData()
+                        }
+                    }
+
                     const ctx = strapi.requestContext.get()   
                     ctx.response.body = { status: 'success', data: 'foooooooo' }
                 }
@@ -160,7 +203,16 @@ module.exports = async ({ strapi }) => {
                             
                         }
 
-                        await indexer.indexPendingData()
+                        const pluginStore = getPluginStore()
+                        const settings = await pluginStore.get({ key: 'configsettings' })
+                        if (settings) {
+                            const objSettings = JSON.parse(settings)
+                            if (objSettings['settingIndexingEnabled'] && objSettings['settingInstantIndex']) {
+                                console.log("instantIndex enabled, doing index work")
+                                await indexer.indexPendingData()
+                            }
+                        }
+
                         const ctx = strapi.requestContext.get()   
                         ctx.response.body = { status: 'success', data: 'foooooooo' }
                     }

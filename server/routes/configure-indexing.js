@@ -37,6 +37,6 @@ module.exports = {
         path: '/import-content-config',
         handler: 'configureIndexing.importContentConfig',
         config: { policies: [] },
-      },
+      }
     ],
   };

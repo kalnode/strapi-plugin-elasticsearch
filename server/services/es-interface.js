@@ -36,7 +36,7 @@ module.exports = ({ strapi }) => ({
             const exists = await client.indices.exists({ index: indexName })
 
             if (!exists) {
-                console.log('SPE - createIndex: ', indexName, ' does not exist. Creating index & mapping.')
+                //console.log('SPE - createIndex: ', indexName, ' does not exist. Creating index & mapping.')
 
                 await client.indices.create({
                     index: indexName,
@@ -90,7 +90,7 @@ module.exports = ({ strapi }) => ({
             const aliasExists = await client.indices.existsAlias({ name: aliasName })
 
             if (aliasExists) {
-                console.log('SPE - attachAliasToIndex: Alias with this name already exists, removing it.')
+                //console.log('SPE - attachAliasToIndex: Alias with this name already exists, removing it.')
                 await client.indices.deleteAlias({ index: '*', name: aliasName })
             }
 
@@ -100,7 +100,7 @@ module.exports = ({ strapi }) => ({
                 await this.createIndex(indexName)
             }
 
-            console.log('SPE - attachAliasToIndex: ', aliasName, ' to index : ', indexName)
+            //console.log('SPE - attachAliasToIndex: ', aliasName, ' to index : ', indexName)
             await client.indices.putAlias({ index: indexName, name: aliasName })
 
         } catch(err) {
@@ -139,9 +139,9 @@ module.exports = ({ strapi }) => ({
                 id: itemId,
                 document: itemData
             })
-            console.log("ES plugin indexDataToSpecificIndex work", work)
+            //console.log("ES plugin indexDataToSpecificIndex work", work)
             let workRefresh = await client.indices.refresh({ index: indexName })
-            console.log("ES plugin indexDataToSpecificIndex workRefresh", workRefresh)
+            //console.log("ES plugin indexDataToSpecificIndex workRefresh", workRefresh)
         } catch(err) {
             console.log('SPE - Error encountered while indexing data to ElasticSearch.')
             console.log(err)
@@ -150,7 +150,7 @@ module.exports = ({ strapi }) => ({
     },
 
     async indexData({itemId, itemData}) {
-        console.log("ES plugin indexData", itemId)
+        //console.log("ES plugin indexData", itemId)
         const pluginConfig = await strapi.config.get('plugin.elasticsearch')
         return await this.indexDataToSpecificIndex({ itemId, itemData }, pluginConfig.indexAliasName)
     },
