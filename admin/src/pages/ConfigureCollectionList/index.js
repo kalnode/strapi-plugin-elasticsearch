@@ -7,7 +7,7 @@
 import React, { useState } from 'react';
 // import PropTypes from 'prop-types';
 import pluginId from '../../pluginId';
-import  { SubNavigation } from '../../components/SubNavigation';;
+import { SubNavigation } from '../../components/SubNavigation';
 import { Box, Flex } from '@strapi/design-system';
 import { useEffect } from 'react';
 import { Loader } from '@strapi/design-system';
@@ -23,7 +23,7 @@ import { useHistory } from "react-router-dom";
 import { Button } from '@strapi/design-system';
 import { ModalLayout, ModalBody, ModalHeader, ModalFooter } from '@strapi/design-system';
 import { Textarea, TwoColsLayout, Divider } from '@strapi/design-system';
-import {LoadingIndicatorPage, useNotification} from '@strapi/helper-plugin';
+import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin';
 
 const exportContentConfig = () => {
   return axiosInstance.get(apiGetContentConfig,

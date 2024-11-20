@@ -217,7 +217,7 @@ module.exports = ({ strapi }) => ({
     async getCurrentIndexName () {
         const pluginStore = getPluginStore()
         const settings = await pluginStore.get({ key: 'configsettings' })
-        let indexName = 'strapi-plugin-elasticsearch-index_000001'
+        let indexName = 'strapi-plugin-elasticsearch-index_000047'
         if (settings) {
             const objSettings = JSON.parse(settings)
             if (Object.keys(objSettings).includes('indexConfig')) {

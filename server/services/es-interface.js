@@ -41,7 +41,8 @@ module.exports = ({ strapi }) => ({
                 await client.indices.create({
                     index: indexName,
 
-                    // Kal - Define mappings
+                    // Kal - Define custom mappings
+                    // TODO: Ideally these are controllable via UI for specific fields
                     mappings: {
                         properties: {
                             "pin": {
@@ -50,7 +51,18 @@ module.exports = ({ strapi }) => ({
                             },
                             "Participants": {
                                 type: "nested"
-                            }
+                            },
+                            "Organizers": {
+                                type: "nested"
+                            },
+                            "child_terms": {
+                                type: "nested"
+                            },
+                            
+                            // "uuid": {
+                            //     type: "string",
+                            //     index: "not_analyzed"
+                            // }
                         }                        
                     }
 
@@ -131,17 +143,13 @@ module.exports = ({ strapi }) => ({
 
     async indexDataToSpecificIndex({ itemId, itemData }, iName) {
         try {
-
-            //let indexName = 'strapi-plugin-elasticsearch-index_000035'
             let indexName = iName
             let work = await client.index({
                 index: indexName,
                 id: itemId,
                 document: itemData
             })
-            //console.log("ES plugin indexDataToSpecificIndex work", work)
             let workRefresh = await client.indices.refresh({ index: indexName })
-            //console.log("ES plugin indexDataToSpecificIndex workRefresh", workRefresh)
         } catch(err) {
             console.log('SPE - Error encountered while indexing data to ElasticSearch.')
             console.log(err)

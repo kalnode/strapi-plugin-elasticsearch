@@ -92,7 +92,7 @@ module.exports = async ({ strapi }) => {
                             
                             
                            // console.log("es watch afterUpdate", ctx)
-                           // ctx.response.body = { status: 'success', data: 'foooooooo' }
+                           // ctx.response.body = { status: 'success', data: event.result }
                             //}, 5000)
                         } else {
                             //unpublish
@@ -120,7 +120,7 @@ module.exports = async ({ strapi }) => {
                     //console.log(ctx?.state?.user);
                     //console.log("es watch afterUpdate", ctx)
 
-                    ctx.response.body = { status: 'success', data: 'foooooooo' }
+                    ctx.response.body = { status: 'success', data: event.result }
                 }
             }
 
@@ -160,7 +160,7 @@ module.exports = async ({ strapi }) => {
                         }
 
                         const ctx = strapi.requestContext.get()   
-                        ctx.response.body = { status: 'success', data: 'foooooooo' }
+                        ctx.response.body = { status: 'success', data: event.result }
                     }
                 }
             }    
@@ -183,7 +183,7 @@ module.exports = async ({ strapi }) => {
                     }
 
                     const ctx = strapi.requestContext.get()   
-                    ctx.response.body = { status: 'success', data: 'foooooooo' }
+                    ctx.response.body = { status: 'success', data: event.result }
                 }
             }
 
@@ -214,7 +214,7 @@ module.exports = async ({ strapi }) => {
                         }
 
                         const ctx = strapi.requestContext.get()   
-                        ctx.response.body = { status: 'success', data: 'foooooooo' }
+                        ctx.response.body = { status: 'success', data: event.result }
                     }
                 }
             }
