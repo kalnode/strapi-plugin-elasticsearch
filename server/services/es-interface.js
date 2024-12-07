@@ -14,10 +14,13 @@ module.exports = ({ strapi }) => ({
                     username: uname,
                     password: password
                 },
-                tls: {
-                    ca: cert,
-                    rejectUnauthorized: false
-                }
+
+                // KAL - Disabling tls to get Strapi working on Heroku deploy.
+                // Possibly don't need this because the ES instance is on the same host (perhaps we need to restrict it to same-domain?)... or... Heroku handles SSL outside of the app running on the instance.
+                // tls: {
+                //     ca: cert,
+                //     rejectUnauthorized: false
+                // }
             })
         } catch (err) {
             if (err.message.includes('ECONNREFUSED')) {
