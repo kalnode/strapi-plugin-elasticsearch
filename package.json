@@ -1,8 +1,8 @@
 {
-  "name": "@geeky-biz/strapi-plugin-elasticsearch",
+  "name": "@kalnode/strapi-plugin-elasticsearch",
   "version": "0.0.8",
   "description": "A Strapi plugin to enable using Elasticsearch with Strapi CMS.",
-  "homepage": "https://github.com/geeky-biz/strapi-plugin-elasticsearch",
+  "homepage": "https://github.com/kalnode/strapi-plugin-elasticsearch",
   "strapi": {
     "name": "elasticsearch",
     "description": "A plugin to enable using Elasticsearch with Strapi CMS.",
@@ -11,12 +11,12 @@
   },
   "repository": {
       "type": "git",
-      "url": "git://github.com/geeky-biz/strapi-plugin-elasticsearch.git"
+      "url": "git://github.com/kalnode/strapi-plugin-elasticsearch.git"
   },
   "author": {
-    "name": "Punit Sethi",
-    "email": "punit@tezify.com",
-    "url": "https://punits.dev"
+    "name": "Kal Erikson",
+    "email": "kal@kreation.ca",
+    "url": "https://kreation.ca"
   },
   "dependencies": {
     "@elastic/elasticsearch": "^8.9.0",
@@ -27,9 +27,9 @@
   },
   "maintainers": [
     {
-      "name": "Punit Sethi",
-      "email": "punit@tezify.com",
-      "url": "https://punits.dev"  
+      "name": "Kal Erikson",
+      "email": "kal@kreation.ca",
+      "url": "https://kreation.ca"
     }
   ],
   "engines": {
