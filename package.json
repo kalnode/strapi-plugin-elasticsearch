@@ -10,8 +10,8 @@
     "displayName": "Strapi <-> Elasticsearch"
   },
   "repository": {
-      "type": "git",
-      "url": "git://github.com/kalnode/strapi-plugin-elasticsearch.git"
+    "type": "git",
+    "url": "git://github.com/kalnode/strapi-plugin-elasticsearch.git"
   },
   "author": {
     "name": "Kal Erikson",
