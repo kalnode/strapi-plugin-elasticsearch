@@ -26,6 +26,7 @@ module.exports = async ({ strapi }) => {
         } else if (!Object.keys(pluginConfig).includes('searchConnector')) {
             console.warn("The plugin strapi-plugin-elasticsearch is enabled but the searchConnector is not configured.")
         } else {
+            console.warn("ES bootstrap 11223344")
             const connector = pluginConfig['searchConnector']
             await esInterface.initializeSearchEngine({host : connector.host, uname: connector.username, password: connector.password, cert: connector.certificate})
             strapi.cron.add({

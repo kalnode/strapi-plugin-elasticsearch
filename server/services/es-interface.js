@@ -8,6 +8,7 @@ module.exports = ({ strapi }) => ({
 
     async initializeSearchEngine({ host, uname, password, cert }) {
         try {
+            console.log("ES initializeSearchEngine 11223344")
             client = new Client({
                 node: host,
                 auth: {

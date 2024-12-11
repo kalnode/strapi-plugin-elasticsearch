@@ -185,6 +185,8 @@ module.exports = ({ strapi }) => ({
         const connected = pluginConfig.searchConnector && pluginConfig.searchConnector.host
          ? await esInterface.checkESConnection() : false
 
+        console.log("getElasticsearchInfo 11223344")
+
         return {
             indexingCronSchedule : pluginConfig.indexingCronSchedule || "Not configured",
             elasticHost : pluginConfig.searchConnector ? 
