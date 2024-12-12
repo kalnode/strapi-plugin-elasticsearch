@@ -17,7 +17,7 @@ module.exports = ({ strapi }) => ({
 
             if (hostfull) {
                 client = await new Client({
-                    host: hostfull,
+                    node: hostfull,
                     log: 'trace',
                     tls: {
                         rejectUnauthorized: false
