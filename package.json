@@ -1,6 +1,6 @@
 {
   "name": "@kalnode/strapi-plugin-elasticsearch",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "A Strapi plugin to enable using Elasticsearch with Strapi CMS.",
   "homepage": "https://github.com/kalnode/strapi-plugin-elasticsearch",
   "strapi": {
