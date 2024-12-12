@@ -8,8 +8,8 @@ module.exports = ({ strapi }) => ({
 
     async initializeSearchEngine({ host, uname, password, cert }) {
         try {
-            console.log("ES initializeSearchEngine 11223344")
-            client = new Client({
+            console.log("ES initializeSearchEngine 111")
+            client = await new Client({
                 node: host,
                 auth: {
                     username: uname,
@@ -19,10 +19,12 @@ module.exports = ({ strapi }) => ({
                 // KAL - Disabling tls to get Strapi working on Heroku deploy.
                 // Possibly don't need this because the ES instance is on the same host (perhaps we need to restrict it to same-domain?)... or... Heroku handles SSL outside of the app running on the instance.
                 tls: {
-                    ca: fs.readFileSync('./http_ca.crt'), //cert,
+                    ca: fs.readFileSync('./config'+cert), //fs.readFileSync('./http_ca.crt'), //cert,
                     rejectUnauthorized: false
                 }
             })
+            console.log("ES initializeSearchEngine 222")
+
         } catch (err) {
             if (err.message.includes('ECONNREFUSED')) {
                 console.error('SPE - Connection to ElasticSearch at ', host, ' refused.')
