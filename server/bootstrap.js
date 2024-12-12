@@ -28,7 +28,7 @@ module.exports = async ({ strapi }) => {
         } else {
             console.warn("ES bootstrap 11223344")
             const connector = pluginConfig['searchConnector']
-            await esInterface.initializeSearchEngine({host : connector.host, uname: connector.username, password: connector.password, cert: connector.certificate})
+            await esInterface.initializeSearchEngine({hostfull: connector.hostfull, host: connector.host, uname: connector.username, password: connector.password, cert: connector.certificate})
             strapi.cron.add({
                 elasticsearchIndexing: {
                     task: async ({ strapi }) => {

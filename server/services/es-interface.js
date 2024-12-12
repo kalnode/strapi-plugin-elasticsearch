@@ -6,23 +6,41 @@ let client = null
 
 module.exports = ({ strapi }) => ({
 
-    async initializeSearchEngine({ host, uname, password, cert }) {
+    // new elasticsearch.Client({
+    //     host: bonsai_url,
+    //     log: 'trace'
+    // });
+
+    async initializeSearchEngine({ hostfull, host, uname, password, cert }) {
         try {
             console.log("ES initializeSearchEngine 111")
-            client = await new Client({
-                node: host,
-                auth: {
-                    username: uname,
-                    password: password
-                },
 
-                // KAL - Disabling tls to get Strapi working on Heroku deploy.
-                // Possibly don't need this because the ES instance is on the same host (perhaps we need to restrict it to same-domain?)... or... Heroku handles SSL outside of the app running on the instance.
-                tls: {
-                    //ca: fs.readFileSync('./config'+cert), //fs.readFileSync('./http_ca.crt'), //cert,
-                    rejectUnauthorized: false
-                }
-            })
+            if (hostfull) {
+                client = await new Client({
+                    host: hostfull,
+                    log: 'trace',
+                    tls: {
+                        rejectUnauthorized: false
+                    }
+                })
+            } else {
+
+                client = await new Client({
+                    node: host,
+                    auth: {
+                        username: uname,
+                        password: password
+                    },
+                    log: 'trace',
+
+                    // KAL - Disabling tls to get Strapi working on Heroku deploy.
+                    // Possibly don't need this because the ES instance is on the same host (perhaps we need to restrict it to same-domain?)... or... Heroku handles SSL outside of the app running on the instance.
+                    tls: {
+                        //ca: fs.readFileSync('./config'+cert), //fs.readFileSync('./http_ca.crt'), //cert,
+                        rejectUnauthorized: false
+                    }
+                })
+            }
             console.log("ES initializeSearchEngine 222")
 
         } catch (err) {
