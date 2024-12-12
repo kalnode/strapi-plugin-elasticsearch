@@ -126,7 +126,7 @@ module.exports = ({ strapi }) => ({
                 dataToIndex = this.processGeoLocation(dataToIndex)
                 // -------------------------
 
-                await esInterface.indexDataToSpecificIndex({itemId : indexItemId, itemData: dataToIndex}, indexName)
+                await esInterface.indexDataToSpecificIndex({itemId: indexItemId, itemData: dataToIndex}, indexName)
             }
         }
 

@@ -166,6 +166,8 @@ module.exports = ({ strapi }) => ({
     },
 
     async indexDataToSpecificIndex({ itemId, itemData }, iName) {
+
+        console.log("indexDataToSpecificIndex 112233:", itemData)
         try {
             let indexName = iName
             let work = await client.index({
