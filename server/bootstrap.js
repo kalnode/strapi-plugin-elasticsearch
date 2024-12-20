@@ -109,7 +109,7 @@ module.exports = async ({ strapi }) => {
                     if (settings) {
                         const objSettings = JSON.parse(settings)
                         if (objSettings['settingIndexingEnabled'] && objSettings['settingInstantIndex']) {
-                            console.log("instantIndex enabled, doing index work")
+                            console.log("afterCreate instantIndex enabled, doing index work")
                             await indexer.indexPendingData()
                         }
                     }
@@ -155,7 +155,7 @@ module.exports = async ({ strapi }) => {
                         if (settings) {
                             const objSettings = JSON.parse(settings)
                             if (objSettings['settingIndexingEnabled'] && objSettings['settingInstantIndex']) {
-                                console.log("instantIndex enabled, doing index work")
+                                console.log("afterCreateMany instantIndex enabled, doing index work")
                                 await indexer.indexPendingData()
                             }
                         }
@@ -178,7 +178,7 @@ module.exports = async ({ strapi }) => {
                     if (settings) {
                         const objSettings = JSON.parse(settings)
                         if (objSettings['settingIndexingEnabled'] && objSettings['settingInstantIndex']) {
-                            console.log("instantIndex enabled, doing index work")
+                            console.log("afterDelete instantIndex enabled, doing index work")
                             await indexer.indexPendingData()
                         }
                     }
@@ -209,7 +209,7 @@ module.exports = async ({ strapi }) => {
                         if (settings) {
                             const objSettings = JSON.parse(settings)
                             if (objSettings['settingIndexingEnabled'] && objSettings['settingInstantIndex']) {
-                                console.log("instantIndex enabled, doing index work")
+                                console.log("afterDeleteMany instantIndex enabled, doing index work")
                                 await indexer.indexPendingData()
                             }
                         }

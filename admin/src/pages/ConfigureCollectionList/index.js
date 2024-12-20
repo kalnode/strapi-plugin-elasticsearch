@@ -69,7 +69,7 @@ const Configure = () => {
 
   const performImport = () => {
     const conf = importJson
-    console.log(conf && conf.length > 0)
+    //console.log(conf && conf.length > 0)
     if (conf && conf.length > 0) {
       setIsInProgress(true);
       importContentConfig(conf)

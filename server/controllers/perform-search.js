@@ -24,8 +24,7 @@ module.exports =  {
       } catch (err) {
         ctx.response.status = 500;
         ctx.body = "An error was encountered while processing the search request."
-        console.log('An error was encountered while processing the search request.')
-        console.log(err);
+        console.log('An error was encountered while processing the search request.', err)
       }
   }  
 };
