@@ -87,7 +87,7 @@ const Homepage = () => {
     const getIndexingEnabled = async () => {
         let work = await axiosInstance.get(apiIndexingEnabled)
         if (work) {
-            console.log("getIndexingEnabled 112233") //, work.data)
+            //console.log("getIndexingEnabled 112233") //, work.data)
             setIndexingEnabled(work.data)
         }
     }
@@ -98,7 +98,7 @@ const Homepage = () => {
         
         if (work) {
             //console.log("home toggleIndexingEnabled work.data is: ", work.data)
-            console.log("toggleIndexingEnabled 112233")
+            //console.log("toggleIndexingEnabled 112233")
             setIndexingEnabled(work.data)
         } else {
             toggleNotification({
@@ -112,7 +112,7 @@ const Homepage = () => {
         let work = await axiosInstance.get(apiInstantIndexing)
         if (work) {
             //console.log("home getInstantIndexing work.data is: ", work.data)
-            console.log("getInstantIndexing 112233")
+            //console.log("getInstantIndexing 112233")
             setInstantIndexing(work.data)
         }
     }
@@ -122,7 +122,7 @@ const Homepage = () => {
         let work = await axiosInstance.get(apiToggleInstantIndexing)
         
         if (work) {
-            console.log("toggleInstantIndexing 112233")
+            //console.log("toggleInstantIndexing 112233")
             setInstantIndexing(work.data)
         } else {
             toggleNotification({
