@@ -61,8 +61,12 @@ module.exports = async ({ strapi }) => {
         strapi.db.lifecycles.subscribe(async (event) => {
 
 
-            console.log("ES lifecycle triggered 112233", event.action)
+            
             if (event.action === 'afterCreate' || event.action === 'afterUpdate') {
+
+                if (event.action === 'afterUpdate') {
+                    console.log("ES lifecycle afterUpdate triggered 112233", event.action)
+                }
 
                 if (strapi.elasticsearch.collections.includes(event.model.uid)) {
 
