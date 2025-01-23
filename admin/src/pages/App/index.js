@@ -9,17 +9,20 @@ import React from 'react'
 import { Switch, Route, Redirect } from 'react-router-dom'
 import { AnErrorOccurred } from '@strapi/helper-plugin'
 import pluginId from '../../pluginId'
+
+import Homepage from '../Homepage'
+import Indexes from '../Indexes'
 import ConfigureCollectionList from '../ConfigureCollectionList'
 import ConfigureCollection from '../ConfigureCollection'
 import ViewIndexingRunLog from '../ViewIndexingRunLog'
 import Tools from '../Tools'
-import Homepage from '../Homepage'
 
 const App = () => {
     return (
         <Switch>
             <Route path={`/plugins/${pluginId}`} render={() => (<Redirect to={`/plugins/${pluginId}/home`} />)} exact />
             <Route path={`/plugins/${pluginId}/home`} component={Homepage} exact />
+            <Route path={`/plugins/${pluginId}/indexes`} component={Indexes} exact />
             <Route path={`/plugins/${pluginId}/configure-collections`} component={ConfigureCollectionList} exact />
             <Route path={`/plugins/${pluginId}/configure-collections/:collectionName`} component={ConfigureCollection} exact />
             <Route path={`/plugins/${pluginId}/view-indexing-logs`} component={ViewIndexingRunLog} />

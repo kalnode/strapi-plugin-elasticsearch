@@ -61,7 +61,7 @@ module.exports = {
   }
 ```
 ## Ensuring connection to Elasticsearch
-When connected to Elasticsearch, the `Connected` field within the `Setup Information` screen shall display `true`.
+When connected to Elasticsearch, the `Connected` field within the `Home` screen shall display `true`.
 
 ![image](https://github.com/geeky-biz/strapi-plugin-elasticsearch/assets/17068206/a0fe0d6c-95e9-4c3c-95e1-46209db113c7)
 

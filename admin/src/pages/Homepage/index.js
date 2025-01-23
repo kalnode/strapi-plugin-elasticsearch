@@ -1,19 +1,15 @@
 import React, { useState, useEffect } from 'react'
-import { SubNavigation } from '../../components/SubNavigation'
-import { Box, Flex, Tab } from '@strapi/design-system'
-import { Typography } from '@strapi/design-system'
-import { Switch } from '@strapi/design-system'
-import { apiGetElasticsearchSetupInfo, apiRequestReIndexing, apiTriggerIndexing, apiIndexingEnabled, apiToggleIndexingEnabled, apiInstantIndexing, apiToggleInstantIndexing } from '../../utils/apiUrls'
-import axiosInstance  from '../../utils/axiosInstance'
-import { IconButton } from '@strapi/design-system'
-import { Table, Tr, Td } from '@strapi/design-system'
-import { Refresh } from '@strapi/icons'
-import { TwoColsLayout, Button } from '@strapi/design-system'
-import { Grid, GridItem, Divider } from '@strapi/design-system'
-import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 
-const loadElasticsearchSetupInfo = () => {
-    return axiosInstance.get(apiGetElasticsearchSetupInfo)
+import { SubNavigation } from '../../components/SubNavigation'
+import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
+import { Refresh } from '@strapi/icons'
+import { Box, Flex, Switch, ToggleInput, RadioGroup, Radio, Tab, TwoColsLayout, Button, IconButton, Table, Tr, Td, Grid, GridItem, Divider, Checkbox, ContentLayout, Container, ActionLayout, Layout, Link, Option, Select, Typography } from '@strapi/design-system';
+
+import axiosInstance  from '../../utils/axiosInstance'
+import { apiGetSystemInfo, apiForceRebuildIndex, apiTriggerIndexing, apiIndexingEnabled, apiToggleIndexingEnabled, apiInstantIndexing, apiToggleInstantIndexing } from '../../utils/apiUrls'
+
+const loadSystemInfo = () => {
+    return axiosInstance.get(apiGetSystemInfo)
         .then((resp) => resp.data)
         .then((data) => {
             return data
@@ -21,65 +17,75 @@ const loadElasticsearchSetupInfo = () => {
 }
 
 const PageHome = () => {
-    const [setupInfo, setSetupInfo] = useState(null)
+
+    // =========================
+    // GENERAL
+    // =========================
+
+    const [setupInfo, setSystemInfo] = useState(null)
     const [isInProgress, setIsInProgress] = useState(false)
     const [indexingEnabled, setIndexingEnabled] = useState(false)
-    const [instantIndexing, setInstantIndexing] = useState(false)
-    const toggleNotification = useNotification()
+    const [IndexingMode, setIndexingMode] = useState(false)
+    const showNotification = useNotification()
 
-    const displayLabels = {'connected' : 'Connected',
+    const displayLabels = {
+        'connected' : 'Connected',
         'elasticCertificate' : 'Certificate',
         'elasticHost' : 'Elasticsearch host',
         'elasticIndexAlias' : 'Elasticsearch index Alias name',
         'elasticUserName' : 'Elasticsearch username',
         'indexingCronSchedule' : 'Indexing cron schedule',
-        'initialized' : 'Elasticsearch configuration loaded'};
+        'initialized' : 'Elasticsearch configuration loaded'
+    }
 
-    const reloadElasticsearchSetupInfo = ({showNotification}) => {
+    // =========================
+    // FUNCTIONS
+    // =========================
+
+    const reloadSystemInfo = (showNotificationAfter) => {
         setIsInProgress(true)
-        loadElasticsearchSetupInfo()
-        .then(setSetupInfo)
+        loadSystemInfo()
+        .then(setSystemInfo)
         .then(() => {
-            if (showNotification)
-                toggleNotification({
-                    type: "success", message: "Elasticsearch setup information reloaded.", timeout: 5000
+            if (showNotificationAfter)
+                showNotification({
+                    type: "success", message: "System information reloaded.", timeout: 5000
                 })
         })
         .finally(() => setIsInProgress(false))
     }
 
-    const requestFullSiteReindexing = () => {
+    const requestForceRebuildIndex = () => {
         setIsInProgress(true)
-        return axiosInstance.get(apiRequestReIndexing)
+        return axiosInstance.get(apiForceRebuildIndex)
             .then(() => {
-                toggleNotification({
+                showNotification({
                     type: "success", message: "Rebuilding the index is triggered.", timeout: 5000
                 })
             })
             .catch(() => {
-                toggleNotification({
-                    type: "warning", message: "An error was encountered.", timeout: 5000
+                showNotification({
+                    type: "warning", message: "An error has encountered.", timeout: 5000
                 })
             })
             .finally(() => setIsInProgress(false))
     }
 
-    const triggerIndexingRun = () => {
+    const requestTriggerIndexing = () => {
         setIsInProgress(true)
         return axiosInstance.get(apiTriggerIndexing)
         .then(() => {
-            toggleNotification({
+            showNotification({
                 type: "success", message: "The indexing job to process the pending tasks is started.", timeout: 5000
             })
         })
         .catch(() => {
-            toggleNotification({
+            showNotification({
                 type: "warning", message: "An error was encountered.", timeout: 5000
             })
         })
         .finally(() => setIsInProgress(false))
     }
-
 
     const getIndexingEnabled = async () => {
         let work = await axiosInstance.get(apiIndexingEnabled)
@@ -95,138 +101,211 @@ const PageHome = () => {
         if (work) {
             setIndexingEnabled(work.data)
         } else {
-            toggleNotification({
+            showNotification({
                 type: "warning", message: "An error was encountered trying to set Instant Indexing.", timeout: 5000
             })
         }
         setIsInProgress(false)
     }
 
-    const getInstantIndexing = async () => {
+    const getIndexingMode = async () => {
         let work = await axiosInstance.get(apiInstantIndexing)
         if (work) {
-            setInstantIndexing(work.data)
+            setIndexingMode(work.data)
         }
     }
 
-    const toggleInstantIndexing = async () => {
+    const toggleIndexingMode = async () => {
         setIsInProgress(true)
         let work = await axiosInstance.get(apiToggleInstantIndexing)
         
         if (work) {
-            setInstantIndexing(work.data)
+            setIndexingMode(work.data)
         } else {
-            toggleNotification({
+            showNotification({
                 type: "warning", message: "An error was encountered trying to set Instant Indexing.", timeout: 5000
             })
         }
         setIsInProgress(false)
     }
 
+    // =========================
+    // LIFECYCLE STUFF
+    // =========================
+
+    // RUN ON MOUNT
+    getIndexingEnabled()
+    getIndexingMode()
+
+    // RUN AFTER EVERY RENDER
     useEffect(() => {
-        getIndexingEnabled()
-        getInstantIndexing()
-        reloadElasticsearchSetupInfo({showNotification: false})
+        reloadSystemInfo()
     }, [])
 
-    if (setupInfo === null)
+
+    // =========================
+    // TEMPLATE
+    // =========================
+    if (setupInfo === null) {
         return <LoadingIndicatorPage />
-    else
+    } else {
         return (
         <Flex alignItems="stretch" gap={4}>
-        <SubNavigation />
-        <Box padding={8} background="neutral100" width="100%">
-        <Box paddingBottom={4}>
-            <Typography variant="alpha">Setup Information</Typography>
-        </Box>
+            <SubNavigation />
+            <Flex direction="column" alignItems="start" gap={8} padding={8} background="neutral100" width="100%">
+                <Box>
+                    <Typography variant="alpha">Home</Typography>
+                </Box>
 
-        <Box paddingBottom={4}>
-            Indexing enabled: <Switch 
-            onClick={toggleIndexingEnabled}
-            selected={indexingEnabled}
-                visibleLabels
-            />
+                {/* <Layout>
+                    Hello111
+                </Layout>
+                <ContentLayout>
+                    Hello222
+                </ContentLayout> */}
+                {/* <Container>
+                    Hello?
+                </Container> */}
 
-            Instant indexing: <Switch 
-            onClick={toggleInstantIndexing}
-            selected={instantIndexing}
-                visibleLabels
-            />
-            {/* onCheckedChange={toggleInstantIndexing()} */}
-            {/* {instantIndexing && (<div>instantIndexing: true</div>)} */}
-        </Box>
+                <Flex direction="column" alignItems="start" gap={8} width="100%">
+                    <Box style={{ alignSelf: 'stretch' }} background="neutral0" padding="32px" hasRadius={true}>
+                        <Flex direction="column" alignItems="start" gap={8}>
 
-        <Box width="100%" paddingBottom={4}>
-            <TwoColsLayout startCol={
-                <>
-            <Table>
-            {
-                setupInfo && (
-                    Object.keys(setupInfo).map((k, idx) => {
-                        return (
-                            <Tr key={idx}>
-                                <Td><Box padding={2}>
-                                    <Typography textColor="neutral600">{displayLabels[k]} :</Typography>
-                                </Box></Td>
-                                <Td>
-                                    <Box padding={2}>
+                            <Typography variant="beta">Basics</Typography>
+
+                            <Flex direction="column" alignItems="start" gap={6}>
+                                <Box>
+                                    <Flex gap={4}>
+                                        <Typography variant="delta">Indexing</Typography>
+                                        <Switch 
+                                            onClick={toggleIndexingEnabled}
+                                            selected={indexingEnabled}
+                                            visibleLabels
+                                            onLabel = 'Enabled'
+                                            offLabel = 'Disabled'
+                                        />
+                                    </Flex>
+                                </Box>
+
+                                <Box>
+                                    <Flex gap={4}>
+                                        <Typography variant="delta">Mode</Typography>
+                                        {/* <ToggleInput
+                                            checked={IndexingMode}
+                                            onChange={toggleIndexingMode}
+                                            selected={IndexingMode}
+                                            onLabel = 'Scheduled Indexing'
+                                            offLabel = 'Instant Indexing'
+                                        /> */}
+                                        <RadioGroup
+                                            value={ IndexingMode ? 'instant' : 'scheduled' }
+                                            onChange={ toggleIndexingMode }
+                                        >
+                                            <Flex gap={4}>
+                                                <Radio value="instant">
+                                                    Instant Indexing
+                                                </Radio>
+                                                <Radio value="scheduled">
+                                                    Scheduled Indexing
+                                                </Radio>
+                                            </Flex>
+                                        </RadioGroup>
+
+                                    </Flex>
+                                    {/* onCheckedChange={toggleIndexingMode()} */}
+                                    {/* {IndexingMode && (<div>IndexingMode: true</div>)} */}
+                                </Box>
+
+                                <Box>
+                                    <Flex gap={4}>
+                                        <Typography variant="delta">Actions</Typography>
+                                        <Button loading={isInProgress} fullWidth variant="secondary" onClick={requestForceRebuildIndex}>Force Rebuild Index</Button>
+                                        <Button loading={isInProgress} fullWidth variant="secondary" onClick={requestTriggerIndexing}>Trigger Scheduled Indexing</Button>
+                                    </Flex>
+                                </Box>
+
+                            </Flex>
+
+                        </Flex>
+                    </Box>
+                </Flex>
+
+                <Flex direction="column" alignItems="start" gap={8} width="100%">
+                    <Box style={{ alignSelf: 'stretch' }} background="neutral0" padding="32px" hasRadius={true}>
+                        <Flex direction="column" alignItems="start" gap={8}>
+
+                            <Typography variant="beta">Connection</Typography>
+
+                            <Box>
+                                <Flex gap={4}>
+                                    <Typography variant="delta">Connected</Typography>
                                     <Grid>
                                         <GridItem padding={2}>
-                                            { 
-                                                k === 'connected' && setupInfo[k] === true && 
-                                                (
-                                                    <Typography fontWeight="bold" textColor="success500">Yes</Typography>
-                                                )
-                                            }
-                                            { 
-                                                k === 'connected' && setupInfo[k] === false && 
-                                                (
-                                                    <Typography fontWeight="bold" textColor="danger500">No</Typography>
-                                                )
-                                            }
                                             {
-                                                k !== 'connected' && 
-                                                (
-                                                    <Typography textColor="neutral600">{String(setupInfo[k])}</Typography>
-                                                )
+                                                setupInfo['connected'] && setupInfo['connected'] === true && 
+                                                ( <Typography fontWeight="bold" textColor="success500">Yes</Typography> )
+                                            }
+                                            { 
+                                                setupInfo['connected'] && setupInfo['connected'] === false && 
+                                                ( <Typography fontWeight="bold" textColor="danger500">No</Typography> )
                                             }
                                         </GridItem>
                                         <GridItem padding={1}>
                                             {
-                                                k === 'connected' ?
-                                                <IconButton disabled={isInProgress} onClick={() => reloadElasticsearchSetupInfo({showNotification: true})} label="Refresh" icon={<Refresh />} /> : null                                            
+                                                setupInfo['connected'] ?
+                                                <IconButton disabled={isInProgress} onClick={() => reloadSystemInfo(true)} label="Refresh" icon={<Refresh />} /> : null                                            
                                             }
                                         </GridItem>
                                     </Grid>
-                                    </Box>
-                                </Td>
-                            </Tr>
-                        )
-                    })
-                )
-            }
-            </Table></>}
-            endCol={<>
-            <Box paddingLeft={2} paddingRight={2} paddingTop={4} paddingBottom={4} >
-                <Box paddingTop={4} paddingBottom={4}>
-                    <Typography variant="pi" fontWeight="bold" textColor="neutral600">ACTIONS</Typography>
-                </Box>
-                <Divider />
-                <Box paddingTop={4} paddingBottom={4}>
-                    <Box paddingTop={2} paddingBottom={2}>
-                        <Button loading={isInProgress} fullWidth variant="secondary" onClick={requestFullSiteReindexing}>Rebuild Index</Button>
+                                </Flex>
+                            </Box>
+
+                            <Table>
+                                { setupInfo && ( Object.keys(setupInfo).map((k, idx) => {
+
+                                    if (k !== 'connected') {
+                                        return (
+                                            <Tr key={idx}>
+                                                <Td>
+                                                    <Box>
+                                                        <Typography textColor="neutral600">{displayLabels[k]} :</Typography>
+                                                    </Box>
+                                                </Td>
+                                                <Td>
+                                                    <Box>
+                                                        <Grid>
+                                                            <GridItem>
+                                                                <Typography textColor="neutral600">{String(setupInfo[k])}</Typography>
+                                                            </GridItem>
+                                                        </Grid>
+                                                    </Box>
+                                                </Td>
+                                            </Tr>
+                                        )
+                                    }
+
+                                }) ) }
+                            </Table>
+
+                        </Flex>
                     </Box>
-                    <Box paddingTop={2} paddingBottom={2}>
-                        <Button loading={isInProgress} fullWidth variant="secondary" onClick={triggerIndexingRun}>Trigger Indexing</Button>
-                    </Box>
-                </Box>
-            </Box>
-            </>
-            } />
-        </Box>
-        </Box>
+                </Flex>
+
+                {/* <Box width="100%" paddingBottom={4}>
+                    <TwoColsLayout startCol={
+                        <>
+                        Column 1
+                    </>}
+
+                    endCol={<>
+                        Column 2
+                        </>
+                    } />
+                </Box> */}
+            </Flex>
         </Flex>
         )
+    }
 }
 
 
