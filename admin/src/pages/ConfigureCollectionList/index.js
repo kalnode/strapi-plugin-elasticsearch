@@ -57,7 +57,7 @@ const scheduleCollectionIndexing = (collectionName) => {
   return axiosInstance.get(apiRequestCollectionIndexing(collectionName))
 }
 
-const Configure = () => {
+const PageConfigure = () => {
   const [isInProgress, setIsInProgress] = useState(false);
   const [displayImportModal, setDisplayImportModal] = useState(false);
   const [isEnteredJsonValid, setIsEnteredJsonValid] = useState(true);
@@ -263,4 +263,4 @@ const Configure = () => {
   }
 };
 
-export default Configure;
+export default PageConfigure;

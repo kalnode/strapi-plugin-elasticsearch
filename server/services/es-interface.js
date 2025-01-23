@@ -189,7 +189,8 @@ module.exports = ({ strapi }) => ({
         return await this.indexDataToSpecificIndex({ itemId, itemData }, pluginConfig.indexAliasName)
     },
 
-    async removeItemFromIndex({itemId}) {
+    async removeItemFromIndex(itemId) {
+        console.log("removeItemFromIndex itemId is: ", itemId)
         const pluginConfig = await strapi.config.get('plugin.elasticsearch')
         try {
             await client.delete({
@@ -197,6 +198,7 @@ module.exports = ({ strapi }) => ({
                 id: itemId
             })
             await client.indices.refresh({ index: pluginConfig.indexAliasName })
+            return 'Delete success'
         } catch(err) {
             if (err.meta.statusCode === 404) {
                 console.error('SPE - The entry to be removed from the index already does not exist.')
@@ -208,12 +210,34 @@ module.exports = ({ strapi }) => ({
     },
 
     async searchData(searchQuery) {
+
+        // TODO: Typescript would help here.
+        // searchQuery needs to be in a shape that ES understands, otherwise 500 error will be thrown.
+        // Example:
+        // query: {
+        //     match: {
+        //         Title: 'Cogo atqui ver utroq'
+        //     }
+        // }
+
         try {
             const pluginConfig = await strapi.config.get('plugin.elasticsearch')
-            const result= await client.search({
+
+            console.log("Helllo 111", searchQuery)
+
+            // DOCS FOR PAGING ES:
+            // https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html
+
+            const result = await client.search({
                 index: pluginConfig.indexAliasName,
+                from: 0,
+                size: 9999, // Note: Without this, size will default to ES default (e.g. 10). Also, shard default max is like 10000.
                 ...searchQuery
             })
+
+            console.log("Helllo 222")
+
+            
             return result
         } catch(err) {
             console.log('SPE - Search: elasticClient.searchData: Error encountered while making a search request to ElasticSearch.')

@@ -56,7 +56,7 @@ const formattedDate = (dateString) => {
   return formattedDate;
 }
 
-const ViewIndexingRunLog = () => {
+const PageViewIndexingRunLog = () => {
   const [logTable, setLogTable] = useState(null);
   useEffect(() => {
     loadRecentIndexingRuns()
@@ -121,4 +121,4 @@ const ViewIndexingRunLog = () => {
   );
 };
 
-export default ViewIndexingRunLog;
+export default PageViewIndexingRunLog;

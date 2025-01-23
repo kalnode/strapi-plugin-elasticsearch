@@ -99,7 +99,7 @@ const ConfigureField = ({config, index, setFieldConfig}) => {
     )
 }
   
-const ConfigureCollection = () => {
+const PageConfigureCollection = () => {
     const [isInProgress, setIsInProgress] = useState(false);
     const [selectedCollection, setSelectedCollection] = useState(null);
     const [collectionConfig, setCollectionConfig] = useState(null);
@@ -222,4 +222,4 @@ const ConfigureCollection = () => {
   );
 };
 
-export default ConfigureCollection;
+export default PageConfigureCollection;

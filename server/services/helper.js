@@ -12,7 +12,6 @@ const getPluginStore = () => {
     })
 }
 
-
 const getModelPopulationAttributes = (model) => {
     if (model.uid === "plugin::upload.file") {
         const { related, ...attributes } = model.attributes
@@ -219,7 +218,7 @@ module.exports = ({ strapi }) => ({
     async getCurrentIndexName () {
         const pluginStore = getPluginStore()
         const settings = await pluginStore.get({ key: 'configsettings' })
-        let indexName = 'strapi-plugin-elasticsearch-index_000047'
+        let indexName = 'strapi-plugin-elasticsearch-index_000048'
         if (settings) {
             const objSettings = JSON.parse(settings)
             if (Object.keys(objSettings).includes('indexConfig')) {
@@ -285,7 +284,7 @@ module.exports = ({ strapi }) => ({
         }
     },
 
-    async storeSettingToggleInstantIndexing () {
+    async storeSettingToggleInstantIndexing() {
 
         //console.log("ES helper II 111")
         const pluginStore = getPluginStore()
@@ -306,7 +305,7 @@ module.exports = ({ strapi }) => ({
         }
     },
 
-    async storeSettingIndexingEnabled () {
+    async storeSettingIndexingEnabled() {
         //console.log("storeSettingIndexingEnabled 111")
         const pluginStore = getPluginStore()
         const settings = await pluginStore.get({ key: 'configsettings' })
@@ -373,5 +372,122 @@ module.exports = ({ strapi }) => ({
             }
         }
         return document
-    }    
+    },
+
+    async orphansFind() {
+
+        const esInterface = strapi.plugins['elasticsearch'].services.esInterface
+
+        let query = {
+            query: {
+                match_all: { }
+            }
+        }
+        const resp = await esInterface.searchData(query)
+        if (resp?.hits?.hits) {
+            const filteredData = resp.hits.hits.filter( (dt) => dt._source !== null)
+
+            let results = {
+                matched: 0,
+                orphaned: 0
+            }
+
+            for (i = 0; i < filteredData.length; i++) {
+                let item = filteredData[i]
+                let posttype = item._source.posttype                
+                let id = getIDfromStrapiID(item._id)
+                let checkWork = await checkIfDBRecordExists(posttype, id)
+                if (checkWork) {
+                    results.matched = results.matched + 1
+                } else {
+                    results.orphaned = results.orphaned + 1
+                }
+            }
+            return "Matched: " + results.matched + ", Orphaned: " + results.orphaned
+        } else {
+            return 'No records exist!'
+        }
+        
+    },
+
+    async orphansDelete() {
+
+        const esInterface = strapi.plugins['elasticsearch'].services.esInterface
+
+        let query = {
+            query: {
+                match_all: { }
+            }
+        }
+        const resp = await esInterface.searchData(query)
+
+        if (resp?.hits?.hits) {
+
+            const filteredData = resp.hits.hits.filter( (dt) => dt._source !== null)
+
+            let results = {
+                matched: 0,
+                orphaned: 0,
+                deleted: 0
+            }
+
+            for (i = 0; i < filteredData.length; i++) {
+
+                let item = filteredData[i]
+                let posttype = item._source.posttype
+                
+                let id = getIDfromStrapiID(item._id)
+                let checkWork = await checkIfDBRecordExists(posttype, id)
+
+                if (checkWork) {
+                    results.matched = results.matched + 1
+                } else {
+
+                    results.orphaned = results.orphaned + 1
+
+                    const deleteWork = await esInterface.removeItemFromIndex(item._id)
+
+                    if (deleteWork) {
+                        results.deleted = results.deleted + 1
+                    }
+                }
+
+
+            }
+            return "Matched: " + results.matched + ", Orphaned: " + results.orphaned + ", Deleted: " + results.deleted
+        } else {
+            return 'No records exist!'
+        }
+
+    }
+
 })
+
+const getIDfromStrapiID = (strapiID) => {
+    // TODO: This seems really stupid, but we're doing it.
+    // Gets numbers after second '::'
+    return strapiID.split('::').slice(-1)[0]
+}
+
+
+const checkIfDBRecordExists = async (type, id) => {
+
+    let typeFinal
+
+    // TODO: Need to do this check otherwise Strapi crashes if "api::something.something" doesn't exist. 
+    // The "user" type is special in this regard. Barring an official typing here, we do this manual change.
+    if (type === 'user') {
+        typeFinal = 'plugin::users-permissions.user'
+    } else {
+        typeFinal = 'api::'+type+'.'+type
+    }
+
+    const work = await strapi.entityService.findOne(typeFinal, id)
+
+    if (work) {
+        return true
+    } else {
+        return false
+    }
+
+}

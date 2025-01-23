@@ -174,24 +174,26 @@ module.exports = async ({ strapi }) => {
             }    
 
             if (event.action === 'afterDelete') {
-                if (strapi.elasticsearch.collections.includes(event.model.uid)) {
-                    await scheduleIndexingService.removeItemFromIndex({
-                        collectionUid: event.model.uid,
-                        recordId: event.result.id
-                    })
+                const objSettings = JSON.parse(settings)
+                if (objSettings['settingIndexingEnabled'] && objSettings['settingInstantIndex']) {
+                    if (strapi.elasticsearch.collections.includes(event.model.uid)) {
+                        await scheduleIndexingService.removeItemFromIndex({
+                            collectionUid: event.model.uid,
+                            recordId: event.result.id
+                        })
 
-                    const pluginStore = getPluginStore()
-                    const settings = await pluginStore.get({ key: 'configsettings' })
-                    if (settings) {
-                        const objSettings = JSON.parse(settings)
-                        if (objSettings['settingIndexingEnabled'] && objSettings['settingInstantIndex']) {
-                            console.log("afterDelete instantIndex enabled, doing index work")
-                            await indexer.indexPendingData()
+                        const pluginStore = getPluginStore()
+                        const settings = await pluginStore.get({ key: 'configsettings' })
+                        if (settings) {
+                            if (objSettings['settingIndexingEnabled'] && objSettings['settingInstantIndex']) {
+                                console.log("afterDelete instantIndex enabled, doing index work")
+                                await indexer.indexPendingData()
+                            }
                         }
-                    }
 
-                    const ctx = strapi.requestContext.get()   
-                    ctx.response.body = { status: 'success', data: event.result }
+                        const ctx = strapi.requestContext.get()   
+                        ctx.response.body = { status: 'success', data: event.result }
+                    }
                 }
             }
 

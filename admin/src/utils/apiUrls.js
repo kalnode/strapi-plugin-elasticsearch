@@ -12,7 +12,8 @@ export const apiInstantIndexing = `/${pluginId}/instant-indexing`
 export const apiToggleInstantIndexing = `/${pluginId}/toggle-instant-indexing`
 export const apiIndexingEnabled = `/${pluginId}/indexing-enabled`
 export const apiToggleIndexingEnabled = `/${pluginId}/toggle-indexing-enabled`
-
 export const apiExportContentConfig = `/${pluginId}/export-content-config/`
 export const apiImportContentConfig = `/${pluginId}/import-content-config/`
+export const apiOrphansFind = `/${pluginId}/orphans-find`
+export const apiOrphansDelete = `/${pluginId}/orphans-delete`
 

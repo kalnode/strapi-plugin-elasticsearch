@@ -10,7 +10,7 @@ import { Table, Tr, Td } from '@strapi/design-system'
 import { Refresh } from '@strapi/icons'
 import { TwoColsLayout, Button } from '@strapi/design-system'
 import { Grid, GridItem, Divider } from '@strapi/design-system'
-import {LoadingIndicatorPage, useNotification} from '@strapi/helper-plugin'
+import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 
 const loadElasticsearchSetupInfo = () => {
     return axiosInstance.get(apiGetElasticsearchSetupInfo)
@@ -20,13 +20,12 @@ const loadElasticsearchSetupInfo = () => {
         })
 }
 
-const Homepage = () => {
+const PageHome = () => {
     const [setupInfo, setSetupInfo] = useState(null)
     const [isInProgress, setIsInProgress] = useState(false)
     const [indexingEnabled, setIndexingEnabled] = useState(false)
     const [instantIndexing, setInstantIndexing] = useState(false)
     const toggleNotification = useNotification()
-
 
     const displayLabels = {'connected' : 'Connected',
         'elasticCertificate' : 'Certificate',
@@ -37,8 +36,6 @@ const Homepage = () => {
         'initialized' : 'Elasticsearch configuration loaded'};
 
     const reloadElasticsearchSetupInfo = ({showNotification}) => {
-
-        //console.log("Rload elastic 435435435")
         setIsInProgress(true)
         loadElasticsearchSetupInfo()
         .then(setSetupInfo)
@@ -87,7 +84,6 @@ const Homepage = () => {
     const getIndexingEnabled = async () => {
         let work = await axiosInstance.get(apiIndexingEnabled)
         if (work) {
-            //console.log("getIndexingEnabled 112233") //, work.data)
             setIndexingEnabled(work.data)
         }
     }
@@ -97,8 +93,6 @@ const Homepage = () => {
         let work = await axiosInstance.get(apiToggleIndexingEnabled)
         
         if (work) {
-            //console.log("home toggleIndexingEnabled work.data is: ", work.data)
-            //console.log("toggleIndexingEnabled 112233")
             setIndexingEnabled(work.data)
         } else {
             toggleNotification({
@@ -111,8 +105,6 @@ const Homepage = () => {
     const getInstantIndexing = async () => {
         let work = await axiosInstance.get(apiInstantIndexing)
         if (work) {
-            //console.log("home getInstantIndexing work.data is: ", work.data)
-            //console.log("getInstantIndexing 112233")
             setInstantIndexing(work.data)
         }
     }
@@ -122,7 +114,6 @@ const Homepage = () => {
         let work = await axiosInstance.get(apiToggleInstantIndexing)
         
         if (work) {
-            //console.log("toggleInstantIndexing 112233")
             setInstantIndexing(work.data)
         } else {
             toggleNotification({
@@ -150,8 +141,6 @@ const Homepage = () => {
         </Box>
 
         <Box paddingBottom={4}>
-
-
             Indexing enabled: <Switch 
             onClick={toggleIndexingEnabled}
             selected={indexingEnabled}
@@ -212,7 +201,7 @@ const Homepage = () => {
                                     </Box>
                                 </Td>
                             </Tr>
-                        );
+                        )
                     })
                 )
             }
@@ -220,7 +209,7 @@ const Homepage = () => {
             endCol={<>
             <Box paddingLeft={2} paddingRight={2} paddingTop={4} paddingBottom={4} >
                 <Box paddingTop={4} paddingBottom={4}>
-                    <Typography variant="pi" fontWeight="bold" textColor="neutral600" >ACTIONS</Typography>
+                    <Typography variant="pi" fontWeight="bold" textColor="neutral600">ACTIONS</Typography>
                 </Box>
                 <Divider />
                 <Box paddingTop={4} paddingBottom={4}>
@@ -237,8 +226,8 @@ const Homepage = () => {
         </Box>
         </Box>
         </Flex>
-        );
-};
+        )
+}
 
 
-export default Homepage;
+export default PageHome
