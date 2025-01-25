@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 module.exports = async ({ strapi }) => {
 
@@ -9,7 +9,6 @@ module.exports = async ({ strapi }) => {
             name: 'elasticsearch'
         })
     }
-    
 
     const pluginConfig = await strapi.config.get('plugin.elasticsearch')
     const configureIndexingService = strapi.plugins['elasticsearch'].services.configureIndexing
@@ -17,6 +16,8 @@ module.exports = async ({ strapi }) => {
     const esInterface = strapi.plugins['elasticsearch'].services.esInterface
     const indexer = strapi.plugins['elasticsearch'].services.indexer
     const helper = strapi.plugins['elasticsearch'].services.helper
+
+    const pluginStore = getPluginStore()
 
     try {
         await configureIndexingService.initializeStrapiElasticsearch()
@@ -32,7 +33,7 @@ module.exports = async ({ strapi }) => {
             strapi.cron.add({
                 elasticsearchIndexing: {
                     task: async ({ strapi }) => {
-                        const pluginStore = getPluginStore()
+                        //const pluginStore = getPluginStore()
                         const settings = await pluginStore.get({ key: 'configsettings' })
                         if (settings) {
                             const objSettings = JSON.parse(settings)
@@ -111,7 +112,7 @@ module.exports = async ({ strapi }) => {
                         }
                     }
 
-                    const pluginStore = getPluginStore()
+                    //const pluginStore = getPluginStore()
                     const settings = await pluginStore.get({ key: 'configsettings' })
                     if (settings) {
                         const objSettings = JSON.parse(settings)
@@ -157,7 +158,7 @@ module.exports = async ({ strapi }) => {
                             }
                         }
 
-                        const pluginStore = getPluginStore()
+                        //const pluginStore = getPluginStore()
                         const settings = await pluginStore.get({ key: 'configsettings' })
                         if (settings) {
                             const objSettings = JSON.parse(settings)
@@ -174,26 +175,30 @@ module.exports = async ({ strapi }) => {
             }    
 
             if (event.action === 'afterDelete') {
-                const objSettings = JSON.parse(settings)
-                if (objSettings['settingIndexingEnabled'] && objSettings['settingInstantIndex']) {
-                    if (strapi.elasticsearch.collections.includes(event.model.uid)) {
-                        await scheduleIndexingService.removeItemFromIndex({
-                            collectionUid: event.model.uid,
-                            recordId: event.result.id
-                        })
+                const settings = await pluginStore.get({ key: 'configsettings' })
+                
+                if (settings) {
+                    const objSettings = JSON.parse(settings)
+                    //if (objSettings['settingIndexingEnabled'] && objSettings['settingInstantIndex']) {
+                        if (strapi.elasticsearch.collections.includes(event.model.uid)) {
+                            await scheduleIndexingService.removeItemFromIndex({
+                                collectionUid: event.model.uid,
+                                recordId: event.result.id
+                            })
 
-                        const pluginStore = getPluginStore()
-                        const settings = await pluginStore.get({ key: 'configsettings' })
-                        if (settings) {
-                            if (objSettings['settingIndexingEnabled'] && objSettings['settingInstantIndex']) {
-                                console.log("afterDelete instantIndex enabled, doing index work")
-                                await indexer.indexPendingData()
-                            }
+                            //const pluginStore = getPluginStore()
+                            
+                            //if (settings) {
+                                if (objSettings['settingIndexingEnabled'] && objSettings['settingInstantIndex']) {
+                                    console.log("afterDelete instantIndex enabled, doing index work")
+                                    await indexer.indexPendingData()
+                                }
+                            //}
+
+                            const ctx = strapi.requestContext.get()   
+                            ctx.response.body = { status: 'success', data: event.result }
                         }
-
-                        const ctx = strapi.requestContext.get()   
-                        ctx.response.body = { status: 'success', data: event.result }
-                    }
+                    //}
                 }
             }
 
@@ -213,7 +218,7 @@ module.exports = async ({ strapi }) => {
                             
                         }
 
-                        const pluginStore = getPluginStore()
+                        //const pluginStore = getPluginStore()
                         const settings = await pluginStore.get({ key: 'configsettings' })
                         if (settings) {
                             const objSettings = JSON.parse(settings)

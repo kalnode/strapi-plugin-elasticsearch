@@ -6,6 +6,7 @@ const logIndexing = require('./log-indexing')
 const setupInfo = require('./setup-info')
 const performIndexing = require('./perform-indexing')
 const tools = require('./tools')
+const indexes = require('./indexes')
 
 module.exports = {
     configureIndexing,
@@ -13,5 +14,6 @@ module.exports = {
     logIndexing,
     setupInfo,
     performIndexing,
-    tools
+    tools,
+    indexes
 }

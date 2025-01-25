@@ -60,9 +60,9 @@ module.exports = ({ strapi }) => ({
             const exists = await client.indices.exists({ index: indexName })
 
             if (!exists) {
-                //console.log('SPE - createIndex: ', indexName, ' does not exist. Creating index & mapping.')
+                console.log('SPE - createIndex: ', indexName, ' does not exist. Creating index & mapping.')
 
-                await client.indices.create({
+                let work = await client.indices.create({
                     index: indexName,
 
                     // Kal - Define custom mappings
@@ -91,6 +91,9 @@ module.exports = ({ strapi }) => ({
                     }
 
                 })
+
+                console.log("ES interface create index work is:", work)
+                return work
             }
         } catch (err) {
             if (err.message.includes('ECONNREFUSED')) {
@@ -105,9 +108,16 @@ module.exports = ({ strapi }) => ({
 
     async deleteIndex(indexName) {
         try {
-            await client.indices.delete({
-                index: indexName
-            })
+            console.log("Try deleteIndex 111", indexName)
+            const exists = await client.indices.exists({ index: indexName })
+
+            console.log("Try deleteIndex 222", exists)
+            if (exists) {
+                await client.indices.delete({
+                    index: indexName
+                })
+                return 'ES interface success'
+            }
         } catch(err) {
             if (err.message.includes('ECONNREFUSED')) {
                 console.log('SPE - Connection to ElasticSearch refused.')
@@ -189,23 +199,29 @@ module.exports = ({ strapi }) => ({
         return await this.indexDataToSpecificIndex({ itemId, itemData }, pluginConfig.indexAliasName)
     },
 
-    async removeItemFromIndex(itemId) {
+    async removeItemFromIndex({itemId}) {
         console.log("removeItemFromIndex itemId is: ", itemId)
         const pluginConfig = await strapi.config.get('plugin.elasticsearch')
+        const helper = strapi.plugins['elasticsearch'].services.helper
+        const idxName = await helper.getCurrentIndexName()
+
+        console.log("getCurrentIndexName is: ", idxName)
         try {
-            await client.delete({
-                index: pluginConfig.indexAliasName,
+            let work = await client.delete({
+                index: idxName,
                 id: itemId
             })
-            await client.indices.refresh({ index: pluginConfig.indexAliasName })
+            console.log("Delete work is: ", work)
+            let work2 = await client.indices.refresh({ index: idxName })
+            console.log("Refresh work is: ", work2)
             return 'Delete success'
         } catch(err) {
             if (err.meta.statusCode === 404) {
-                console.error('SPE - The entry to be removed from the index already does not exist.')
+                console.error('SPE - The entry to be removed from the index already does not exist.', err)
             } else {
-                console.error('SPE - Error encountered while removing indexed data from ElasticSearch.')
-                throw err
+                console.error('SPE - Error encountered while removing indexed data from ElasticSearch.', err)
             }
+            throw err
         }
     },
 

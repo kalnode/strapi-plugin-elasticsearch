@@ -1,18 +1,18 @@
 module.exports = {
     "kind": "collectionType",
-    "collectionName": "indexing-log",
+    "collectionName": "es-indexing-logs",
     "info": {
       "singularName": "indexing-log",
       "pluralName": "indexing-logs",
-      "displayName": "Indexing Logs",
-      "description": "Logged runs of the indexing cron job"
+      "displayName": "ES Indexing Logs",
+      "description": "Logged runs of indexing jobs"
     },
     "options": {
       "draftAndPublish": false
     },
     "pluginOptions": {
       'content-manager': {
-        visible: false,
+        visible: true,
       },
       'content-type-builder': {
         visible: false,

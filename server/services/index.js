@@ -6,6 +6,7 @@ const esInterface = require('./es-interface')
 const indexer = require('./perform-indexing')
 const logIndexing = require('./log-indexing')
 const helper = require('./helper')
+const indexes = require('./indexes')
 const transformContent = require('./transform-content')
 
 module.exports = {
@@ -15,5 +16,6 @@ module.exports = {
     indexer,
     logIndexing,
     helper,
-    transformContent
+    transformContent,
+    indexes
 }

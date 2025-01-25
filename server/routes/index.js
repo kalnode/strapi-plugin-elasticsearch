@@ -4,6 +4,7 @@ const runLog = require('./run-log')
 const setupInfo = require('./setup-info')
 const performIndexing = require('./perform-indexing')
 const tools = require('./tools')
+const indexes = require('./indexes')
 
 module.exports = {
     config: configureIndexingRoutes,
@@ -11,5 +12,6 @@ module.exports = {
     runLog: runLog,
     setupInfo: setupInfo,
     performIndexing: performIndexing,
-    tools: tools
+    tools: tools,
+    indexes: indexes
 }
