@@ -274,12 +274,17 @@ module.exports = ({ strapi }) => ({
         const pluginStore = getPluginStore()
         const settings = await pluginStore.get({ key: 'configsettings' })
         //console.log("storeSettingInstantIndex 111bbb", settings)
-        const objSettings = JSON.parse(settings)
-        if (objSettings && objSettings['settingInstantIndex'] != undefined) {
-            //console.log("storeSettingInstantIndex 222", objSettings['settingInstantIndex'])
-            return objSettings['settingInstantIndex']
+        if (settings) {
+            const objSettings = JSON.parse(settings)
+            if (objSettings && objSettings['settingInstantIndex'] != undefined) {
+                //console.log("storeSettingInstantIndex 222", objSettings['settingInstantIndex'])
+                return objSettings['settingInstantIndex']
+            } else {
+                //console.log("storeSettingInstantIndex 333")
+                return "Settings not found"
+            }
         } else {
-            //console.log("storeSettingInstantIndex 333")
+            // TODO: Remove this duplicate (see above)
             return "Store settings not found"
         }
     },
@@ -310,12 +315,16 @@ module.exports = ({ strapi }) => ({
         const pluginStore = getPluginStore()
         const settings = await pluginStore.get({ key: 'configsettings' })
         //console.log("storeSettingIndexingEnabled 111bbb", settings)
-        const objSettings = JSON.parse(settings)
-        if (objSettings && objSettings['settingIndexingEnabled'] != undefined) {
-            //console.log("storeSettingIndexingEnabled 222", objSettings['settingIndexingEnabled'])
-            return objSettings['settingIndexingEnabled']
+        if (settings) {
+            const objSettings = JSON.parse(settings)
+            if (objSettings && objSettings['settingIndexingEnabled'] != undefined) {
+                //console.log("storeSettingIndexingEnabled 222", objSettings['settingIndexingEnabled'])
+                return objSettings['settingIndexingEnabled']
+            } else {
+                //console.log("storeSettingIndexingEnabled 333")
+                return "Settings not found"
+            }
         } else {
-            //console.log("storeSettingIndexingEnabled 333")
             return "Store settings not found"
         }
     },

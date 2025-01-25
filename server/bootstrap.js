@@ -2,14 +2,6 @@
 
 module.exports = async ({ strapi }) => {
 
-    const getPluginStore = () => {
-        return strapi.store({
-            environment: '',
-            type: 'plugin',
-            name: 'elasticsearch'
-        })
-    }
-
     const pluginConfig = await strapi.config.get('plugin.elasticsearch')
     const configureIndexingService = strapi.plugins['elasticsearch'].services.configureIndexing
     const scheduleIndexingService = strapi.plugins['elasticsearch'].services.scheduleIndexing
@@ -17,7 +9,13 @@ module.exports = async ({ strapi }) => {
     const indexer = strapi.plugins['elasticsearch'].services.indexer
     const helper = strapi.plugins['elasticsearch'].services.helper
 
-    const pluginStore = getPluginStore()
+    const getPluginStore = () => {
+        return strapi.store({
+            environment: '',
+            type: 'plugin',
+            name: 'elasticsearch'
+        })
+    }
 
     try {
         await configureIndexingService.initializeStrapiElasticsearch()
@@ -33,7 +31,7 @@ module.exports = async ({ strapi }) => {
             strapi.cron.add({
                 elasticsearchIndexing: {
                     task: async ({ strapi }) => {
-                        //const pluginStore = getPluginStore()
+                        const pluginStore = getPluginStore()
                         const settings = await pluginStore.get({ key: 'configsettings' })
                         if (settings) {
                             const objSettings = JSON.parse(settings)
@@ -61,8 +59,7 @@ module.exports = async ({ strapi }) => {
   
         strapi.db.lifecycles.subscribe(async (event) => {
 
-
-            
+           
             if (event.action === 'afterCreate' || event.action === 'afterUpdate') {
 
                 if (event.action === 'afterUpdate') {
@@ -112,7 +109,7 @@ module.exports = async ({ strapi }) => {
                         }
                     }
 
-                    //const pluginStore = getPluginStore()
+                    const pluginStore = getPluginStore()
                     const settings = await pluginStore.get({ key: 'configsettings' })
                     if (settings) {
                         const objSettings = JSON.parse(settings)
@@ -158,7 +155,7 @@ module.exports = async ({ strapi }) => {
                             }
                         }
 
-                        //const pluginStore = getPluginStore()
+                        const pluginStore = getPluginStore()
                         const settings = await pluginStore.get({ key: 'configsettings' })
                         if (settings) {
                             const objSettings = JSON.parse(settings)
@@ -175,8 +172,8 @@ module.exports = async ({ strapi }) => {
             }    
 
             if (event.action === 'afterDelete') {
+                const pluginStore = getPluginStore()
                 const settings = await pluginStore.get({ key: 'configsettings' })
-                
                 if (settings) {
                     const objSettings = JSON.parse(settings)
                     //if (objSettings['settingIndexingEnabled'] && objSettings['settingInstantIndex']) {
@@ -213,12 +210,10 @@ module.exports = async ({ strapi }) => {
                             await scheduleIndexingService.removeItemFromIndex({
                                 collectionUid: event.model.uid,
                                 recordId: deletedItemIds[k]
-                            })
-
-                            
+                            })                            
                         }
 
-                        //const pluginStore = getPluginStore()
+                        const pluginStore = getPluginStore()
                         const settings = await pluginStore.get({ key: 'configsettings' })
                         if (settings) {
                             const objSettings = JSON.parse(settings)
