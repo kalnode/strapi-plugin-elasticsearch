@@ -7,6 +7,7 @@ const indexer = require('./perform-indexing')
 const logIndexing = require('./log-indexing')
 const helper = require('./helper')
 const indexes = require('./indexes')
+const mappings = require('./mappings')
 const transformContent = require('./transform-content')
 
 module.exports = {
@@ -17,5 +18,6 @@ module.exports = {
     logIndexing,
     helper,
     transformContent,
-    indexes
+    indexes,
+    mappings
 }

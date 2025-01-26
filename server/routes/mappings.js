@@ -4,20 +4,20 @@ module.exports = {
     routes: [
         {
             method: 'GET',
-            path: '/get-indexes',
-            handler: 'indexes.getIndexes',
+            path: '/get-mappings',
+            handler: 'mappings.getMappings',
+            config: { policies: [] }
+        },
+        {
+            method: 'POST',
+            path: '/create-mapping',
+            handler: 'mappings.createMapping',
             config: { policies: [] }
         },
         {
             method: 'GET',
-            path: '/create-index/:indexName',
-            handler: 'indexes.createIndex',
-            config: { policies: [] }
-        },
-        {
-            method: 'GET',
-            path: '/delete-index/:recordIndexNumber',
-            handler: 'indexes.deleteIndex',
+            path: '/delete-mapping/:mappingIndexNumber',
+            handler: 'mappings.deleteMapping',
             config: { policies: [] },
           },
     ]

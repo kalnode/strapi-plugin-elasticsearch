@@ -20,10 +20,17 @@ export const apiOrphansFind = `/${pluginId}/orphans-find`
 export const apiOrphansDelete = `/${pluginId}/orphans-delete`
 
 // INDEXES
-export const apiCreateIndex = `/${pluginId}/create-index`
-export const apiDeleteIndex = (indexName) => `/${pluginId}/delete-index/${indexName}`
+export const apiGetIndexes = `/${pluginId}/get-indexes`
+//export const apiCreateIndex = `/${pluginId}/create-index`
+export const apiCreateIndex = (indexName) => `/${pluginId}/create-index/${indexName}`
+export const apiDeleteIndex = (recordIDNumber) => `/${pluginId}/delete-index/${recordIDNumber}`
 
 // MAPPING
+
+export const apiGetMappings = `/${pluginId}/get-mappings`
+export const apiCreateMapping = `/${pluginId}/create-mapping`
+export const apiDeleteMapping = (mappingIDNumber) => `/${pluginId}/delete-mapping/${mappingIDNumber}`
+
 export const apiGetCollectionConfig = (collectionName) => `/${pluginId}/collection-config/${collectionName}`
 export const apiSaveCollectionConfig = (collectionName) => `/${pluginId}/collection-config/${collectionName}`
 

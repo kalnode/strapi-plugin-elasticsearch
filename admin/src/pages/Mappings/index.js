@@ -7,32 +7,31 @@ import Pencil from '@strapi/icons/Pencil'
 import Trash from '@strapi/icons/Trash'
 import Plus from '@strapi/icons/Plus'
 
-
 import axiosInstance  from '../../utils/axiosInstance'
 import { Typography } from '@strapi/design-system'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 
-import { apiGetIndexes, apiCreateIndex, apiDeleteIndex } from '../../utils/apiUrls'
+import { apiGetMappings, apiCreateMapping, apiDeleteMapping } from '../../utils/apiUrls'
 
-const PageIndexes = () => {
+const PageMappings = () => {
 
     const [isInProgress, setIsInProgress] = useState(false)
     const [logTable, setLogTable] = useState(null)
     const [showCreateModal, setShowCreateModal] = useState(false)
-    const [newIndexName, setNewIndexName] = useState('')
+    const [newMapping, setNewMapping] = useState('')
     const showNotification = useNotification()
 
     useEffect(() => {
         console.log("112232345jjjj")
-        requestGetRegisteredIndexes()
+        requestGetMappings()
         //.then(setLogTable)
     }, [])
 
-    const requestGetRegisteredIndexes = () => {
+    const requestGetMappings = () => {
         setIsInProgress(true)
-        axiosInstance.get(apiGetIndexes)
+        axiosInstance.get(apiGetMappings)
             .then((response) => {
-                console.log("get indexes data is: ", response)
+                console.log("get requestGetMappings data is: ", response)
                 if (response.data && Array.isArray(response.data) && response.data.length > 0) {
                     setLogTable(response.data)
                 } else {
@@ -40,7 +39,7 @@ const PageIndexes = () => {
                 }
             })
             .catch((error) => {
-                console.log("PAGE requestGetRegisteredIndexes ERROR: ", error)
+                console.log("PAGE requestGetMappings ERROR: ", error)
                 showNotification({
                     type: "warning", message: "An error has encountered: " + error, timeout: 5000
                 })
@@ -51,65 +50,75 @@ const PageIndexes = () => {
             
     } 
 
-    const requestCreateIndex = (indexName) => {
+    const requestCreateMapping = (mapping) => {
         setIsInProgress(true)
 
-        console.log("Indexname is: ", indexName)
-        
-        return axiosInstance.get(apiCreateIndex(indexName))
+        console.log("mappingName is: ", mapping)
+
+        return axiosInstance.post(apiCreateMapping, {
+            data: mapping
+        })
             .then((response) => {
-                console.log("PAGE requestCreateIndex response: ", response)
+                console.log("PAGE requestCreateMapping response: ", response)
                 showNotification({
-                    type: "success", message: "Created the index: " + response, timeout: 5000
+                    type: "success", message: "Created the mapping: " + response, timeout: 5000
                 })
             })
             .catch((error) => {
-                console.log("PAGE requestCreateIndex ERROR: ", error)
+                console.log("PAGE requestCreateMapping ERROR: ", error)
                 showNotification({
                     type: "warning", message: "An error has encountered: " + error, timeout: 5000
                 })
             })
             .finally(() => {
                 //setIsInProgress(false)
-                requestGetRegisteredIndexes()
+                requestGetMappings()
             })
     }
 
-    const onOpen = () => {
+    const modalCreateMappingOpen = () => {
         console.log("Opening modal....")
         setShowCreateModal(true)
     }
 
-    const onClose = () => {
+    const modalCreateMappingClose = () => {
         setShowCreateModal(false)
     }
 
-    const createIndexActual = () => {
+    const createMappingActual = () => {
         setShowCreateModal(false)
-        console.log("Helllo???", newIndexName)
-        requestCreateIndex(newIndexName)
+        //console.log("Helllo???", newMapping)
+
+        let newMappingTest = {
+            "post_type": 'posttypefoo',
+            "mapping": 'somemapping',
+            //"preset": 'dfdf'
+            //"nested_level": 2
+            //"registered_index": 'someregindex'
+            //"mapping_type": 'custom',
+            //"default_preset": true
+        }
+        requestCreateMapping(newMappingTest)
     }
 
-    const requestDeleteIndex = (recordIndexNumber) => {
+    const requestDeleteMapping = (mappingIDNumber) => {
         setIsInProgress(true)
-        return axiosInstance.get(apiDeleteIndex(recordIndexNumber))
-        //apiDeleteIndex('strapi-plugin-elasticsearch-index_000049')
-        //    'strapi-plugin-elasticsearch-index_000049'
+        return axiosInstance.get(apiDeleteMapping(mappingIDNumber))
             .then((response) => {
-                console.log("PAGE requestDeleteIndex response: ", response)
+                console.log("PAGE requestDeleteMapping response: ", response)
                 showNotification({
-                    type: "success", message: "Deleted the index: " + response, timeout: 5000
+                    type: "success", message: "Deleted the mapping: " + response, timeout: 5000
                 })
             })
             .catch((error) => {
-                console.log("PAGE requestDeleteIndex ERROR: ", error)
+                console.log("PAGE requestDeleteMapping ERROR: ", error)
                 showNotification({
                     type: "warning", message: "An error has encountered: " + error, timeout: 5000
                 })
             })
             .finally(() => {
                 //setIsInProgress(false)
-                requestGetRegisteredIndexes()
+                requestGetMappings()
             })
     }
 
@@ -119,38 +128,23 @@ const PageIndexes = () => {
 
             <Flex direction="column" alignItems="start" gap={8} padding={8} background="neutral100" width="100%">
                 <Box>
-                    <Typography variant="alpha">Indexes</Typography>
+                    <Typography variant="alpha">Mappings</Typography>
                 </Box>
 
                 <Flex direction="column" alignItems="start" gap={8} width="100%">
                     <Box style={{ alignSelf: 'stretch' }} background="neutral0" padding="32px" hasRadius={true}>
                         <Flex direction="column" alignItems="start" gap={8}>
 
-                            <Typography variant="beta">Indexes</Typography>
-                            <Typography variant="delta">Indexes registered in the context of this plugin</Typography>
+                            <Typography variant="beta">Mappings</Typography>
+                            <Typography variant="delta">All forms of mappings in the context of this plugin</Typography>
 
                             <Box>
                                 <Flex gap={4}>
                                     <Typography variant="delta">Actions</Typography>
-                                    <Button loading={isInProgress} fullWidth variant="secondary" onClick={requestGetRegisteredIndexes}>Reload list</Button>
-                                    <Button loading={isInProgress} fullWidth variant="secondary" onClick={onOpen}>Create Index</Button>
+                                    <Button loading={isInProgress} fullWidth variant="secondary" onClick={requestGetMappings}>Reload list</Button>
+                                    <Button loading={isInProgress} fullWidth variant="secondary" onClick={modalCreateMappingOpen}>Create Preset Mapping</Button>
                                 </Flex>
                             </Box>
-
-                            {/* This section will entail:
-
-                            <ul>
-                                <li>Table showing indexes with batch controls</li>
-                                <li>Clicking an index will open child page</li>
-                                <li>
-                                    Index child page will have:
-                                    <ul>
-                                        <li>Details</li>
-                                        <li>Mappings</li>
-                                        <li>Actions</li>
-                                    </ul>
-                                </li>
-                            </ul> */}
                         </Flex>
                     </Box>
                 </Flex>
@@ -161,7 +155,7 @@ const PageIndexes = () => {
                         !logTable || (logTable && logTable.length === 0) && (
                             <EmptyStateLayout icon={<Cross />} content="You don't have any content yet..." action={
                                 <Button variant="secondary" startIcon={<Plus />}>
-                                    Create your first content-type
+                                    Create a preset mapping
                                 </Button>
                             } />
                         )
@@ -178,22 +172,22 @@ const PageIndexes = () => {
                                             <Checkbox aria-label="Select all entries" />
                                         </Th>
                                         <Th>
-                                        {/* action={<IconButton label="Sort on ID" borderWidth={0}>
-                                                <CaretDown />
-                                            </IconButton>} */}
-                                            <Typography variant="sigma">ES Index Name</Typography>
+                                            <Typography variant="sigma">Post Type</Typography>
                                         </Th>
-                                        {/* <Th>
-                                            <Typography variant="sigma">Name</Typography>
-                                        </Th> */}
                                         <Th>
-                                            <Typography variant="sigma">Alias</Typography>
-                                        </Th>
-                                        <Th width={50}>
                                             <Typography variant="sigma">Mapping</Typography>
                                         </Th>
                                         <Th>
-                                            <Typography variant="sigma">State</Typography>
+                                            <Typography variant="sigma">Preset</Typography>
+                                        </Th>
+                                        <Th>
+                                            <Typography variant="sigma">Nested Level</Typography>
+                                        </Th>
+                                        <Th>
+                                            <Typography variant="sigma">Index Name</Typography>
+                                        </Th>
+                                        <Th>
+                                            <Typography variant="sigma">Default</Typography>
                                         </Th>
                                     </Tr>
                                 </Thead>
@@ -203,26 +197,32 @@ const PageIndexes = () => {
                                     return (
                                         <Tr key={index}>
                                             <Td>
-                                                <Checkbox aria-label={`Select ${data.index_name}`} />
+                                                <Checkbox aria-label={`Select ${data.id}`} />
                                             </Td>
                                             <Td>
-                                                <Typography textColor="neutral600">{data.index_name}</Typography>
+                                                <Typography textColor="neutral600">{data.post_type}</Typography>
                                             </Td>
                                             <Td>
-                                                <Typography textColor="neutral600">{data.index_alias}</Typography>
+                                                <Typography textColor="neutral600">{data.mapping}</Typography>
                                             </Td>
                                             <Td>
-                                                <Typography textColor="neutral600">{data.index_mapping}</Typography>
+                                                <Typography textColor="neutral600">{data.preset}</Typography>
                                             </Td>
                                             <Td>
-                                                <Typography textColor="neutral600">state</Typography>
+                                                <Typography textColor="neutral600">{data.nested_level}</Typography>
+                                            </Td>
+                                            <Td>
+                                                <Typography textColor="neutral600">{data.registered_index}</Typography>
+                                            </Td>
+                                            <Td>
+                                                <Typography textColor="neutral600">{data.default_preset}</Typography>
                                             </Td>
                                             <Td>
                                                 <Flex alignItems="end" gap={2}>
                                                     <IconButton onClick={() => console.log('edit')} label="Edit" borderWidth={0}>
                                                         <Pencil />
                                                     </IconButton>                                                    
-                                                    <IconButton onClick={() => requestDeleteIndex(data.id)} label="Delete" borderWidth={0}>
+                                                    <IconButton onClick={() => requestDeleteMapping(data.id)} label="Delete" borderWidth={0}>
                                                         <Trash />
                                                     </IconButton>                                                    
                                                 </Flex>
@@ -234,7 +234,7 @@ const PageIndexes = () => {
                                 </Tbody>
                             </Table>
                             <Box paddingTop={2} paddingBottom={2}>
-                                <Typography textColor="neutral600">This view lists registered indexes (in the context of this plugin).</Typography>
+                                <Typography textColor="neutral600">This view lists mappings (in the context of this plugin).</Typography>
                             </Box>
                         </>
                         )
@@ -244,20 +244,50 @@ const PageIndexes = () => {
 
                 {
                     showCreateModal && (
-                    <ModalLayout onClose={onClose}>
+                    <ModalLayout onClose={modalCreateMappingClose}>
                         {/* labelledBy="title" */}
                         <ModalHeader>
                             <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
-                                Create index
+                                Create preset mapping
                             </Typography>
                         </ModalHeader>
                         <ModalBody>
-                            A new index will be created in Elasticsearch with the below name, and will also be registered in this plugin.
-                            We prepend a standard identifier "strapi_es_plugin".
-                            <TextInput value={newIndexName} onChange={(event) => { setNewIndexName(event.target.value) }} label="Index name" placeholder="Enter index name" name="Index name field" />
+                            Create preset mapping
+                            
+                            {/* <TextInput value={newMapping} onChange={(event) => { setNewMapping(event.target.value) }} label="Mapping name" placeholder="Enter mapping name" name="Mapping name field" /> */}
                             {/* onChange={e => updateMappedFieldName(e.target.value)} value={config.searchFieldName || ""} */}
-                            <Button onClick={createIndexActual} variant="tertiary">
-                                Create Index
+
+                            {/* "post_type": {
+                                "type": "string",
+                                "required": true
+                            },
+                            "mapping": {
+                                "type": "richtext"
+                            },
+                            "preset": {
+                                "type": "string", // id of a preset mapping
+                            },
+                            "nested_level": {
+                                "type": "number"
+                            },
+                            "registered_index": {
+                                "type": "string", // id of a registered index
+                            },
+
+
+                            // "mapping_type": {
+                            //     "type": "string", // 'custom', 'preset'
+                            //     "required": true
+                            // },
+                            "default_preset": {
+                                "type": "boolean"
+                            }, */}
+
+
+
+                            
+                            <Button onClick={createMappingActual} variant="tertiary">
+                                Create Mapping
                             </Button>
 
                             {/* {showFileDragAndDrop && (
@@ -306,7 +336,7 @@ const PageIndexes = () => {
                                     icon={<Icon width="6rem" height="6rem" color="success500" as={CheckCircle} />}
                                     content={i18n('plugin.message.import.success.imported-successfully')}
                                     action={
-                                    <Button onClick={onClose} variant="tertiary">
+                                    <Button onClick={modalCreateMappingClose} variant="tertiary">
                                         {i18n('plugin.cta.close')}
                                     </Button>
                                     }
@@ -370,4 +400,4 @@ const PageIndexes = () => {
 
 }
 
-export default PageIndexes
+export default PageMappings

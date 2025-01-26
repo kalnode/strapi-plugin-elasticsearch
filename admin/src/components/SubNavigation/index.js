@@ -33,6 +33,12 @@ export const SubNavigation = ({activeUrl}) => {
         },
         {
             id: 5,
+            label : 'Mappings',
+            icon : Connector,
+            to : `/plugins/${pluginId}/mappings`
+        },
+        {
+            id: 6,
             label : 'Tools',
             icon : Connector,
             to : `/plugins/${pluginId}/tools`

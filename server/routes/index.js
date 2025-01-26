@@ -5,6 +5,7 @@ const setupInfo = require('./setup-info')
 const performIndexing = require('./perform-indexing')
 const tools = require('./tools')
 const indexes = require('./indexes')
+const mappings = require('./mappings')
 
 module.exports = {
     config: configureIndexingRoutes,
@@ -13,5 +14,6 @@ module.exports = {
     setupInfo: setupInfo,
     performIndexing: performIndexing,
     tools: tools,
-    indexes: indexes
+    indexes: indexes,
+    mappings: mappings
 }

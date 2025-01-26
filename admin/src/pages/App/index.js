@@ -16,6 +16,7 @@ import ConfigureCollectionList from '../ConfigureCollectionList'
 import ConfigureCollection from '../ConfigureCollection'
 import ViewIndexingRunLog from '../ViewIndexingRunLog'
 import Tools from '../Tools'
+import Mappings from '../Mappings'
 
 const App = () => {
     return (
@@ -25,6 +26,7 @@ const App = () => {
             <Route path={`/plugins/${pluginId}/indexes`} component={Indexes} exact />
             <Route path={`/plugins/${pluginId}/configure-collections`} component={ConfigureCollectionList} exact />
             <Route path={`/plugins/${pluginId}/configure-collections/:collectionName`} component={ConfigureCollection} exact />
+            <Route path={`/plugins/${pluginId}/mappings`} component={Mappings} exact />
             <Route path={`/plugins/${pluginId}/view-indexing-logs`} component={ViewIndexingRunLog} />
             <Route path={`/plugins/${pluginId}/tools`} component={Tools} />
             <Route component={AnErrorOccurred} />
