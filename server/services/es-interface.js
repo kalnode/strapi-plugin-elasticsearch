@@ -87,7 +87,7 @@ module.exports = ({ strapi }) => ({
                             //     type: "string",
                             //     index: "not_analyzed"
                             // }
-                        }                        
+                        }
                     }
 
                 })

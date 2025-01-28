@@ -19,7 +19,13 @@ module.exports = {
             path: '/delete-mapping/:mappingIndexNumber',
             handler: 'mappings.deleteMapping',
             config: { policies: [] },
-          },
+        },
+        {
+            method: 'GET',
+            path: '/get-content-types',
+            handler: 'mappings.getContentTypes',
+            config: { policies: [] }
+        },
     ]
     
 }

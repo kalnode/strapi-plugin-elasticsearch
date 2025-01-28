@@ -8,6 +8,10 @@ module.exports = ({ strapi }) => {
         return await mappings.getMappings()
     }
 
+    const getContentTypes = async (ctx) => {
+        return await mappings.getContentTypes()
+    }
+
     const createMapping = async (ctx) => {
         console.log("Controller createMapping 343434", ctx)
         const { body } = ctx.request
@@ -32,6 +36,7 @@ module.exports = ({ strapi }) => {
 
     return {
         getMappings,
+        getContentTypes,
         createMapping,
         deleteMapping
     }

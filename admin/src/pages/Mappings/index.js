@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
 // import PropTypes from 'prop-types'
 import pluginId from '../../pluginId'
-import  { SubNavigation } from '../../components/SubNavigation'
+import { SubNavigation } from '../../components/SubNavigation'
+import { Mapping } from '../../components/Mapping'
+
 import { Box, Flex, Button, ModalLayout, ModalHeader, ModalFooter, ModalBody, Table, Thead, Tbody, Tr, Td, Th, TFooter, EmptyStateLayout, Checkbox, TextInput, IconButton, CaretDown } from '@strapi/design-system'
 import Pencil from '@strapi/icons/Pencil'
 import Trash from '@strapi/icons/Trash'
@@ -11,15 +13,19 @@ import axiosInstance  from '../../utils/axiosInstance'
 import { Typography } from '@strapi/design-system'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 
-import { apiGetMappings, apiCreateMapping, apiDeleteMapping } from '../../utils/apiUrls'
+import { apiGetMappings, apiCreateMapping, apiDeleteMapping, apiGetContentTypes } from '../../utils/apiUrls'
 
 const PageMappings = () => {
 
     const [isInProgress, setIsInProgress] = useState(false)
     const [logTable, setLogTable] = useState(null)
     const [showCreateModal, setShowCreateModal] = useState(false)
-    const [newMapping, setNewMapping] = useState('')
+
     const showNotification = useNotification()
+
+    const [newMapping, setNewMapping] = useState('')
+    const [selectedType, setSelectedType] = useState(null)
+    const [contentTypes, setContentTypes] = useState(null)
 
     useEffect(() => {
         console.log("112232345jjjj")
@@ -76,8 +82,10 @@ const PageMappings = () => {
             })
     }
 
-    const modalCreateMappingOpen = () => {
+    const modalCreateMappingOpen = async () => {
         console.log("Opening modal....")
+        setSelectedType(null)
+        await getContentTypes()
         setShowCreateModal(true)
     }
 
@@ -122,6 +130,28 @@ const PageMappings = () => {
             })
     }
 
+    const getContentTypes = () => {
+        setIsInProgress(true)
+        return axiosInstance.get(apiGetContentTypes)
+            .then((response) => {
+                console.log("PAGE getContentTypes response: ", response.data)
+                setContentTypes(response.data)
+                showNotification({
+                    type: "success", message: "getContentTypes: " + response.data, timeout: 5000
+                })
+            })
+            .catch((error) => {
+                console.log("PAGE getContentTypes ERROR: ", error)
+                showNotification({
+                    type: "warning", message: "An error has encountered: " + error, timeout: 5000
+                })
+            })
+            .finally(() => {
+                setIsInProgress(false)
+            })
+    }
+
+
     return (
         <Flex alignItems="stretch" gap={4}>
             <SubNavigation />
@@ -143,6 +173,7 @@ const PageMappings = () => {
                                     <Typography variant="delta">Actions</Typography>
                                     <Button loading={isInProgress} fullWidth variant="secondary" onClick={requestGetMappings}>Reload list</Button>
                                     <Button loading={isInProgress} fullWidth variant="secondary" onClick={modalCreateMappingOpen}>Create Preset Mapping</Button>
+                                    <Button loading={isInProgress} fullWidth variant="secondary" onClick={getContentTypes}>Content Types</Button>
                                 </Flex>
                             </Box>
                         </Flex>
@@ -251,131 +282,70 @@ const PageMappings = () => {
                                 Create preset mapping
                             </Typography>
                         </ModalHeader>
-                        <ModalBody>
-                            Create preset mapping
-                            
-                            {/* <TextInput value={newMapping} onChange={(event) => { setNewMapping(event.target.value) }} label="Mapping name" placeholder="Enter mapping name" name="Mapping name field" /> */}
-                            {/* onChange={e => updateMappedFieldName(e.target.value)} value={config.searchFieldName || ""} */}
+                        <ModalBody>                          
 
-                            {/* "post_type": {
-                                "type": "string",
-                                "required": true
-                            },
-                            "mapping": {
-                                "type": "richtext"
-                            },
-                            "preset": {
-                                "type": "string", // id of a preset mapping
-                            },
-                            "nested_level": {
-                                "type": "number"
-                            },
-                            "registered_index": {
-                                "type": "string", // id of a registered index
-                            },
+                            <Box width="100%">
+                                {
+                                    !contentTypes || (contentTypes && Object.values(contentTypes).length === 0) && (
+                                        <>
+                                        No content types found
+                                        </>
+                                    )
+                                }
 
+                                {
+                                    contentTypes && Object.values(contentTypes).length > 0 && (
+                                        <>
+                                        { !selectedType && (
+                                            <>
+                                                
+                                                <Table colCount={3} rowCount={logTable.length} width="100%">
+                                                {/* footer={<TFooter icon={<Plus />}>Add another field to this collection type</TFooter>} */}
+                                                    <Thead>
+                                                        <Tr>
+                                                            <Th>
+                                                                <Typography variant="sigma">Name</Typography>
+                                                            </Th>
+                                                        </Tr>
+                                                    </Thead>
+                                                    <Tbody>
+                                                    {
+                                                        Object.keys(contentTypes).map((key, index) => {
 
-                            // "mapping_type": {
-                            //     "type": "string", // 'custom', 'preset'
-                            //     "required": true
-                            // },
-                            "default_preset": {
-                                "type": "boolean"
-                            }, */}
+                                                        //const item = contentTypes[key]
+                                                        return (
+                                                            <Tr key={index}>
+                                                                <Td>
+                                                                    <Typography textColor="neutral600">{key}</Typography>
+                                                                </Td>
+                                                                <Td>
+                                                                    <div onClick={() => setSelectedType(key)}>Use</div>
+                                                                </Td>
+                                                            </Tr>
+                                                        )
+                                                        })
+                                                    }
+                                                    </Tbody>
+                                                </Table>
+                                                <Box paddingTop={2} paddingBottom={2}>
+                                                    <Typography textColor="neutral600">This view lists approved content types for mapping.</Typography>
+                                                </Box>
+                                            </>
+                                        ) }
 
+                                        { selectedType && (
 
-
-                            
-                            <Button onClick={createMappingActual} variant="tertiary">
-                                Create Mapping
-                            </Button>
-
-                            {/* {showFileDragAndDrop && (
-                                <>
-                                <Typography textColor="neutral800" fontWeight="bold" as="h2">
-                                    {i18n('plugin.import.data-source-step.title')}
-                                </Typography>
-                                <Flex gap={4}>
-                                    <label
-                                    className={`plugin-ie-import_modal_label ${labelClassNames}`}
-                                    onDragEnter={handleDragEnter}
-                                    onDragLeave={handleDragLeave}
-                                    onDragOver={handleDragOver}
-                                    onDrop={handleDrop}
-                                    >
-                                    <span className="plugin-ie-import_modal_label-icon-wrapper">
-                                        <IconFile />
-                                    </span>
-                                    <Typography style={{ fontSize: '1rem', fontWeight: 500 }} textColor="neutral600" as="p">
-                                        {i18n('plugin.import.drag-drop-file')}
-                                    </Typography>
-                                    <input type="file" accept=".csv,.json" hidden="" onChange={onReadFile} />
-                                    </label>
-                                    <label className="plugin-ie-import_modal_label plugin-ie-import_modal_button-label" onClick={openCodeEditor}>
-                                    <span className="plugin-ie-import_modal_label-icon-wrapper">
-                                        <IconCode />
-                                    </span>
-                                    <Typography style={{ fontSize: '1rem', fontWeight: 500 }} textColor="neutral600" as="p">
-                                        {i18n('plugin.import.use-code-editor')}
-                                    </Typography>
-                                    </label>
-                                </Flex>
-                                </>
-                            )}
-                            {showLoader && (
-                                <>
-                                <Flex justifyContent="center">
-                                    <Loader>{i18n('plugin.import.importing-data')}</Loader>
-                                </Flex>
-                                </>
-                            )}
-                            {showEditor && <ImportEditor file={file} data={data} dataFormat={dataFormat} slug={slug} onDataChanged={onDataChanged} onOptionsChanged={onOptionsChanged} />}
-                            {showSuccess && (
-                                <>
-                                <EmptyStateLayout
-                                    icon={<Icon width="6rem" height="6rem" color="success500" as={CheckCircle} />}
-                                    content={i18n('plugin.message.import.success.imported-successfully')}
-                                    action={
-                                    <Button onClick={modalCreateMappingClose} variant="tertiary">
-                                        {i18n('plugin.cta.close')}
-                                    </Button>
-                                    }
-                                />
-                                </>
-                            )}
-                            {showPartialSuccess && (
-                                <>
-                                <Typography textColor="neutral800" fontWeight="bold" as="h2">
-                                    {i18n('plugin.import.partially-failed')}
-                                </Typography>
-                                <Typography textColor="neutral800" as="p">
-                                    {i18n('plugin.import.detailed-information')}
-                                </Typography>
-                                <Editor content={importFailuresContent} language={'json'} readOnly />
-                                </>
-                            )} */}
+                                            <>
+                                                <Mapping posttype={selectedType} />                                          
+                                            </>
+                                        )}
+                                    </>
+                                    )
+                                }
+                            </Box>
+                          
                         </ModalBody>
-                        {/* <ModalFooter
-                            startActions={
-                                <>
-                                {showRemoveFileButton && (
-                                    <Button onClick={resetDataSource} variant="tertiary">
-                                    {i18n('plugin.cta.back-to-data-sources')}
-                                    </Button>
-                                )}
-                                </>
-                            }
-                            endActions={
-                                <>
-                                {showImportButton && <Button onClick={uploadData}>{i18n('plugin.cta.import')}</Button>}
-                                {showPartialSuccess && (
-                                    <Button variant="secondary" onClick={copyToClipboard}>
-                                    {i18n('plugin.cta.copy-to-clipboard')}
-                                    </Button>
-                                )}
-                                </>
-                            }
-                        /> */}
+                        
                     </ModalLayout>
 
                     )
