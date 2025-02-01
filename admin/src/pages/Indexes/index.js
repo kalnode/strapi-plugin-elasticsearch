@@ -3,16 +3,15 @@ import React, { useState, useEffect } from 'react'
 import pluginId from '../../pluginId'
 import  { SubNavigation } from '../../components/SubNavigation'
 import { Box, Flex, Button, ModalLayout, ModalHeader, ModalFooter, ModalBody, Table, Thead, Tbody, Tr, Td, Th, TFooter, EmptyStateLayout, Checkbox, TextInput, IconButton, CaretDown } from '@strapi/design-system'
-import Pencil from '@strapi/icons/Pencil'
-import Trash from '@strapi/icons/Trash'
-import Plus from '@strapi/icons/Plus'
-
+import { Pencil, Trash, Refresh, Plus } from '@strapi/icons'
+import '../../styles/styles.css'
 
 import axiosInstance  from '../../utils/axiosInstance'
 import { Typography } from '@strapi/design-system'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 
 import { apiGetIndexes, apiCreateIndex, apiDeleteIndex } from '../../utils/apiUrls'
+import { useHistory } from "react-router-dom"
 
 const PageIndexes = () => {
 
@@ -20,6 +19,7 @@ const PageIndexes = () => {
     const [logTable, setLogTable] = useState(null)
     const [showCreateModal, setShowCreateModal] = useState(false)
     const [newIndexName, setNewIndexName] = useState('')
+    const history = useHistory()
     const showNotification = useNotification()
 
     useEffect(() => {
@@ -59,9 +59,6 @@ const PageIndexes = () => {
         return axiosInstance.get(apiCreateIndex(indexName))
             .then((response) => {
                 console.log("PAGE requestCreateIndex response: ", response)
-                showNotification({
-                    type: "success", message: "Created the index: " + response, timeout: 5000
-                })
             })
             .catch((error) => {
                 console.log("PAGE requestCreateIndex ERROR: ", error)
@@ -75,31 +72,27 @@ const PageIndexes = () => {
             })
     }
 
-    const onOpen = () => {
-        console.log("Opening modal....")
+    const modalCreateOpen = () => {
         setShowCreateModal(true)
     }
 
-    const onClose = () => {
+    const modalCreateClose = () => {
         setShowCreateModal(false)
     }
 
     const createIndexActual = () => {
         setShowCreateModal(false)
-        console.log("Helllo???", newIndexName)
         requestCreateIndex(newIndexName)
     }
 
-    const requestDeleteIndex = (recordIndexNumber) => {
+    const requestDeleteIndex = (e, recordIndexNumber) => {
+        e.stopPropogation()
         setIsInProgress(true)
         return axiosInstance.get(apiDeleteIndex(recordIndexNumber))
         //apiDeleteIndex('strapi-plugin-elasticsearch-index_000049')
         //    'strapi-plugin-elasticsearch-index_000049'
             .then((response) => {
                 console.log("PAGE requestDeleteIndex response: ", response)
-                showNotification({
-                    type: "success", message: "Deleted the index: " + response, timeout: 5000
-                })
             })
             .catch((error) => {
                 console.log("PAGE requestDeleteIndex ERROR: ", error)
@@ -117,44 +110,17 @@ const PageIndexes = () => {
         <Flex alignItems="stretch" gap={4}>
             <SubNavigation />
 
-            <Flex direction="column" alignItems="start" gap={8} padding={8} background="neutral100" width="100%">
+            <Flex direction="column" alignItems="start" gap={2} padding={8} background="neutral100" width="100%">
                 <Box>
-                    <Typography variant="alpha">Indexes</Typography>
+                    <Typography variant="alpha">Registered Indexes</Typography>
                 </Box>
 
-                <Flex direction="column" alignItems="start" gap={8} width="100%">
-                    <Box style={{ alignSelf: 'stretch' }} background="neutral0" padding="32px" hasRadius={true}>
-                        <Flex direction="column" alignItems="start" gap={8}>
-
-                            <Typography variant="beta">Indexes</Typography>
-                            <Typography variant="delta">Indexes registered in the context of this plugin</Typography>
-
-                            <Box>
-                                <Flex gap={4}>
-                                    <Typography variant="delta">Actions</Typography>
-                                    <Button loading={isInProgress} fullWidth variant="secondary" onClick={requestGetRegisteredIndexes}>Reload list</Button>
-                                    <Button loading={isInProgress} fullWidth variant="secondary" onClick={onOpen}>Create Index</Button>
-                                </Flex>
-                            </Box>
-
-                            {/* This section will entail:
-
-                            <ul>
-                                <li>Table showing indexes with batch controls</li>
-                                <li>Clicking an index will open child page</li>
-                                <li>
-                                    Index child page will have:
-                                    <ul>
-                                        <li>Details</li>
-                                        <li>Mappings</li>
-                                        <li>Actions</li>
-                                    </ul>
-                                </li>
-                            </ul> */}
-                        </Flex>
-                    </Box>
-                </Flex>
-
+                <Box>
+                    <Flex gap={4}>
+                        <IconButton onClick={requestGetRegisteredIndexes} label="Reload indexes" icon={<Refresh />} />
+                        <Button loading={isInProgress} fullWidth variant="secondary" onClick={modalCreateOpen} startIcon={<Plus />}>Create Index</Button>
+                    </Flex>
+                </Box>
 
                 <Box width="100%">
                     {
@@ -175,7 +141,7 @@ const PageIndexes = () => {
                                 <Thead>
                                     <Tr>
                                         <Th>
-                                            <Checkbox aria-label="Select all entries" />
+                                            <Checkbox aria-label="Select all entries" className="checkbox" />
                                         </Th>
                                         <Th>
                                         {/* action={<IconButton label="Sort on ID" borderWidth={0}>
@@ -190,10 +156,13 @@ const PageIndexes = () => {
                                             <Typography variant="sigma">Alias</Typography>
                                         </Th>
                                         <Th width={50}>
-                                            <Typography variant="sigma">Mapping</Typography>
+                                            <Typography variant="sigma">Mappings</Typography>
+                                        </Th>
+                                        <Th width={50}>
+                                            <Typography variant="sigma">Raw Mapping</Typography>
                                         </Th>
                                         <Th>
-                                            <Typography variant="sigma">State</Typography>
+                                            <Typography variant="sigma">Active</Typography>
                                         </Th>
                                     </Tr>
                                 </Thead>
@@ -201,9 +170,9 @@ const PageIndexes = () => {
                                 {
                                     logTable.map((data, index) => {
                                     return (
-                                        <Tr key={index}>
+                                        <Tr key={index} className="row" onClick={() => history.push(`/plugins/${pluginId}/index/${data.id}`)}>
                                             <Td>
-                                                <Checkbox aria-label={`Select ${data.index_name}`} />
+                                                <Checkbox aria-label={`Select ${data.index_name}`} className="checkbox" />
                                             </Td>
                                             <Td>
                                                 <Typography textColor="neutral600">{data.index_name}</Typography>
@@ -212,19 +181,18 @@ const PageIndexes = () => {
                                                 <Typography textColor="neutral600">{data.index_alias}</Typography>
                                             </Td>
                                             <Td>
+                                                <Typography textColor="neutral600">?</Typography>
+                                            </Td>
+                                            <Td>
                                                 <Typography textColor="neutral600">{data.index_mapping}</Typography>
                                             </Td>
                                             <Td>
-                                                <Typography textColor="neutral600">state</Typography>
+                                                <Typography textColor="neutral600">?</Typography>
                                             </Td>
                                             <Td>
                                                 <Flex alignItems="end" gap={2}>
-                                                    <IconButton onClick={() => console.log('edit')} label="Edit" borderWidth={0}>
-                                                        <Pencil />
-                                                    </IconButton>                                                    
-                                                    <IconButton onClick={() => requestDeleteIndex(data.id)} label="Delete" borderWidth={0}>
-                                                        <Trash />
-                                                    </IconButton>                                                    
+                                                    <IconButton label="Edit" borderWidth={0} icon={<Pencil />} />                                                  
+                                                    <IconButton onClick={(e) => requestDeleteIndex(e, data.id)} label="Delete" borderWidth={0} icon={<Trash />} />                                                
                                                 </Flex>
                                             </Td>
                                         </Tr>
@@ -244,7 +212,7 @@ const PageIndexes = () => {
 
                 {
                     showCreateModal && (
-                    <ModalLayout onClose={onClose}>
+                    <ModalLayout onClose={modalCreateClose}>
                         {/* labelledBy="title" */}
                         <ModalHeader>
                             <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
@@ -306,7 +274,7 @@ const PageIndexes = () => {
                                     icon={<Icon width="6rem" height="6rem" color="success500" as={CheckCircle} />}
                                     content={i18n('plugin.message.import.success.imported-successfully')}
                                     action={
-                                    <Button onClick={onClose} variant="tertiary">
+                                    <Button onClick={modalCreateClose} variant="tertiary">
                                         {i18n('plugin.cta.close')}
                                     </Button>
                                     }

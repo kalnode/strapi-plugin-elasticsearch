@@ -1,11 +1,18 @@
 
 module.exports = ({ strapi }) => ({
 
-    async getMappings(count = 50) {
 
-        console.log('SPE - getMappings 111')
+    async getMapping(mappingId) {
+        console.log('SPE - getMapping 111')
+        const record = await strapi.entityService.findOne('plugin::elasticsearch.mapping', mappingId)
+        return record
+    },
 
-        const records = await strapi.entityService.findMany('plugin::elasticsearch.mapping', {
+    async getMappings(indexId, count = 50) {
+
+        console.log('SPE - getMappings 111', indexId)
+
+        const records = await strapi.entityService.findMany('plugin::elasticsearch.mapping', indexId, {
             sort: { createdAt: 'DESC' },
             start: 0,
             limit: count
@@ -130,11 +137,13 @@ module.exports = ({ strapi }) => ({
             //const newIndexName = await helper.getIncrementedIndexName()
             console.log('SPE - createMapping 333 - Created new index with name:', mapping)
 
+            let finalPayload = JSON.parse(JSON.stringify(mapping))
 
+            finalPayload.mapping = JSON.stringify(finalPayload.mapping)
             //let work = await esInterface.createIndex(newIndexName)
             const entry = await strapi.entityService.create('plugin::elasticsearch.mapping', {
                 data : {
-                    ...mapping
+                    ...finalPayload
                     //index_alias: 'myAlias',
                     //mapping: 'crazy mapping'
                 }
@@ -145,6 +154,44 @@ module.exports = ({ strapi }) => ({
 
         } catch(err) {
             console.log('SPE - createMapping: An error was encountered')
+            console.log(err)
+            return err
+        }
+
+    },
+
+
+
+    async updateMapping(mappingId, mapping) {
+
+        const helper = strapi.plugins['elasticsearch'].services.helper
+        const esInterface = strapi.plugins['elasticsearch'].services.esInterface
+
+        try {
+
+            //const oldIndexName = await helper.getCurrentIndexName()
+            //console.log('SPE - updateMapping 222 - Previous index name:', oldIndexName)
+
+            // Step 1: Create a new index
+            //const newIndexName = await helper.getIncrementedIndexName()
+            console.log('SPE - updateMapping 111 - mappingId:', mappingId)
+            console.log('SPE - updateMapping 222', mapping)
+            //let work = await esInterface.createIndex(newIndexName)
+            //JSON.stringify(body.data)
+            let finalPayload = JSON.parse(JSON.stringify(mapping))
+
+            finalPayload.mapping = JSON.stringify(finalPayload.mapping)
+            const entry = await strapi.entityService.update('plugin::elasticsearch.mapping', mappingId, {
+                data: {
+                    ...finalPayload
+                }
+            })
+
+            console.log('SPE - updateMapping 444 - Updated mapping:', entry)
+            return entry
+
+        } catch(err) {
+            console.log('SPE - updateMapping: An error was encountered')
             console.log(err)
             return err
         }

@@ -1,7 +1,8 @@
 import React from 'react'
 import { Connector } from '@strapi/icons'
 import { Box } from '@strapi/design-system'
-import { SubNav, SubNavHeader, SubNavSection, SubNavSections, SubNavLink } from '@strapi/design-system/v2'
+//import { SubNav, SubNavHeader, SubNavSection, SubNavSections, SubNavLink } from '@strapi/design-system/v2'
+import { SubNav, SubNavHeader, SubNavSection, SubNavSections, SubNavLink } from '@strapi/design-system'
 import { NavLink } from 'react-router-dom'
 import pluginId from "../../pluginId"
 
@@ -20,6 +21,21 @@ export const SubNavigation = ({activeUrl}) => {
             to : `/plugins/${pluginId}/indexes`
         },
         {
+            id: 5,
+            label : 'Mappings',
+            icon : Connector,
+            to : `/plugins/${pluginId}/mappings`
+        },
+        {
+            id: 6,
+            label : 'Tools',
+            icon : Connector,
+            to : `/plugins/${pluginId}/tools`
+        },
+    ]
+
+    const links_old = [
+        {
             id: 3,
             label : 'Configure Collections',
             icon : Connector,
@@ -31,18 +47,6 @@ export const SubNavigation = ({activeUrl}) => {
             icon : Connector,
             to : `/plugins/${pluginId}/view-indexing-logs`
         },
-        {
-            id: 5,
-            label : 'Mappings',
-            icon : Connector,
-            to : `/plugins/${pluginId}/mappings`
-        },
-        {
-            id: 6,
-            label : 'Tools',
-            icon : Connector,
-            to : `/plugins/${pluginId}/tools`
-        }
     ]
 
     return (<Box style={{ height: '100vh' }} background="neutral200">
@@ -52,11 +56,47 @@ export const SubNavigation = ({activeUrl}) => {
                 <SubNavSection>
                     {links.map(
                         link => link.icon &&
-                        <SubNavLink as={NavLink} to={link.to} icon={link.icon} key={link.id}>
+                        <SubNavLink as={NavLink} to={link.to} key={link.id}>
                             {link.label}
-                        </SubNavLink>)
+                        </SubNavLink>
+                        // icon={link.icon}
+                        
+                        )
                     }
                 </SubNavSection>
+
+                <Box padding={4}>
+                    <hr />
+                    Old pages:
+                </Box>
+
+                <SubNavSection>
+                    {links_old.map(
+                        link => link.icon &&
+                        <SubNavLink as={NavLink} to={link.to} key={link.id}>
+                            {link.label}
+                        </SubNavLink>
+                        // icon={link.icon}
+                        
+                        )
+                    }
+                </SubNavSection>
+
+                {/* <SubNavSection>
+                    {
+                    links.map( (link) => {
+
+                        if (link.icon) {
+                            return (
+                                <SubNavLink as={NavLink} to={link.to} icon={link.icon} key={link.id}>
+                                    {link.label}
+                                </SubNavLink>
+                            )
+                        }
+                    } )
+
+                }
+                </SubNavSection> */}
             </SubNavSections>
         </SubNav>
     </Box>)

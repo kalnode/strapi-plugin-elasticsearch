@@ -4,6 +4,12 @@ module.exports = {
     routes: [
         {
             method: 'GET',
+            path: '/get-index/:indexId',
+            handler: 'indexes.getIndex',
+            config: { policies: [] }
+        },
+        {
+            method: 'GET',
             path: '/get-indexes',
             handler: 'indexes.getIndexes',
             config: { policies: [] }
@@ -19,7 +25,13 @@ module.exports = {
             path: '/delete-index/:recordIndexNumber',
             handler: 'indexes.deleteIndex',
             config: { policies: [] },
-          },
+        },
+        {
+            method: 'POST',
+            path: '/update-index/:indexId',
+            handler: 'indexes.updateIndex',
+            config: { policies: [] }
+        },
     ]
     
 }

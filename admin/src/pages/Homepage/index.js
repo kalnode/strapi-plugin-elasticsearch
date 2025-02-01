@@ -157,16 +157,6 @@ const PageHome = () => {
                     <Typography variant="alpha">Home</Typography>
                 </Box>
 
-                {/* <Layout>
-                    Hello111
-                </Layout>
-                <ContentLayout>
-                    Hello222
-                </ContentLayout> */}
-                {/* <Container>
-                    Hello?
-                </Container> */}
-
                 <Flex direction="column" alignItems="start" gap={8} width="100%">
                     <Box style={{ alignSelf: 'stretch' }} background="neutral0" padding="32px" hasRadius={true}>
                         <Flex direction="column" alignItems="start" gap={8}>
@@ -237,55 +227,43 @@ const PageHome = () => {
                             <Typography variant="beta">Connection</Typography>
 
                             <Box>
-                                <Flex gap={4}>
-                                    <Typography variant="delta">Connected</Typography>
-                                    <Grid>
-                                        <GridItem padding={2}>
-                                            {
-                                                setupInfo['connected'] && setupInfo['connected'] === true && 
-                                                ( <Typography fontWeight="bold" textColor="success500">Yes</Typography> )
-                                            }
-                                            { 
-                                                setupInfo['connected'] && setupInfo['connected'] === false && 
-                                                ( <Typography fontWeight="bold" textColor="danger500">No</Typography> )
-                                            }
-                                        </GridItem>
-                                        <GridItem padding={1}>
-                                            {
-                                                setupInfo['connected'] ?
-                                                <IconButton disabled={isInProgress} onClick={() => reloadSystemInfo(true)} label="Refresh" icon={<Refresh />} /> : null                                            
-                                            }
-                                        </GridItem>
-                                    </Grid>
+                                <Typography variant="delta">Connected</Typography>
+                                <Flex>
+                                    <Box padding={2}>
+                                        { setupInfo['connected'] && setupInfo['connected'] === true && (
+                                            <Typography fontWeight="bold" textColor="success500">Yes</Typography>
+                                        )}
+                                        { setupInfo['connected'] && setupInfo['connected'] === false && (
+                                            <Typography fontWeight="bold" textColor="danger500">No</Typography>
+                                        )}
+                                    </Box>
+                                    <Box padding={1}>
+                                        { setupInfo['connected'] ?
+                                            <IconButton disabled={isInProgress} onClick={() => reloadSystemInfo(true)} label="Refresh" icon={<Refresh />} />
+                                        : null }
+                                    </Box>
                                 </Flex>
                             </Box>
 
-                            <Table>
-                                { setupInfo && ( Object.keys(setupInfo).map((k, idx) => {
-
-                                    if (k !== 'connected') {
-                                        return (
-                                            <Tr key={idx}>
-                                                <Td>
+                            <Box>
+                                { setupInfo && (
+                                    Object.keys(setupInfo).map((k, idx) => {
+                                        if (k !== 'connected') {
+                                            return (
+                                                <Flex key={idx} gap={2} justifyBetween>
                                                     <Box>
                                                         <Typography textColor="neutral600">{displayLabels[k]} :</Typography>
                                                     </Box>
-                                                </Td>
-                                                <Td>
                                                     <Box>
-                                                        <Grid>
-                                                            <GridItem>
-                                                                <Typography textColor="neutral600">{String(setupInfo[k])}</Typography>
-                                                            </GridItem>
-                                                        </Grid>
-                                                    </Box>
-                                                </Td>
-                                            </Tr>
-                                        )
-                                    }
-
-                                }) ) }
-                            </Table>
+                                                        <Typography textColor="neutral600">{String(setupInfo[k])}</Typography>
+                                                    </Box>                                            
+                                                </Flex>
+                                            )
+                                        }
+                                    })                                
+                                ) }
+                            </Box>
+      
 
                         </Flex>
                     </Box>

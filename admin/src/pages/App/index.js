@@ -12,11 +12,13 @@ import pluginId from '../../pluginId'
 
 import Homepage from '../Homepage'
 import Indexes from '../Indexes'
+import Index from '../Index'
 import ConfigureCollectionList from '../ConfigureCollectionList'
 import ConfigureCollection from '../ConfigureCollection'
 import ViewIndexingRunLog from '../ViewIndexingRunLog'
 import Tools from '../Tools'
 import Mappings from '../Mappings'
+import Mapping from '../Mapping'
 
 const App = () => {
     return (
@@ -24,9 +26,11 @@ const App = () => {
             <Route path={`/plugins/${pluginId}`} render={() => (<Redirect to={`/plugins/${pluginId}/home`} />)} exact />
             <Route path={`/plugins/${pluginId}/home`} component={Homepage} exact />
             <Route path={`/plugins/${pluginId}/indexes`} component={Indexes} exact />
+            <Route path={`/plugins/${pluginId}/index/:indexId`} component={Index} exact />
             <Route path={`/plugins/${pluginId}/configure-collections`} component={ConfigureCollectionList} exact />
             <Route path={`/plugins/${pluginId}/configure-collections/:collectionName`} component={ConfigureCollection} exact />
             <Route path={`/plugins/${pluginId}/mappings`} component={Mappings} exact />
+            <Route path={`/plugins/${pluginId}/mapping/:mappingId`} component={Mapping} exact />
             <Route path={`/plugins/${pluginId}/view-indexing-logs`} component={ViewIndexingRunLog} />
             <Route path={`/plugins/${pluginId}/tools`} component={Tools} />
             <Route component={AnErrorOccurred} />

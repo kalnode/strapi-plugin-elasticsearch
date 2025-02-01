@@ -1686,7 +1686,7 @@
     "@strapi/utils" "4.25.17"
     fs-extra "10.0.0"
 
-"@strapi/strapi@^4.0.0", "@strapi/strapi@^4.15.1", "@strapi/strapi@^4.3.4", "@strapi/strapi@4.25.17":
+"@strapi/strapi@^4.0.0", "@strapi/strapi@^4.15.1", "@strapi/strapi@^4.25.2", "@strapi/strapi@^4.3.4", "@strapi/strapi@4.25.17":
   version "4.25.17"
   resolved "https://registry.npmjs.org/@strapi/strapi/-/strapi-4.25.17.tgz"
   integrity sha512-0ZpAEVc+gO3Le9+/d35Yd4CJD/Giyaz+6BammAOWUIQrcXgXNJ7cFAtUzSAEwiXqRCbNCD+2WUm4UQ0pqjgWjw==

@@ -21,13 +21,16 @@ export const apiOrphansDelete = `/${pluginId}/orphans-delete`
 
 // INDEXES
 export const apiGetIndexes = `/${pluginId}/get-indexes`
-//export const apiCreateIndex = `/${pluginId}/create-index`
+export const apiGetIndex = (indexIDNumber) => `/${pluginId}/get-index/${indexIDNumber}`
 export const apiCreateIndex = (indexName) => `/${pluginId}/create-index/${indexName}`
 export const apiDeleteIndex = (recordIDNumber) => `/${pluginId}/delete-index/${recordIDNumber}`
+export const apiUpdateIndex = (indexIDNumber) => `/${pluginId}/update-index/${indexIDNumber}`
 
 // MAPPING
-export const apiGetMappings = `/${pluginId}/get-mappings`
+export const apiGetMapping = (mappingIDNumber) => `/${pluginId}/get-mapping/${mappingIDNumber}`
+export const apiGetMappings = (mappingIDNumber) => `/${pluginId}/get-mappings/${mappingIDNumber}`
 export const apiCreateMapping = `/${pluginId}/create-mapping`
+export const apiUpdateMapping = (mappingIDNumber) => `/${pluginId}/update-mapping/${mappingIDNumber}`
 export const apiDeleteMapping = (mappingIDNumber) => `/${pluginId}/delete-mapping/${mappingIDNumber}`
 export const apiGetContentTypes = `/${pluginId}/get-content-types`
 export const apiGetCollectionConfig = (collectionName) => `/${pluginId}/collection-config/${collectionName}`
