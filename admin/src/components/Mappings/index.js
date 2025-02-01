@@ -111,194 +111,186 @@ export const Mappings = ({ indexId }) => {
 
 
     return  (
-        <Box>
+
+        <Flex width="100%" direction="column" alignItems="start" gap={2} background="neutral100">
            
-           <Box>
-                    <Typography variant="alpha">Mappings</Typography>
-                </Box>
+            <Box>
+                <Typography variant="alpha">Mappings</Typography>
+            </Box>
 
-                <Box>
-                    <Flex gap={4}>
-                        {/* <Typography variant="delta">Actions</Typography>
-                        <Button loading={isInProgress} fullWidth variant="secondary" onClick={requestGetMappings}>Reload list</Button> */}
-                        <IconButton onClick={requestGetMappings} label="Get mappings" icon={<Refresh />} />
-                        <Button loading={isInProgress} fullWidth variant="secondary" onClick={modalCreateMappingOpen} style={{ whiteSpace: 'no-wrap' }} startIcon={<Plus />}>
-                            Create Preset Mapping
+            <Box>
+                <Flex gap={4}>
+                    {/* <Typography variant="delta">Actions</Typography>
+                    <Button loading={isInProgress} fullWidth variant="secondary" onClick={requestGetMappings}>Reload list</Button> */}
+                    <IconButton onClick={requestGetMappings} label="Get mappings" icon={<Refresh />} />
+                    <Button loading={isInProgress} fullWidth variant="secondary" onClick={modalCreateMappingOpen} style={{ whiteSpace: 'no-wrap' }} startIcon={<Plus />}>
+                        Create Preset Mapping
+                    </Button>
+                </Flex>
+            </Box>
+
+            <Box width="100%" style={{ overflow: 'hidden' }}>
+                { !mappings || (mappings && mappings.length === 0) && (
+                    <EmptyStateLayout icon={<Cross />} content="You don't have any content yet..." action={
+                        <Button variant="secondary" startIcon={<Plus />} style={{ whiteSpace: 'no-wrap' }}>
+                            Create a preset mapping
                         </Button>
-                    </Flex>
-                </Box>
+                    } />
+                ) }
 
-                <Box width="100%" style={{ overflow: 'hidden' }}>
-                    {
-                        !mappings || (mappings && mappings.length === 0) && (
-                            <EmptyStateLayout icon={<Cross />} content="You don't have any content yet..." action={
-                                <Button variant="secondary" startIcon={<Plus />} style={{ whiteSpace: 'no-wrap' }}>
-                                    Create a preset mapping
-                                </Button>
-                            } />
-                        )
-                    }
+                { mappings && Array.isArray(mappings) && mappings.length > 0 && (
+                    <>
+                        <Table colCount={7} rowCount={mappings.length} width="100%" tableLayout='auto'>
+                        {/* footer={<TFooter icon={<Plus />}>Add another field to this collection type</TFooter>} */}
+                            <Thead>
+                                <Tr>
+                                    <Th>
+                                        <Checkbox aria-label="Select all entries" className="checkbox" />
+                                    </Th>
+                                    <Th>
+                                        <Typography variant="sigma">Post Type</Typography>
+                                    </Th>
+                                    <Th>
+                                        <Typography variant="sigma">Mapping</Typography>
+                                    </Th>
+                                    <Th>
+                                        <Typography variant="sigma">Preset</Typography>
+                                    </Th>
+                                    <Th>
+                                        <Typography variant="sigma">Nested Level</Typography>
+                                    </Th>
+                                    <Th>
+                                        <Typography variant="sigma">Index Name</Typography>
+                                    </Th>
+                                    <Th>
+                                        <Typography variant="sigma">Default</Typography>
+                                    </Th>
+                                </Tr>
+                            </Thead>
+                            <Tbody>
+                            { mappings.map((data, index) => {
+                                return (
+                                    <Tr key={index} className="row" onClick={() => history.push(`/plugins/${pluginId}/mapping/${data.id}`)}>
+                                        <Td>
+                                            <Checkbox aria-label={`Select ${data.id}`} className="checkbox" />
+                                        </Td>
+                                        <Td style={{ overflow: 'hidden' }}>
+                                            <Typography textColor="neutral600">{data.post_type}</Typography>
+                                        </Td>
+                                        <Td style={{ overflow: 'hidden', maxWidth: '200px' }}>
+                                            <Typography textColor="neutral600">{data.mapping}</Typography>
+                                        </Td>
+                                        <Td>
+                                            <Typography textColor="neutral600">{data.preset}</Typography>
+                                        </Td>
+                                        <Td>
+                                            <Typography textColor="neutral600">{data.nested_level}</Typography>
+                                        </Td>
+                                        <Td>
+                                            <Typography textColor="neutral600">{data.registered_index}</Typography>
+                                        </Td>
+                                        <Td>
+                                            <Typography textColor="neutral600">{data.default_preset}</Typography>
+                                        </Td>
+                                        <Td>
+                                            <Flex alignItems="end" gap={2}>
+                                                {/* <IconButton onClick={(e) => editMapping(data.id)} label="Edit" borderWidth={0}>
+                                                    <Pencil />
+                                                </IconButton> */}
+                                                <IconButton label="Edit mapping" noBorder icon={<Pencil />} />
+                                                {/* onClick={() => history.push(`/plugins/${pluginId}/mapping/${data.id}`)} */}
 
-                    {
-                        mappings && Array.isArray(mappings) && mappings.length > 0 && (
-                        <>
-                            <Table colCount={7} rowCount={mappings.length} width="100%" style={{ width: '100%', tableLayout: 'auto' }}>
-                            {/* footer={<TFooter icon={<Plus />}>Add another field to this collection type</TFooter>} */}
-                                <Thead>
-                                    <Tr>
-                                        <Th>
-                                            <Checkbox aria-label="Select all entries" className="checkbox" />
-                                        </Th>
-                                        <Th>
-                                            <Typography variant="sigma">Post Type</Typography>
-                                        </Th>
-                                        <Th>
-                                            <Typography variant="sigma">Mapping</Typography>
-                                        </Th>
-                                        <Th>
-                                            <Typography variant="sigma">Preset</Typography>
-                                        </Th>
-                                        <Th>
-                                            <Typography variant="sigma">Nested Level</Typography>
-                                        </Th>
-                                        <Th>
-                                            <Typography variant="sigma">Index Name</Typography>
-                                        </Th>
-                                        <Th>
-                                            <Typography variant="sigma">Default</Typography>
-                                        </Th>
+                                                <IconButton onClick={(e) => requestDeleteMapping(e, data.id)} label="Delete" borderWidth={0} icon={<Trash />} />
+                                            </Flex>
+                                        </Td>
                                     </Tr>
-                                </Thead>
-                                <Tbody>
-                                {
-                                    mappings.map((data, index) => {
-                                        return (
-                                            <Tr key={index} className="row" onClick={() => history.push(`/plugins/${pluginId}/mapping/${data.id}`)}>
-                                                <Td>
-                                                    <Checkbox aria-label={`Select ${data.id}`} className="checkbox" />
-                                                </Td>
-                                                <Td style={{ overflow: 'hidden' }}>
-                                                    <Typography textColor="neutral600">{data.post_type}</Typography>
-                                                </Td>
-                                                <Td style={{ overflow: 'hidden', maxWidth: '200px' }}>
-                                                    <Typography textColor="neutral600">{data.mapping}</Typography>
-                                                </Td>
-                                                <Td>
-                                                    <Typography textColor="neutral600">{data.preset}</Typography>
-                                                </Td>
-                                                <Td>
-                                                    <Typography textColor="neutral600">{data.nested_level}</Typography>
-                                                </Td>
-                                                <Td>
-                                                    <Typography textColor="neutral600">{data.registered_index}</Typography>
-                                                </Td>
-                                                <Td>
-                                                    <Typography textColor="neutral600">{data.default_preset}</Typography>
-                                                </Td>
-                                                <Td>
-                                                    <Flex alignItems="end" gap={2}>
-                                                        {/* <IconButton onClick={(e) => editMapping(data.id)} label="Edit" borderWidth={0}>
-                                                            <Pencil />
-                                                        </IconButton> */}
-                                                        <IconButton label="Edit mapping" noBorder icon={<Pencil />} />
-                                                        {/* onClick={() => history.push(`/plugins/${pluginId}/mapping/${data.id}`)} */}
+                                )
+                            }) }
+                            </Tbody>
+                        </Table>
+                        <Box paddingTop={2} paddingBottom={2}>
+                            <Typography textColor="neutral600">This view lists mappings (in the context of this plugin).</Typography>
+                        </Box>
+                    </>
+                ) }
+            </Box>
 
-                                                        <IconButton onClick={(e) => requestDeleteMapping(e, data.id)} label="Delete" borderWidth={0} icon={<Trash />} />
-                                               
-                                                    </Flex>
-                                                </Td>
-                                            </Tr>
-                                        )
-                                    })
-                                }
-                                </Tbody>
-                            </Table>
-                            <Box paddingTop={2} paddingBottom={2}>
-                                <Typography textColor="neutral600">This view lists mappings (in the context of this plugin).</Typography>
-                            </Box>
-                        </>
-                        )
-                    }
-                </Box>
+            { showCreateModal && (
+                <ModalLayout onClose={() => modalCreateMappingClose()}>
+                    {/* labelledBy="title" */}
+                    <ModalHeader>
+                        <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
+                            Create preset mapping
+                        </Typography>
+                    </ModalHeader>
+                    <ModalBody>
+                        <Box width="100%">
+                            { !contentTypes || (contentTypes && Object.values(contentTypes).length === 0) && ( <> No content types found </> ) }
 
-                { showCreateModal && (
-                    <ModalLayout onClose={() => modalCreateMappingClose()}>
-                        {/* labelledBy="title" */}
-                        <ModalHeader>
-                            <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
-                                Create preset mapping
-                            </Typography>
-                        </ModalHeader>
-                        <ModalBody>
-                            <Box width="100%">
-                                { !contentTypes || (contentTypes && Object.values(contentTypes).length === 0) && ( <> No content types found </> ) }
-
-                                { contentTypes && Object.values(contentTypes).length > 0 && (
-                                    <>
-                                        { !selectedType && (
-                                            <>                                                
-                                                <Table colCount={3} rowCount={mappings.length} width="100%">
-                                                {/* footer={<TFooter icon={<Plus />}>Add another field to this collection type</TFooter>} */}
-                                                    <Thead>
-                                                        <Tr>
-                                                            <Th>
-                                                                <Typography variant="sigma">Name</Typography>
-                                                            </Th>
-                                                        </Tr>
-                                                    </Thead>
-                                                    <Tbody>
-                                                    {
-                                                        Object.keys(contentTypes).map((key, index) => {
-                                                        return (
-                                                            <Tr key={index}>
-                                                                <Td>
-                                                                    <Typography textColor="neutral600">{key}</Typography>
-                                                                </Td>
-                                                                <Td>
-                                                                    <Button onClick={() => setSelectedType(key)}>Use Type</Button>
-                                                                </Td>
-                                                            </Tr>
-                                                        ) })
-                                                    }
-                                                    </Tbody>
-                                                </Table>
-                                                <Box paddingTop={2} paddingBottom={2}>
-                                                    <Typography textColor="neutral600">This view lists approved content types for mapping.</Typography>
-                                                </Box>
-                                            </>
-                                        ) }
-
-                                        { selectedType && (
-                                            <>
-                                                <Mapping posttype={selectedType} closeEvent={(e) => modalCreateMappingClose(e)} />
-                                            </>
-                                        )}
-                                    </>)
-                                }
-                            </Box>
-                          
-                        </ModalBody>
-
-                        {/* <ModalFooter
-                            startActions={
-                                <Button onClick={() => console.log("Click!! 32324")} variant="tertiary">
-                                    Cancel
-                                </Button>
-                            }
-                            endActions={
+                            { contentTypes && Object.values(contentTypes).length > 0 && (
                                 <>
-                                <Button loading={isInProgress} onClick={() => console.log("Click!! 35fffff")}>
-                                    Import
-                                </Button>
+                                    { !selectedType && (
+                                        <>                                                
+                                            <Table colCount={3} rowCount={mappings.length} width="100%">
+                                            {/* footer={<TFooter icon={<Plus />}>Add another field to this collection type</TFooter>} */}
+                                                <Thead>
+                                                    <Tr>
+                                                        <Th>
+                                                            <Typography variant="sigma">Name</Typography>
+                                                        </Th>
+                                                    </Tr>
+                                                </Thead>
+                                                <Tbody>
+                                                { Object.keys(contentTypes).map((key, index) => {
+                                                    return (
+                                                        <Tr key={index}>
+                                                            <Td>
+                                                                <Typography textColor="neutral600">{key}</Typography>
+                                                            </Td>
+                                                            <Td>
+                                                                <Button onClick={() => setSelectedType(key)}>Use Type</Button>
+                                                            </Td>
+                                                        </Tr>
+                                                    )
+                                                }) }
+                                                </Tbody>
+                                            </Table>
+                                            <Box paddingTop={2} paddingBottom={2}>
+                                                <Typography textColor="neutral600">This view lists approved content types for mapping.</Typography>
+                                            </Box>
+                                        </>
+                                    ) }
+
+                                    { selectedType && (
+                                        <>
+                                            <Mapping posttype={selectedType} closeEvent={(e) => modalCreateMappingClose(e)} />
+                                        </>
+                                    )}
                                 </>
-                            }
-                        /> */}
+                            ) }
+                        </Box>
                         
-                    </ModalLayout>
+                    </ModalBody>
 
-                    )
-                }
+                    {/* <ModalFooter
+                        startActions={
+                            <Button onClick={() => console.log("Click!! 32324")} variant="tertiary">
+                                Cancel
+                            </Button>
+                        }
+                        endActions={
+                            <>
+                            <Button loading={isInProgress} onClick={() => console.log("Click!! 35fffff")}>
+                                Import
+                            </Button>
+                            </>
+                        }
+                    /> */}
+                    
+                </ModalLayout>
 
-        </Box>
+            ) }
+
+        </Flex>
     )
 }
