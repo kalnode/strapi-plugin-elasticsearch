@@ -12,9 +12,10 @@ import { Pencil, Trash, Refresh, Plus } from '@strapi/icons'
 import { apiGetMapping, apiGetMappings, apiCreateMapping, apiUpdateMapping, apiDeleteMapping, apiGetContentTypes } from '../../utils/apiUrls'
 import axiosInstance  from '../../utils/axiosInstance'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
-import { useParams, useHistory } from 'react-router-dom';
+import { useParams, useHistory } from 'react-router-dom'
+import { Mapping } from '../../components/Mapping'
 
-export const Mappings = ({ indexId }) => {
+export const Mappings = ({ indexId, showOnlyPresets, modeOnlySelection }) => {
 
     // ===============================
     // GENERAL
@@ -32,9 +33,20 @@ export const Mappings = ({ indexId }) => {
     const requestGetMappings = () => {
         setIsInProgress(true)
         console.log("Mappings component requestGetMappings: ", indexId)
+
+        //showOnlyPresets
+
         axiosInstance.get(apiGetMappings(indexId))
             .then((response) => {
+                console.log("requestGetMappings dfdfdfd333",response.data)
                 if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+                    
+                    // if (showOnlyPresets) {
+                    //     setMappings(response.data.filter( (x) => !x.registered_index))
+                    // } else {
+                    //     setMappings(response.data)
+                    // }
+
                     setMappings(response.data)
                 } else {
                     setMappings(null)
@@ -93,54 +105,95 @@ export const Mappings = ({ indexId }) => {
     const requestDeleteMapping = (e, mappingIDNumber) => {
         e.stopPropagation()
         setIsInProgress(true)
-        return axiosInstance.get(apiDeleteMapping(mappingIDNumber))
-        .then((response) => {
-            console.log("Delete response is: ", response)
-        })
-        .catch((error) => {
-            console.log("PAGE MAPPINGS - requestDeleteMapping ERROR: ", error)
-            showNotification({
-                type: "warning", message: "An error has encountered: " + error, timeout: 5000
+
+        // TODO: Determine if mapping is preset or actual
+        // If preset, just remove it, not delete
+
+        let mapping = mappings.find( (x) => x.id === mappingIDNumber)
+
+        if (mapping.preset) {
+            console.log("Attempting to remove preset mapping from index")
+        } else {
+            return axiosInstance.get(apiDeleteMapping(mappingIDNumber))
+            .then((response) => {
+                console.log("Delete response is: ", response)
             })
-        })
-        .finally(() => {
-            requestGetMappings()
-        })
+            .catch((error) => {
+                console.log("PAGE MAPPINGS - requestDeleteMapping ERROR: ", error)
+                showNotification({
+                    type: "warning", message: "An error has encountered: " + error, timeout: 5000
+                })
+            })
+            .finally(() => {
+                requestGetMappings()
+            })
+        }
     }
 
+    // ===============================
+    // SELECT MAPPING
+    // ===============================
+    const [showSelectModal, setShowSelectModal] = useState(false)
 
+    const modalSelectPresetMappingOpen = async () => {
+        setShowSelectModal(true)
+    }
+
+    const modalSelectPresetMappingClose = async (reload) => {
+        setShowSelectModal(false)
+        if (reload) {
+            requestGetMappings()
+        }
+    }
 
     return  (
 
         <Flex width="100%" direction="column" alignItems="start" gap={2} background="neutral100">
            
             <Box>
-                <Typography variant="alpha">Mappings</Typography>
+                <Typography variant="alpha">{ showOnlyPresets ? 'Preset Mappings' : 'Mappings'}</Typography>
             </Box>
 
-            <Box>
-                <Flex gap={4}>
-                    {/* <Typography variant="delta">Actions</Typography>
-                    <Button loading={isInProgress} fullWidth variant="secondary" onClick={requestGetMappings}>Reload list</Button> */}
-                    <IconButton onClick={requestGetMappings} label="Get mappings" icon={<Refresh />} />
-                    <Button loading={isInProgress} fullWidth variant="secondary" onClick={modalCreateMappingOpen} style={{ whiteSpace: 'no-wrap' }} startIcon={<Plus />}>
-                        Create Preset Mapping
-                    </Button>
-                </Flex>
-            </Box>
+            { !modeOnlySelection && (
+                <Box>
+                    <Flex gap={4}>
+                        {/* <Typography variant="delta">Actions</Typography>
+                        <Button loading={isInProgress} fullWidth variant="secondary" onClick={requestGetMappings}>Reload list</Button> */}
+                        <IconButton onClick={ () => requestGetMappings() } label="Get mappings" icon={<Refresh />} />
+                        
+                        { indexId && (
+                        <Button loading={isInProgress} fullWidth variant="secondary" onClick={ () => modalCreateMappingOpen() } style={{ whiteSpace: 'no-wrap' }} startIcon={<Plus />}>
+                            Create Mapping
+                        </Button>
+                        )}
+                        
+                        
+                        <Button loading={isInProgress} fullWidth variant="secondary"
+                        onClick={ () => modalSelectPresetMappingOpen() } style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
+                            Add Preset Mapping
+                        </Button>
+                    </Flex>
+                </Box>
+            )}
 
             <Box width="100%" style={{ overflow: 'hidden' }}>
                 { !mappings || (mappings && mappings.length === 0) && (
                     <EmptyStateLayout icon={<Cross />} content="You don't have any content yet..." action={
-                        <Button variant="secondary" startIcon={<Plus />} style={{ whiteSpace: 'no-wrap' }}>
+                        <>
+                        <Button variant="secondary" startIcon={<Plus />} style={{ whiteSpace: 'nowrap' }}>
                             Create a preset mapping
                         </Button>
+                        <Button loading={isInProgress} fullWidth variant="secondary"
+                        onClick={ () => modalSelectPresetMappingOpen() } style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
+                            Add Preset Mapping
+                        </Button>
+                        </>
                     } />
                 ) }
 
                 { mappings && Array.isArray(mappings) && mappings.length > 0 && (
                     <>
-                        <Table colCount={7} rowCount={mappings.length} width="100%" tableLayout='auto'>
+                       <Table colCount={7} rowCount={mappings.length} width="100%">
                         {/* footer={<TFooter icon={<Plus />}>Add another field to this collection type</TFooter>} */}
                             <Thead>
                                 <Tr>
@@ -170,7 +223,14 @@ export const Mappings = ({ indexId }) => {
                             <Tbody>
                             { mappings.map((data, index) => {
                                 return (
-                                    <Tr key={index} className="row" onClick={() => history.push(`/plugins/${pluginId}/mapping/${data.id}`)}>
+                                    <Tr key={index} className="row" onClick={() => {
+                                        if (indexId) {
+                                            history.push(`/plugins/${pluginId}/indexes/${indexId}/mappings/${data.id}`)
+                                        } else {
+                                            history.push(`/plugins/${pluginId}/mappings/${data.id}`)
+                                        }
+                                    }
+                                    }>
                                         <Td>
                                             <Checkbox aria-label={`Select ${data.id}`} className="checkbox" />
                                         </Td>
@@ -210,17 +270,53 @@ export const Mappings = ({ indexId }) => {
                         </Table>
                         <Box paddingTop={2} paddingBottom={2}>
                             <Typography textColor="neutral600">This view lists mappings (in the context of this plugin).</Typography>
-                        </Box>
+                        </Box> 
                     </>
                 ) }
             </Box>
+
+            { showSelectModal && (
+                <ModalLayout onClose={() => modalSelectPresetMappingClose()}>
+                    {/* labelledBy="title" */}
+                    <ModalHeader>
+                        <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
+                            Select preset mapping
+                        </Typography>
+                    </ModalHeader>
+                    <ModalBody>
+                        <Box width="100%">
+                            <Mappings showOnlyPresets="true" modeOnlySelection="true" />
+                            {/* closeEvent={(e) => modalSelectPresetMappingClose(e)} */}
+                        </Box>                        
+                    </ModalBody>
+
+                    {/* <ModalFooter
+                        startActions={
+                            <Button onClick={() => console.log("Click!! 32324")} variant="tertiary">
+                                Cancel
+                            </Button>
+                        }
+                        endActions={
+                            <>
+                            <Button loading={isInProgress} onClick={() => console.log("Click!! 35fffff")}>
+                                Import
+                            </Button>
+                            </>
+                        }
+                    /> */}
+                    
+                </ModalLayout>
+
+            ) }
+
+
 
             { showCreateModal && (
                 <ModalLayout onClose={() => modalCreateMappingClose()}>
                     {/* labelledBy="title" */}
                     <ModalHeader>
                         <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
-                            Create preset mapping
+                            Create mapping
                         </Typography>
                     </ModalHeader>
                     <ModalBody>
@@ -263,7 +359,7 @@ export const Mappings = ({ indexId }) => {
 
                                     { selectedType && (
                                         <>
-                                            <Mapping posttype={selectedType} closeEvent={(e) => modalCreateMappingClose(e)} />
+                                            <Mapping posttype={selectedType} indexId={indexId} closeEvent={(e) => modalCreateMappingClose(e)} />
                                         </>
                                     )}
                                 </>

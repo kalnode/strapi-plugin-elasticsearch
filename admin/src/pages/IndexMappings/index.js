@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { SubNavigation } from '../../components/SubNavigation'
-import { Index } from '../../components/Index'
 import { Grid, Box, Breadcrumbs, Crumb, Link } from '@strapi/design-system'
+import { Mappings } from '../../components/Mappings'
+import pluginId from '../../pluginId'
 
-const PageIndex = () => {
+const PageIndexMappings = () => {
 
     const [indexId, setIndexId] = useState(null)
     const params = useParams()
@@ -18,19 +19,20 @@ const PageIndex = () => {
     return (
         <Grid gap={4} alignItems="stretch" style={{ gridTemplateColumns: 'auto 1fr' }}>
             <SubNavigation />
-
+            
             { indexId && (
                 <Box padding={8} background="neutral100" overflow='hidden'>
-
+                    
                     <Breadcrumbs label="Extra navigation">
-                        <Crumb>
-                            <Link to={`./`}>Indexes</Link>
-                        </Crumb>
-                        <Crumb>{ indexId }</Crumb>
+                        <Crumb><Link to={`/plugins/${pluginId}/indexes`}>Indexes</Link></Crumb>
+                        <Crumb><Link to={`/plugins/${pluginId}/indexes/${indexId}`}>{indexId}</Link></Crumb>
+                        <Crumb>Mappings</Crumb>
                         {/* isCurrent */}
                     </Breadcrumbs>
 
-                    <Index indexId={indexId} />
+                    <Box width='100%' overflow='hidden'>
+                        <Mappings indexId={indexId} />
+                    </Box>
 
                 </Box>
             )}
@@ -38,4 +40,4 @@ const PageIndex = () => {
     )
 }
 
-export default PageIndex
+export default PageIndexMappings

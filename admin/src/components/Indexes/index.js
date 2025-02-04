@@ -150,7 +150,7 @@ export const ComponentIndexes = () => {
                         <Tbody>
                             { indexes.map((data, index) => {
                                 return (
-                                    <Tr key={index} className="row" onClick={() => history.push(`/plugins/${pluginId}/index/${data.id}`)}>
+                                    <Tr key={index} className="row" onClick={() => history.push(`/plugins/${pluginId}/indexes/${data.id}`)}>
                                         <Td>
                                             <Checkbox aria-label={`Select ${data.index_name}`} className="checkbox" />
                                         </Td>

@@ -11,7 +11,7 @@ import { Box, Button, Typography, ToggleInput, TextInput, Flex, Textarea, Switch
 import { apiGetMapping, apiGetMappings, apiCreateMapping, apiUpdateMapping, apiDeleteMapping, apiGetContentTypes } from '../../utils/apiUrls'
 import axiosInstance  from '../../utils/axiosInstance'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
-
+import { getTypefromStrapiID } from '../../utils/getTypefromStrapiID'
 // mappings: {
 //     properties: {
 //         "pin": {
@@ -36,7 +36,7 @@ import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 
 
 
-export const Mapping = ({ posttype, mappingId, closeEvent }) => {
+export const Mapping = ({ posttype, indexId, mappingId, closeEvent }) => {
 
     // ===============================
     // GENERAL
@@ -275,7 +275,8 @@ export const Mapping = ({ posttype, mappingId, closeEvent }) => {
             
             setMapping({
                 "post_type": posttype,
-                "mapping": {}
+                "mapping": {},
+                "registered_index": indexId ? indexId : undefined
                 //"preset": 'dfdf'
                 //"nested_level": 2
                 //"registered_index": 'someregindex'
@@ -310,50 +311,40 @@ export const Mapping = ({ posttype, mappingId, closeEvent }) => {
                 <Flex width="100%" justifyContent="space-between">
                     <Box>
                         <Box>
-                            <Typography variant="alpha">{ mappingId ? 'Edit Mapping: ' + mappingId : 'Create Mapping'}</Typography>
+                            <Typography variant="alpha">{ mappingId ? 'Mapping ' + mappingId : 'Create Mapping'}</Typography>
                         </Box>
-                        <Box>
-                            <Typography variant="beta">For post type: {posttypeFinal}</Typography>
-                        </Box>
+                        <Flex gap={2}>
+                            <Typography variant="beta">For post type: {getTypefromStrapiID(posttypeFinal)}</Typography>
+                            <Typography variant="sigma">({posttypeFinal})</Typography>
+                        </Flex>
                     </Box>
 
                     { mappingId && (
-                        <>
                         <Button onClick={() => requestUpdateMapping()} variant="tertiary">
                             Save
                         </Button>
-                        </>
                     )}
 
                     { !mappingId && (
                         <Button onClick={() => requestCreateMapping()} variant="tertiary">
                             Create Mapping
                         </Button>
-                    )}                    
-
+                    )}
                 </Flex>
 
-                {/* <Tabs aria-label="Manage your attribute">
-                    <Tab value="base">Base</Tab>
-                    <Tab value="advanced">Advanced</Tab>
-                </Tabs>
-                <TabPanels>
-                    <TabPanel value="base">
-                        tab 1
-                    </TabPanel>
-                    <TabPanel value="advanced">
-                        tab 2
-                    </TabPanel>
-                </TabPanels> */}
-
-
+                {/* -------- TABS ------------------*/}
                 <TabGroup initialSelectedTabIndex={0}>
+
+
+                    {/* -------- TABS ACTUAL ------------------*/}
                     <Tabs>
                         <Tab id="fields">Fields</Tab>
                         <Tab id="raw">Raw</Tab>
                     </Tabs>
+
                     <TabPanels>
 
+                        {/* -------- TAB: FIELDS ------------------*/}
                         <TabPanel id="fields">
                             {
                                 
@@ -362,152 +353,115 @@ export const Mapping = ({ posttype, mappingId, closeEvent }) => {
                                     
                                     return (
                                         
-                                        <Box key={key}>
+                                        <Box key={key} padding={4} background="neutral0" shadow="filterShadow">
                                             <Typography variant="beta">{ key }</Typography>
                                             {/* <div>field is: { val }</div> */}
 
-                                                <Flex gap={4} width='100%' style={{ justifyContent: 'space-between'}}>
+                                            <Flex gap={4} width='100%' style={{ justifyContent: 'space-between'}}>
 
-                                                    <Flex direction='column' style={{ alignSelf: 'stretch' }}>
-                                                        <div style={{fontSize: '0.75rem', lineHeight: '1.33'}}>
-                                                            <Typography variant="pi" fontWeight={'bold'}>Enabled</Typography>
+                                                <Flex direction='column' style={{ alignSelf: 'stretch' }}>
+                                                    <div style={{fontSize: '0.75rem', lineHeight: '1.33'}}>
+                                                        <Typography variant="pi" fontWeight={'bold'}>Enabled</Typography>
+                                                    </div>
+                                                    <div style={{height: '100%', alignContent: 'center'}}>
+
+                                                    {/* selected={mapping[key]} */}
+
+                                                    {/* { mapping && (
+                                                        <>
+                                                        <div>
+                                                            selected is: {JSON.stringify(mapping)}
                                                         </div>
-                                                        <div style={{height: '100%', alignContent: 'center'}}>
+                                                        </>
+                                                    )} */}
 
-                                                        {/* selected={mapping[key]} */}
-
-                                                        {/* { mapping && (
-                                                            <>
-                                                            <div>
-                                                                selected is: {JSON.stringify(mapping)}
-                                                            </div>
-                                                            </>
-                                                        )} */}
-
-                                                            <Switch
-                                                                selected={mapping && mapping.mapping[key] && Object.hasOwn(mapping.mapping, key)}
-                                                                onChange={(e) => updateFieldActive(key)}
-                                                                label='Active'
-                                                                onLabel='Enabled'
-                                                                offLabel='Disabled' />
-                                                                {/* checked={config.index} onChange={(e) => updateIndex(e.target.checked)}  */}
-                                                        </div>
-                                                    </Flex>
-
-                                                    <Flex style={{flexDirection: 'column', alignSelf: 'stretch'}}>
-                                                        <div style={{fontSize: '0.75rem', lineHeight: '1.33'}}>
-                                                            <Typography variant="pi" fontWeight={'bold'}>Index</Typography>
-                                                        </div>
-                                                        <div style={{height: '100%', alignContent: 'center'}}>
-                                                            <Switch
-                                                                selected={mapping && mapping.mapping[key] && mapping.mapping[key].index}
-                                                                onChange={(e) => updateFieldIndex(key)}
-                                                                disabled={mapping && !mapping.mapping[key]}                                            
-                                                                label='Index'
-                                                                onLabel='Enabled'
-                                                                offLabel='Disabled' />
-                                                                {/* style={{background:'pink !important'}} */}
-                                                                
-                                                        </div>
-                                                    </Flex>
-
-                                                    {/* onClick={toggleIndexingEnabled}
-                                                    selected={indexingEnabled} */}
-
-                                                    {/* <TextInput label="Data Type" placeholder="Enter explicit data type" name="Data Type" /> */}
-                                                    {/* onChange={e => updateMappedFieldName(e.target.value)} value={config.searchFieldName || ""} */}
-
-                                                    <Box style={{flex: '1'}}>
-                                                        <SingleSelect
-                                                            label="Data Type"
-                                                            value={mapping && mapping.mapping[key] && mapping.mapping[key].type}
-                                                            onChange={ (value) => updateFieldDataType(key, value)}
-                                                            disabled={mapping && !mapping.mapping[key]}>
-                                                            <SingleSelectOption value="dynamic">(autodetect)</SingleSelectOption>
-                                                            <SingleSelectOption value="binary">Binary</SingleSelectOption>
-                                                            <SingleSelectOption value="boolean">Boolean</SingleSelectOption>
-                                                            <SingleSelectOption value="keyword">Keyword</SingleSelectOption>
-                                                            <SingleSelectOption value="text">Text</SingleSelectOption>
-                                                            <SingleSelectOption value="long">Number long</SingleSelectOption>
-                                                            <SingleSelectOption value="double">Number double</SingleSelectOption>
-                                                            <SingleSelectOption value="date">Date</SingleSelectOption>
-                                                            <SingleSelectOption value="geo_point">Geopoint</SingleSelectOption>
-                                                            <SingleSelectOption value="nested">Nested</SingleSelectOption>
-                                                            <SingleSelectOption value="etc">etc</SingleSelectOption>
-                                                        </SingleSelect>
-                                                    </Box>
-
-                                                    <Box style={{flex: '1'}}>
-                                                        <TextInput
-                                                        label="Custom field name (in ES)"
-                                                        placeholder="Enter custom field name" name="Custom field name"
-                                                        disabled={mapping && !mapping.mapping[key]} />
-                                                        {/* onChange={e => updateMappedFieldName(e.target.value)} value={config.searchFieldName || ""} */}
-                                                    </Box>
-
-
+                                                        <Switch
+                                                            selected={mapping && mapping.mapping[key] && Object.hasOwn(mapping.mapping, key)}
+                                                            onChange={(e) => updateFieldActive(key)}
+                                                            label='Active'
+                                                            onLabel='Enabled'
+                                                            offLabel='Disabled' />
+                                                            {/* checked={config.index} onChange={(e) => updateIndex(e.target.checked)}  */}
+                                                    </div>
                                                 </Flex>
 
+                                                <Flex style={{flexDirection: 'column', alignSelf: 'stretch'}}>
+                                                    <div style={{fontSize: '0.75rem', lineHeight: '1.33'}}>
+                                                        <Typography variant="pi" fontWeight={'bold'}>Index</Typography>
+                                                    </div>
+                                                    <div style={{height: '100%', alignContent: 'center'}}>
+                                                        <Switch
+                                                            selected={mapping && mapping.mapping[key] && mapping.mapping[key].index}
+                                                            onChange={(e) => updateFieldIndex(key)}
+                                                            disabled={mapping && !mapping.mapping[key]}                                            
+                                                            label='Index'
+                                                            onLabel='Enabled'
+                                                            offLabel='Disabled' />
+                                                            {/* style={{background:'pink !important'}} */}
+                                                            
+                                                    </div>
+                                                </Flex>
 
+                                                {/* onClick={toggleIndexingEnabled}
+                                                selected={indexingEnabled} */}
 
-                                        
-                                
+                                                {/* <TextInput label="Data Type" placeholder="Enter explicit data type" name="Data Type" /> */}
+                                                {/* onChange={e => updateMappedFieldName(e.target.value)} value={config.searchFieldName || ""} */}
 
-                                                {
-                                                
-                                                    // Object.values(value).map((value2,index) => {
-
-                                                    //     return (
-                                                    //         <>
-
-                                                    //         {/* <div>value is: { value }</div> */}
-                                                    //         <div>
-                                                    //             { value2 }
-                                                    //             </div>
-                                                    //         </>
-                                                    //     )
-                                                    // })
-                                                    // {Object.entries(yourProp).map(([key,val]) => (
-                                                    //     <li key={key}><strong>{key}</strong>: '{val}'</li>
-                                                    //   ))}
-
-
-
-                                                    // Object.entries(fields[key]).map(([key,val]) => {
-
-                                                    //     return (
-                                                    //         <>
-
-                                                    //         {/* <div>value is: { value }</div> */}
-                                                    //         <div>
-                                                    //             { key }
-                                                    //             </div>
-                                                    //         </>
-                                                    //     )
-                                                    // })
-                                                
-                                                }
-                                                <Box paddingTop={4} paddingBottom={4}>
-                                                    <hr />
+                                                <Box style={{flex: '1'}}>
+                                                    <SingleSelect
+                                                        label="Data Type"
+                                                        value={mapping && mapping.mapping[key] && mapping.mapping[key].type}
+                                                        onChange={ (value) => updateFieldDataType(key, value)}
+                                                        disabled={mapping && !mapping.mapping[key]}>
+                                                        <SingleSelectOption value="dynamic">(autodetect)</SingleSelectOption>
+                                                        <SingleSelectOption value="binary">Binary</SingleSelectOption>
+                                                        <SingleSelectOption value="boolean">Boolean</SingleSelectOption>
+                                                        <SingleSelectOption value="keyword">Keyword</SingleSelectOption>
+                                                        <SingleSelectOption value="text">Text</SingleSelectOption>
+                                                        <SingleSelectOption value="long">Number long</SingleSelectOption>
+                                                        <SingleSelectOption value="double">Number double</SingleSelectOption>
+                                                        <SingleSelectOption value="date">Date</SingleSelectOption>
+                                                        <SingleSelectOption value="geo_point">Geopoint</SingleSelectOption>
+                                                        <SingleSelectOption value="nested">Nested</SingleSelectOption>
+                                                        <SingleSelectOption value="etc">etc</SingleSelectOption>
+                                                    </SingleSelect>
                                                 </Box>
-                                            </Box>
 
+                                                <Box style={{flex: '1'}}>
+                                                    <TextInput
+                                                    label="Custom field name (in ES)"
+                                                    placeholder="Enter custom field name" name="Custom field name"
+                                                    disabled={mapping && !mapping.mapping[key]} />
+                                                    {/* onChange={e => updateMappedFieldName(e.target.value)} value={config.searchFieldName || ""} */}
+                                                </Box>
+
+
+                                            </Flex>
+
+                                            <Box paddingTop={4} paddingBottom={4}>
+                                                <hr />
+                                            </Box>
+                                        </Box>
 
                                     )
-
                                 
                                 })
                             }
+                        </TabPanel>
 
-                        </TabPanel>
+                        {/* -------- TAB: FIELDS ------------------*/}
                         <TabPanel id="raw">
-                            
-                            { mapping && (
-                                <pre>{ JSON.stringify(mapping, null, 8) }</pre>
-                            )}
+                            <Box background="neutral0" shadow="filterShadow">
+                                { mapping && (
+                                    <pre>{ JSON.stringify(mapping, null, 8) }</pre>
+                                )}
+                            </Box>
                         </TabPanel>
+
                     </TabPanels>
                 </TabGroup>
+
                     {/* <TextInput value={newMapping} onChange={(event) => { setNewMapping(event.target.value) }} label="Mapping name" placeholder="Enter mapping name" name="Mapping name field" /> */}
                     {/* onChange={e => updateMappedFieldName(e.target.value)} value={config.searchFieldName || ""} */}
 
@@ -538,9 +492,7 @@ export const Mapping = ({ posttype, mappingId, closeEvent }) => {
                     }, */}
 
                 </>
-                )}
-
-
+            )}
         </Box>
     )
 }

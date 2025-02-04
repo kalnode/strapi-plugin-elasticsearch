@@ -12,11 +12,33 @@ module.exports = ({ strapi }) => ({
 
         console.log('SPE - getMappings 111', indexId)
 
-        const records = await strapi.entityService.findMany('plugin::elasticsearch.mapping', indexId, {
+        let payload = {
             sort: { createdAt: 'DESC' },
             start: 0,
-            limit: count
-        })
+            limit: count,
+            filters: {}
+        }
+
+        console.log("indexId is: ", indexId)
+
+        // TODO: This is really stupid, but need to figure out a better way to dynamically add "filters: {}" to the payload.
+        // Right now we start with it empty, and delete or fill it. Ideally we don't have any of this and just add filters to payload.
+
+        // TODO: Some sillyness going on here; for some reason all of these conditions are needed, and they must come first in the if-else order.
+        // Simply checking !indexId doesn't seem to work.
+        if (!indexId || indexId === 'undefined' || indexId === undefined || typeof indexId === "undefined") {
+            console.log("Deleting filters 111...")
+            delete payload.filters
+
+        } else if (indexId || indexId != 'undefined' || indexId != undefined || typeof indexId != "undefined") {
+            console.log("Setting filters...")
+            payload.filters.registered_index = {
+                $in: indexId,
+            }
+        }
+
+        console.log("Payload is: ", payload)
+        const records = await strapi.entityService.findMany('plugin::elasticsearch.mapping', {...payload})
         return records
     },
 

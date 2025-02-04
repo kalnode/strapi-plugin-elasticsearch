@@ -1,7 +1,7 @@
 import React from 'react'
 import { SubNavigation } from '../../components/SubNavigation'
 import { Mappings } from '../../components/Mappings'
-import { Flex, Grid, Box } from '@strapi/design-system'
+import { Flex, Grid, Box, Breadcrumbs, Crumb } from '@strapi/design-system'
 import '../../styles/styles.css'
 
 const PageMappings = () => {
@@ -9,6 +9,12 @@ const PageMappings = () => {
         <Grid gap={4} alignItems="stretch" style={{ gridTemplateColumns: 'auto 1fr' }}>
             <SubNavigation />
             <Box padding={8} background="neutral100" overflow='hidden'>
+
+                <Breadcrumbs label="Extra navigation">
+                    <Crumb>Mappings</Crumb>
+                    {/* isCurrent */}
+                </Breadcrumbs>
+
                 <Mappings />
             </Box>        
         </Grid>

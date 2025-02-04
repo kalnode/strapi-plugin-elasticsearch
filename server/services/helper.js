@@ -404,7 +404,7 @@ module.exports = ({ strapi }) => ({
             for (i = 0; i < filteredData.length; i++) {
                 let item = filteredData[i]
                 let posttype = item._source.posttype                
-                let id = getIDfromStrapiID(item._id)
+                let id = getTypefromStrapiID(item._id)
                 let checkWork = await checkIfDBRecordExists(posttype, id)
                 if (checkWork) {
                     results.matched = results.matched + 1
@@ -445,7 +445,7 @@ module.exports = ({ strapi }) => ({
                 let item = filteredData[i]
                 let posttype = item._source.posttype
                 
-                let id = getIDfromStrapiID(item._id)
+                let id = getTypefromStrapiID(item._id)
                 let checkWork = await checkIfDBRecordExists(posttype, id)
 
                 if (checkWork) {
@@ -472,7 +472,7 @@ module.exports = ({ strapi }) => ({
 
 })
 
-const getIDfromStrapiID = (strapiID) => {
+const getTypefromStrapiID = (strapiID) => {
     // TODO: This seems really stupid, but we're doing it.
     // Gets numbers after second '::'
     return strapiID.split('::').slice(-1)[0]
