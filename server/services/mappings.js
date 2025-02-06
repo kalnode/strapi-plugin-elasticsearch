@@ -16,11 +16,14 @@ module.exports = ({ strapi }) => ({
             sort: { createdAt: 'DESC' },
             start: 0,
             limit: count,
-            filters: {}
+            filters: {
+
+            },
+            //populate: "Mappings"
         }
 
         console.log("indexId is: ", indexId)
-
+        console.log("indexId type: ", typeof indexId)
         // TODO: This is really stupid, but need to figure out a better way to dynamically add "filters: {}" to the payload.
         // Right now we start with it empty, and delete or fill it. Ideally we don't have any of this and just add filters to payload.
 
@@ -31,10 +34,46 @@ module.exports = ({ strapi }) => ({
             delete payload.filters
 
         } else if (indexId || indexId != 'undefined' || indexId != undefined || typeof indexId != "undefined") {
+            
+            
             console.log("Setting filters...")
-            payload.filters.registered_index = {
-                $in: indexId,
+            
+            // OLD WAY
+            // payload.filters.registered_index = {
+            //     $in: indexId,
+            // }
+
+            // payload.filters.indexes = {
+            //     id: {
+            //         $eq: indexId
+            //     }
+            // }
+
+            // payload.filters.indexes = {
+            //     id: indexId
+            // }
+
+            payload.filters['indexes'] = {
+                id: {
+                    $eq: indexId
+                }
             }
+
+            // filters: {
+            //     $or: [
+            //       { author: { id: user.id }},
+            //       { reviewers: { user: { id: user.id }}},
+            //     ],  		
+            //   },\
+            
+            // where: {
+            //     $or: [{[relationship]: {id: {$null: true}}}],
+            //   },
+
+
+            //const fullEvent = await strapi.entityService.findOne('api::event.event', eventID, { populate: "Participants" })
+
+
         }
 
         console.log("Payload is: ", payload)

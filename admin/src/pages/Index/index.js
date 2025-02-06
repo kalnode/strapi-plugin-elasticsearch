@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { useParams } from 'react-router-dom'
 import { SubNavigation } from '../../components/SubNavigation'
 import { Index } from '../../components/Index'
@@ -6,31 +6,24 @@ import { Grid, Box, Breadcrumbs, Crumb, Link } from '@strapi/design-system'
 
 const PageIndex = () => {
 
-    const [indexId, setIndexId] = useState(null)
     const params = useParams()
-    
-    useEffect( () => {
-        if (params && params.indexId) {
-            setIndexId(params.indexId)
-        }
-    }, [params])
 
     return (
         <Grid gap={4} alignItems="stretch" style={{ gridTemplateColumns: 'auto 1fr' }}>
             <SubNavigation />
 
-            { indexId && (
+            { params.indexId && (
                 <Box padding={8} background="neutral100" overflow='hidden'>
 
                     <Breadcrumbs label="Extra navigation">
                         <Crumb>
                             <Link to={`./`}>Indexes</Link>
                         </Crumb>
-                        <Crumb>{ indexId }</Crumb>
+                        <Crumb>{params.indexId}</Crumb>
                         {/* isCurrent */}
                     </Breadcrumbs>
 
-                    <Index indexId={indexId} />
+                    <Index indexId={params.indexId} />
 
                 </Box>
             )}

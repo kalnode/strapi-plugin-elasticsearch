@@ -107,7 +107,7 @@ export const ComponentIndexes = () => {
 
             {/* -------- CONTENT -------- */}
             <Box width="100%">
-                { !indexes || (indexes && indexes.length === 0) && (
+                { (!indexes || (indexes && indexes.length) === 0) && (
                     <EmptyStateLayout icon={<Cross />} content="You don't have any content yet..." action={
                         <Button variant="secondary" startIcon={<Plus />}>
                             Create your first content-type

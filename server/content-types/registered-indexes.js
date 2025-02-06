@@ -15,7 +15,7 @@ module.exports = {
             visible: true
         },
         'content-type-builder': {
-            visible: false
+            visible: true
         }        
     },
     "attributes": {
@@ -26,9 +26,15 @@ module.exports = {
         "index_alias": {
             "type": "string"
         },
-        "mapping": {
-            "type": "richtext"
-        }
+        "active": {
+            "type": "boolean"
+        },
+        "mappings": {
+            "type": "relation",
+            "relation": "manyToMany",
+            "target": "plugin::elasticsearch.mapping",
+            "inversedBy": "indexes" // TODO: Or should this be mappedBy?
+          }
     }
 }
   

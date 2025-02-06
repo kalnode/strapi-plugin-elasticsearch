@@ -1,7 +1,7 @@
 import React from 'react'
 import { SubNavigation } from '../../components/SubNavigation'
 import { Mappings } from '../../components/Mappings'
-import { Flex, Grid, Box, Breadcrumbs, Crumb } from '@strapi/design-system'
+import { Grid, Box, Breadcrumbs, Crumb } from '@strapi/design-system'
 import '../../styles/styles.css'
 
 const PageMappings = () => {

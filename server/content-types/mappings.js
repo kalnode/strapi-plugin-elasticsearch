@@ -15,7 +15,7 @@ module.exports = {
             visible: true
         },
         'content-type-builder': {
-            visible: false
+            visible: true
         }
     },
     "attributes": {
@@ -27,20 +27,17 @@ module.exports = {
             "type": "richtext"
         },
         "preset": {
-            "type": "string", // id of a preset mapping
+            "type": "boolean",
         },
         "nested_level": {
             "type": "number"
         },
-        "registered_index": {
-            "type": "string", // id of a registered index
+        "indexes": {
+            "type": "relation",
+            "relation": "manyToMany",
+            "target": "plugin::elasticsearch.registered-index",
+            "mappedBy": "mappings" // TODO: Or should this be inversedBy?
         },
-
-
-        // "mapping_type": {
-        //     "type": "string", // 'custom', 'preset'
-        //     "required": true
-        // },
         "default_preset": {
             "type": "boolean"
         },

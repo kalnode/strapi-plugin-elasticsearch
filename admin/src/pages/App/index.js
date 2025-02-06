@@ -1,7 +1,7 @@
 /**
  *
- * This component is the skeleton around the actual pages, and should only
- * contain code that should be seen on all pages. (e.g. navigation bar)
+ * Top-level definitions of all admin pages in the plugin.
+ * All pages must be defined here.
  *
  */
 
@@ -15,19 +15,17 @@ import Indexes from '../Indexes'
 import Index from '../Index'
 import IndexMappings from '../IndexMappings'
 import IndexMapping from '../IndexMapping'
-
 import Mappings from '../Mappings'
 import Mapping from '../Mapping'
-
 import ConfigureCollectionList from '../ConfigureCollectionList'
 import ConfigureCollection from '../ConfigureCollection'
 import ViewIndexingRunLog from '../ViewIndexingRunLog'
 import Tools from '../Tools'
 
-
 const App = () => {
     return (
         <Switch>
+
             <Route path={`/plugins/${pluginId}`} render={() => (<Redirect to={`/plugins/${pluginId}/home`} />)} exact />
             <Route path={`/plugins/${pluginId}/home`} component={Homepage} exact />
 

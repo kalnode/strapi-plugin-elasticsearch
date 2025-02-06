@@ -1,5 +1,4 @@
 module.exports = {
-    // accessible only from admin UI
     type: 'admin',
     routes: [
         {
@@ -31,7 +30,6 @@ module.exports = {
             path: '/update-index/:indexId',
             handler: 'indexes.updateIndex',
             config: { policies: [] }
-        },
-    ]
-    
+        }
+    ]    
 }

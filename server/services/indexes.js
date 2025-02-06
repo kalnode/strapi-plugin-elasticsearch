@@ -77,10 +77,8 @@ module.exports = ({ strapi }) => ({
             let finalPayload = payload
            //let finalPayload = JSON.parse(JSON.stringify(payload))
             //finalPayload.mapping = JSON.stringify(finalPayload.payload)
-            const entry = await strapi.entityService.update('plugin::elasticsearch.mapping', indexId, {
-                data: {
-                    ...finalPayload
-                }
+            const entry = await strapi.entityService.update('plugin::elasticsearch.registered-index', indexId, {
+                data: finalPayload
             })
 
             console.log('SPE - updateIndex 444 - Updated:', entry)

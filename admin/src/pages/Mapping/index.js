@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { useParams } from 'react-router-dom'
 import { SubNavigation } from '../../components/SubNavigation'
 import { Mapping } from '../../components/Mapping'
@@ -6,14 +6,7 @@ import { Box, Flex, Breadcrumbs, Crumb, Link } from '@strapi/design-system'
 
 const PageMapping = () => {
 
-    const [mappingId, setMappingId] = useState(null)
     const params = useParams()
-    
-    useEffect( () => {
-        if (params && params.mappingId) {
-            setMappingId(params.mappingId)
-        }
-    }, [params])
 
     return (
         <Flex alignItems="stretch" gap={4}>
@@ -24,12 +17,12 @@ const PageMapping = () => {
                     <Crumb>
                         <Link to={`./`}>Mappings</Link>
                     </Crumb>
-                    <Crumb>{ mappingId }</Crumb>
+                    <Crumb>{ params.mappingId }</Crumb>
                     {/* isCurrent */}
                 </Breadcrumbs>
 
-                { mappingId && (
-                    <Mapping mappingId={mappingId} />
+                { params.mappingId && (
+                    <Mapping mappingId={params.mappingId} />
                 )}                    
             </Box>
         </Flex>

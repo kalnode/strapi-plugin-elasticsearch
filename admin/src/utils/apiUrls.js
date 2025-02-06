@@ -32,7 +32,9 @@ export const apiGetMappings = (mappingIDNumber) => `/${pluginId}/get-mappings/${
 export const apiCreateMapping = `/${pluginId}/create-mapping`
 export const apiUpdateMapping = (mappingIDNumber) => `/${pluginId}/update-mapping/${mappingIDNumber}`
 export const apiDeleteMapping = (mappingIDNumber) => `/${pluginId}/delete-mapping/${mappingIDNumber}`
+
 export const apiGetContentTypes = `/${pluginId}/get-content-types`
+
 export const apiGetCollectionConfig = (collectionName) => `/${pluginId}/collection-config/${collectionName}`
 export const apiSaveCollectionConfig = (collectionName) => `/${pluginId}/collection-config/${collectionName}`
 
