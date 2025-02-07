@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import pluginId from '../../pluginId'
 
 import { Box, Flex, Button, ModalLayout, ModalHeader, ModalFooter, ModalBody, Table, Thead, Tbody, Tr, Td, Th, TFooter, Typography, EmptyStateLayout, Checkbox, TextInput, IconButton, CaretDown } from '@strapi/design-system'
-import { Pencil, Trash, Refresh, Plus } from '@strapi/icons'
+import { Pencil, Trash, Refresh, Plus, Cross } from '@strapi/icons'
 import '../../styles/styles.css'
 
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
@@ -73,10 +73,10 @@ export const ComponentIndexes = () => {
         requestCreateIndex(newIndexName)
     }
 
-    const requestDeleteIndex = (e, recordIndexNumber) => {
-        e.stopPropogation()
+    const requestDeleteIndex = async (e, recordIndexNumber) => {
+        e.stopPropagation()
         setIsInProgress(true)
-        return axiosInstance.get(apiDeleteIndex(recordIndexNumber))
+        await axiosInstance.get(apiDeleteIndex(recordIndexNumber))
         .catch((error) => {
             console.log("PAGE INDEXES - requestDeleteIndex ERROR: ", error)
             showNotification({
@@ -98,20 +98,20 @@ export const ComponentIndexes = () => {
             </Box>
 
             {/* -------- ACTIONS -------- */}
-            <Box>
-                <Flex gap={4}>
-                    <IconButton onClick={requestGetRegisteredIndexes} label="Reload indexes" icon={<Refresh />} />
-                    <Button loading={isInProgress} fullWidth variant="secondary" onClick={modalCreateOpen} startIcon={<Plus />}>Create Index</Button>
+                <Flex width="100%" gap={4} justifyContent="space-between">
+                    <Box>
+                        {/* <IconButton onClick={requestGetRegisteredIndexes} label="Create Index" icon={<Refresh />} /> */}
+                    </Box>
+                    <Button variant="secondary" onClick={modalCreateOpen} startIcon={<Plus />}>Create Index</Button>
                 </Flex>
-            </Box>
 
             {/* -------- CONTENT -------- */}
             <Box width="100%">
                 { (!indexes || (indexes && indexes.length) === 0) && (
-                    <EmptyStateLayout icon={<Cross />} content="You don't have any content yet..." action={
-                        <Button variant="secondary" startIcon={<Plus />}>
-                            Create your first content-type
-                        </Button>
+                    <EmptyStateLayout icon={<Cross />} content="You don't have any registered indexes yet..." action={
+                        <Flex gap={4}>
+                            <Button variant="secondary" onClick={modalCreateOpen} startIcon={<Plus />}>Create Index</Button>
+                        </Flex>
                     } />
                 )}
 
@@ -139,9 +139,9 @@ export const ComponentIndexes = () => {
                                 <Th width={50}>
                                     <Typography variant="sigma">Mappings</Typography>
                                 </Th>
-                                <Th width={50}>
+                                {/* <Th width={50}>
                                     <Typography variant="sigma">Raw Mapping</Typography>
-                                </Th>
+                                </Th> */}
                                 <Th>
                                     <Typography variant="sigma">Active</Typography>
                                 </Th>
@@ -161,13 +161,13 @@ export const ComponentIndexes = () => {
                                             <Typography textColor="neutral600">{data.index_alias}</Typography>
                                         </Td>
                                         <Td>
-                                            <Typography textColor="neutral600">?</Typography>
+                                            <Typography textColor="neutral600">{data.mappings && data.mappings.length > 0 ? data.mappings.length : ''}</Typography>
                                         </Td>
-                                        <Td>
-                                            <Typography textColor="neutral600">{data.index_mapping}</Typography>
-                                        </Td>
-                                        <Td>
+                                        {/* <Td>
                                             <Typography textColor="neutral600">?</Typography>
+                                        </Td> */}
+                                        <Td>
+                                            <Typography textColor="neutral600">{data.active ? 'Yes':''}</Typography>
                                         </Td>
                                         <Td>
                                             <Flex alignItems="end" gap={2}>
@@ -187,7 +187,6 @@ export const ComponentIndexes = () => {
                 )}
             </Box>
 
-
             { modalCreateIndexShow && (
                 <ModalLayout onClose={modalCreateClose}>
                     {/* labelledBy="title" */}
@@ -200,94 +199,19 @@ export const ComponentIndexes = () => {
                         A new index will be created in Elasticsearch with the below name, and will also be registered in this plugin.
                         We prepend a standard identifier "strapi_es_plugin".
                         <TextInput value={newIndexName} onChange={(event) => { setNewIndexName(event.target.value) }} label="Index name" placeholder="Enter index name" name="Index name field" />
-                        {/* onChange={e => updateMappedFieldName(e.target.value)} value={config.searchFieldName || ""} */}
                         <Button onClick={createIndexActual} variant="tertiary">
                             Create Index
-                        </Button>
-
-                        {/* {showFileDragAndDrop && (
-                            <>
-                            <Typography textColor="neutral800" fontWeight="bold" as="h2">
-                                {i18n('plugin.import.data-source-step.title')}
-                            </Typography>
-                            <Flex gap={4}>
-                                <label
-                                className={`plugin-ie-import_modal_label ${labelClassNames}`}
-                                onDragEnter={handleDragEnter}
-                                onDragLeave={handleDragLeave}
-                                onDragOver={handleDragOver}
-                                onDrop={handleDrop}
-                                >
-                                <span className="plugin-ie-import_modal_label-icon-wrapper">
-                                    <IconFile />
-                                </span>
-                                <Typography style={{ fontSize: '1rem', fontWeight: 500 }} textColor="neutral600" as="p">
-                                    {i18n('plugin.import.drag-drop-file')}
-                                </Typography>
-                                <input type="file" accept=".csv,.json" hidden="" onChange={onReadFile} />
-                                </label>
-                                <label className="plugin-ie-import_modal_label plugin-ie-import_modal_button-label" onClick={openCodeEditor}>
-                                <span className="plugin-ie-import_modal_label-icon-wrapper">
-                                    <IconCode />
-                                </span>
-                                <Typography style={{ fontSize: '1rem', fontWeight: 500 }} textColor="neutral600" as="p">
-                                    {i18n('plugin.import.use-code-editor')}
-                                </Typography>
-                                </label>
-                            </Flex>
-                            </>
-                        )}
-                        {showLoader && (
-                            <>
-                            <Flex justifyContent="center">
-                                <Loader>{i18n('plugin.import.importing-data')}</Loader>
-                            </Flex>
-                            </>
-                        )}
-                        {showEditor && <ImportEditor file={file} data={data} dataFormat={dataFormat} slug={slug} onDataChanged={onDataChanged} onOptionsChanged={onOptionsChanged} />}
-                        {showSuccess && (
-                            <>
-                            <EmptyStateLayout
-                                icon={<Icon width="6rem" height="6rem" color="success500" as={CheckCircle} />}
-                                content={i18n('plugin.message.import.success.imported-successfully')}
-                                action={
-                                <Button onClick={modalCreateClose} variant="tertiary">
-                                    {i18n('plugin.cta.close')}
-                                </Button>
-                                }
-                            />
-                            </>
-                        )}
-                        {showPartialSuccess && (
-                            <>
-                            <Typography textColor="neutral800" fontWeight="bold" as="h2">
-                                {i18n('plugin.import.partially-failed')}
-                            </Typography>
-                            <Typography textColor="neutral800" as="p">
-                                {i18n('plugin.import.detailed-information')}
-                            </Typography>
-                            <Editor content={importFailuresContent} language={'json'} readOnly />
-                            </>
-                        )} */}
+                        </Button>    
                     </ModalBody>
                     {/* <ModalFooter
                         startActions={
                             <>
-                            {showRemoveFileButton && (
-                                <Button onClick={resetDataSource} variant="tertiary">
-                                {i18n('plugin.cta.back-to-data-sources')}
-                                </Button>
-                            )}
+
                             </>
                         }
                         endActions={
                             <>
-                            {showImportButton && <Button onClick={uploadData}>{i18n('plugin.cta.import')}</Button>}
-                            {showPartialSuccess && (
-                                <Button variant="secondary" onClick={copyToClipboard}>
-                                {i18n('plugin.cta.copy-to-clipboard')}
-                                </Button>
-                            )}
+
                             </>
                         }
                     /> */}

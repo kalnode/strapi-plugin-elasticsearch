@@ -184,7 +184,7 @@ export const Mappings = ({ indexId, showOnlyPresets, modeOnlySelection, mappingH
                         )}
                         
                         { indexId && (
-                            <Button loading={isInProgress} fullWidth variant="secondary"
+                            <Button loading={isInProgress} variant="secondary"
                             onClick={ () => modalSelectPresetMappingOpen() } style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
                                 Add Preset Mapping
                             </Button>
@@ -202,18 +202,18 @@ export const Mappings = ({ indexId, showOnlyPresets, modeOnlySelection, mappingH
 
                 {/* EMPTY CONTENT */}
                 { (!mappings || (mappings && mappings.length === 0)) && (
-                    <EmptyStateLayout icon={<Cross />} content="You don't have any content yet..." action={
-                        <>
-                        <Link to={`/plugins/${pluginId}/indexes/${indexId}/mappings/new`}>
-                            <Button variant="secondary" style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
-                                Create Mapping
+                    <EmptyStateLayout icon={<Cross />} content="You don't have any mappings yet..." action={
+                        <Flex gap={4}>
+                            <Link to={`/plugins/${pluginId}/indexes/${indexId}/mappings/new`}>
+                                <Button variant="secondary" style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
+                                    Create Mapping
+                                </Button>
+                            </Link>
+                            <Button loading={isInProgress} variant="secondary"
+                            onClick={ () => modalSelectPresetMappingOpen() } style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
+                                Add Preset Mapping
                             </Button>
-                        </Link>
-                        <Button loading={isInProgress} fullWidth variant="secondary"
-                        onClick={ () => modalSelectPresetMappingOpen() } style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
-                            Add Preset Mapping
-                        </Button>
-                        </>
+                        </Flex>
                     } />
                 ) }
 

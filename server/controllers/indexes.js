@@ -5,7 +5,6 @@ module.exports = ({ strapi }) => {
     const indexes = strapi.plugins['elasticsearch'].services.indexes
 
     const getIndex = async (ctx) => {
-        console.log("Controller getIndex 343434", ctx.params.indexId)
         const { body } = ctx.request
         try {
             const work = await indexes.getIndex(ctx.params.indexId)
@@ -21,7 +20,6 @@ module.exports = ({ strapi }) => {
     }
 
     const createIndex = async (ctx) => {
-        console.log("Controller deleteIndex 343434", ctx)
         if (ctx.params.indexName) {
             //return await scheduleIndexingService.addCollectionToIndex({collectionUid: ctx.params.collectionname})
             return await indexes.createIndex(ctx.params.indexName)
@@ -31,7 +29,6 @@ module.exports = ({ strapi }) => {
     }
 
     const updateIndex = async (ctx) => {
-        console.log("Controller updateIndex 343434", ctx.params.indexId)
         const { body } = ctx.request
         try {
             const work = await indexes.updateIndex(ctx.params.indexId, body.data)
@@ -43,7 +40,6 @@ module.exports = ({ strapi }) => {
     }
 
     const deleteIndex = async (ctx) => {
-        console.log("Controller deleteIndex 343434", ctx)
         if (ctx.params.recordIndexNumber) {
             //return await scheduleIndexingService.addCollectionToIndex({collectionUid: ctx.params.collectionname})
             return await indexes.deleteIndex(ctx.params.recordIndexNumber)

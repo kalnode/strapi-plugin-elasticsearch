@@ -1,42 +1,33 @@
 
 module.exports = ({ strapi }) => ({
 
-
     async getMapping(mappingId) {
-        console.log('SPE - getMapping 111')
         const record = await strapi.entityService.findOne('plugin::elasticsearch.mapping', mappingId)
         return record
     },
 
     async getMappings(indexId, count = 50) {
 
-        console.log('SPE - getMappings 111', indexId)
-
         let payload = {
             sort: { createdAt: 'DESC' },
             start: 0,
             limit: count,
-            filters: {
-
-            },
-            //populate: "Mappings"
+            filters: { },
+            populate: "indexes"
         }
 
-        console.log("indexId is: ", indexId)
-        console.log("indexId type: ", typeof indexId)
+        // console.log("indexId is: ", indexId)
+        // console.log("indexId type: ", typeof indexId)
         // TODO: This is really stupid, but need to figure out a better way to dynamically add "filters: {}" to the payload.
         // Right now we start with it empty, and delete or fill it. Ideally we don't have any of this and just add filters to payload.
 
         // TODO: Some sillyness going on here; for some reason all of these conditions are needed, and they must come first in the if-else order.
         // Simply checking !indexId doesn't seem to work.
         if (!indexId || indexId === 'undefined' || indexId === undefined || typeof indexId === "undefined") {
-            console.log("Deleting filters 111...")
+
             delete payload.filters
 
         } else if (indexId || indexId != 'undefined' || indexId != undefined || typeof indexId != "undefined") {
-            
-            
-            console.log("Setting filters...")
             
             // OLD WAY
             // payload.filters.registered_index = {
@@ -76,15 +67,13 @@ module.exports = ({ strapi }) => ({
 
         }
 
-        console.log("Payload is: ", payload)
+        //console.log("Payload is: ", payload)
         const records = await strapi.entityService.findMany('plugin::elasticsearch.mapping', {...payload})
         return records
     },
 
 
     async getContentTypesEarly() {
-
-        console.log('SPE - getContentTypes 111')
 
         // let contentTypes = []
         // Object.values(strapi.contentTypes).map(contentType => {
@@ -94,7 +83,6 @@ module.exports = ({ strapi }) => ({
         // })
         let work = strapi.contentTypes
 
-        console.log('SPE - getContentTypes 222', work)
         return work
                 // axiosInstance.get('/content-type-builder/content-types')
         //     .then((response) => {
@@ -184,8 +172,6 @@ module.exports = ({ strapi }) => ({
 
     async createMapping(mapping) {
 
-        console.log('SPE - createMapping 111', mapping)
-
         const helper = strapi.plugins['elasticsearch'].services.helper
         const esInterface = strapi.plugins['elasticsearch'].services.esInterface
 
@@ -261,8 +247,6 @@ module.exports = ({ strapi }) => ({
 
     async deleteMapping(mappingIndexNumber) {
 
-        console.log('SPE - deleteMapping 111', mappingIndexNumber)
-
         const helper = strapi.plugins['elasticsearch'].services.helper
         const esInterface = strapi.plugins['elasticsearch'].services.esInterface
 
@@ -272,9 +256,6 @@ module.exports = ({ strapi }) => ({
 
             const entry = await strapi.entityService.delete('plugin::elasticsearch.mapping', mappingIndexNumber)
 
-
-
-
             console.log('SPE - deleteMapping 333', entry)
             return entry
 
@@ -283,8 +264,6 @@ module.exports = ({ strapi }) => ({
             console.log(err)
             return err
         }
-
     }
-
 
 })

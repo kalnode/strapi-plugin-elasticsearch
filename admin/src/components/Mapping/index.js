@@ -161,17 +161,20 @@ export const Mapping = ({ indexId, mappingId }) => {
             await axiosInstance.post(apiCreateMapping, {
                 data: output
             })
-            .then((response) => {
-                console.log("PAGE MAPPING - requestCreateMapping response: ", response.data)
-                setMappingRaw(response.data)
+            .then( async (response) => {
+
+                let work = response.data
+                work.mapping = JSON.parse(work.mapping)
+                setMappingRaw(work)
+                setMapping(work)
+
                 if (indexId) {
-                    history.replace(`/plugins/${pluginId}/indexes/${indexId}/mappings/${response.data.id}`)
+                    await history.replace(`/plugins/${pluginId}/indexes/${indexId}/mappings/${response.data.id}`)
+
                 } else {
-                    history.replace(`/plugins/${pluginId}/mappings/${response.data.id}`)
+                    await history.replace(`/plugins/${pluginId}/mappings/${response.data.id}`)
                 }
-                // showNotification({
-                //     type: "success", message: "Created the mapping: " + response, timeout: 5000
-                // })
+
             })
             .catch((error) => {
                 console.log("PAGE MAPPING - requestCreateMapping ERROR: ", error)
@@ -348,16 +351,15 @@ export const Mapping = ({ indexId, mappingId }) => {
                                     <Typography variant="sigma">Unsaved changes</Typography>
                                 </>
                             )}
-                            
 
-                            <Button onClick={() => requestUpdateMapping()} variant="tertiary" disabled={!changesExist}>
+                            <Button onClick={() => requestUpdateMapping()} variant="secondary" disabled={!changesExist}>
                                 Save
                             </Button>
                         </Flex>
                     )}
 
                     { (!mappingId || mappingId === 'new') && posttypeFinal && (
-                        <Button onClick={() => requestCreateMapping()} variant="tertiary">
+                        <Button onClick={() => requestCreateMapping()} variant="secondary">
                             { indexId ? 'Save New Mapping' : 'Save New Preset Mapping' }
                         </Button>
                     )}

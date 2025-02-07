@@ -2,28 +2,24 @@
 module.exports = ({ strapi }) => ({
 
     async getIndexes(count = 50) {
-
-        console.log('SPE - getIndexes 111')
-
-       // return 'Dummy list indexes'
         const records = await strapi.entityService.findMany('plugin::elasticsearch.registered-index', {
             sort: { createdAt: 'DESC' },
             start: 0,
-            limit: count
+            limit: count,
+            populate: "mappings"
         })
         return records
     },
 
     async getIndex(indexId) {
         console.log('SPE - getIndex 111', indexId)
-        const record = await strapi.entityService.findOne('plugin::elasticsearch.registered-index', indexId)
+        const record = await strapi.entityService.findOne('plugin::elasticsearch.registered-index', indexId, {
+            populate: "mappings"
+        })
         return record
     },
 
     async createIndex(indexName) {
-
-        console.log('SPE - createIndex 111')
-
         const helper = strapi.plugins['elasticsearch'].services.helper
         const esInterface = strapi.plugins['elasticsearch'].services.esInterface
 
@@ -46,7 +42,6 @@ module.exports = ({ strapi }) => ({
                 }
             })
 
-            console.log('SPE - createIndex 444 - Created new index with name:', entry)
             return entry
 
         } catch(err) {
@@ -69,8 +64,7 @@ module.exports = ({ strapi }) => ({
 
             // Step 1: Create a new index
             //const newIndexName = await helper.getIncrementedIndexName()
-            console.log('SPE - updateIndex 111 - indexId:', indexId)
-            console.log('SPE - updateIndex 222', payload)
+
             //let work = await esInterface.createIndex(newIndexName)
             //JSON.stringify(body.data)
 
@@ -81,7 +75,6 @@ module.exports = ({ strapi }) => ({
                 data: finalPayload
             })
 
-            console.log('SPE - updateIndex 444 - Updated:', entry)
             return entry
 
         } catch(err) {
@@ -94,10 +87,9 @@ module.exports = ({ strapi }) => ({
 
     async deleteIndex(recordIndexNumber) {
 
-        console.log('SPE - deleteIndex 111', recordIndexNumber)
-
         const helper = strapi.plugins['elasticsearch'].services.helper
         const esInterface = strapi.plugins['elasticsearch'].services.esInterface
+        const indexes = strapi.plugins['elasticsearch'].services.indexes
 
         try {
 
@@ -107,16 +99,23 @@ module.exports = ({ strapi }) => ({
             // Step 1: Create a new index
             //const newIndexName = await helper.getIncrementedIndexName()
 
-
-
             //await esInterface.deleteIndex(index)
 
+            let work = await indexes.getIndex(recordIndexNumber)
+
+            // Delete mappings associated with this registered index
+            if (work.mappings) {
+
+                for (i = 0; i < work.mappings.length; i++) {
+
+                    // Ignore if mapping is a "preset" mapping
+                    if (!work.mappings[i].preset) {
+                        await strapi.entityService.delete('plugin::elasticsearch.mapping', work.mappings[i].id) 
+                    }
+                }
+            }
+
             const entry = await strapi.entityService.delete('plugin::elasticsearch.registered-index', recordIndexNumber)
-
-
-
-
-            console.log('SPE - deleteIndex 333 - Created new index with name:', entry)
             return entry
 
         } catch(err) {
