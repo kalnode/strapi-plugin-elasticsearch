@@ -136,12 +136,6 @@ export const Index = ({ indexId, closeEvent }) => {
                                 Save
                             </Button>
                         )}
-
-                        { !indexId && (
-                            <Button onClick={() => requestCreateIndex()} variant="tertiary">
-                                Create Index
-                            </Button>
-                        )}
                     </Flex>
                 </Flex>
 

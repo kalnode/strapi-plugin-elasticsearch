@@ -2,7 +2,9 @@
 module.exports = ({ strapi }) => ({
 
     async getMapping(mappingId) {
-        const record = await strapi.entityService.findOne('plugin::elasticsearch.mapping', mappingId)
+        const record = await strapi.entityService.findOne('plugin::elasticsearch.mapping', mappingId, {
+            populate: "indexes"
+        })
         return record
     },
 

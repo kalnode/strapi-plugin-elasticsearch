@@ -20,11 +20,14 @@ module.exports = ({ strapi }) => {
     }
 
     const createIndex = async (ctx) => {
-        if (ctx.params.indexName) {
+        const { body } = ctx.request
+        try {
             //return await scheduleIndexingService.addCollectionToIndex({collectionUid: ctx.params.collectionname})
-            return await indexes.createIndex(ctx.params.indexName)
-        } else {
-            return null
+            const work = await indexes.createIndex(body.data.indexName, body.data.addToExternalIndex)
+            return work
+        } catch (err) {
+            //return null ???
+            ctx.throw(500, err)
         }
     }
 
@@ -40,11 +43,13 @@ module.exports = ({ strapi }) => {
     }
 
     const deleteIndex = async (ctx) => {
-        if (ctx.params.recordIndexNumber) {
-            //return await scheduleIndexingService.addCollectionToIndex({collectionUid: ctx.params.collectionname})
-            return await indexes.deleteIndex(ctx.params.recordIndexNumber)
-        } else {
-            return null
+        const { body } = ctx.request
+        try {
+            const work = await indexes.deleteIndex(body.data.indexId, body.data.deleteIndexInElasticsearch)
+            return work
+        } catch (err) {
+            //return null ???
+            ctx.throw(500, err)
         }
     }
 

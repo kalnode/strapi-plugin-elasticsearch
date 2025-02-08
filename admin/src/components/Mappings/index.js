@@ -92,7 +92,8 @@ export const Mappings = ({ indexId, showOnlyPresets, modeOnlySelection, mappingH
 
     }
 
-    const requestEditMapping = (mappingId) => {
+    const requestEditMapping = (e, mappingId) => {
+        e.stopPropagation()
         if (indexId) {
             history.push(`/plugins/${pluginId}/${indexId}/mappings/${mappingId}`)
         } else {
@@ -100,8 +101,14 @@ export const Mappings = ({ indexId, showOnlyPresets, modeOnlySelection, mappingH
         }
     }
 
-    const handleRowClick = (mappingId) => {
+    const requestGoToIndex = (e, reqIndexId) => {
+        e.stopPropagation()
+        if (reqIndexId) {
+            history.push(`/plugins/${pluginId}/indexes/${reqIndexId}`)
+        }
+    }
 
+    const handleRowClick = (mappingId) => {
         console.log("handleRowClick 111", mappingId)
         if (modeOnlySelection) {
             console.log("handleRowClick 333", mappingId)
@@ -247,6 +254,12 @@ export const Mappings = ({ indexId, showOnlyPresets, modeOnlySelection, mappingH
                                             <Typography variant="sigma">Preset Default</Typography>
                                         </Th>
                                     )}
+
+                                    { !indexId && (
+                                        <Th>
+                                            <Typography variant="sigma">Index(s)</Typography>
+                                        </Th>
+                                    )}
                                 </Tr>
                             </Thead>
                             <Tbody>
@@ -275,9 +288,32 @@ export const Mappings = ({ indexId, showOnlyPresets, modeOnlySelection, mappingH
                                             </Td>
                                         )}
 
+                                        { !indexId && (
+                                            <Td>
+                                                    { data.indexes && data.indexes.length > 0 && (
+                                                        <>
+                                                        { data.indexes.map((item, indexItem) => {
+                                                                return (
+                                                                    <>
+                                                                    <Link onClick={(e) => { requestGoToIndex(e, item.id) } } key={indexItem}>
+                                                                        { item.id }
+                                                                    </Link>
+                                                                    
+                                                                    { indexItem != data.indexes.length && (
+                                                                        <>&nbsp;</>
+                                                                    ) }
+                                                                    </>
+                                                                )
+                                                            })
+                                                        }
+                                                        </>
+                                                    )}
+                                            </Td>
+                                        )}
+
                                         <Td>
                                             <Flex alignItems="end" gap={2}>
-                                                <IconButton label="Edit mapping" noBorder icon={<Pencil />} onClick={() => requestEditMapping(data.id) } />
+                                                <IconButton label="Edit mapping" noBorder icon={<Pencil />} onClick={(e) => requestEditMapping(e, data.id) } />
 
                                                 { !modeOnlySelection && (
                                                     <IconButton onClick={(e) => requestDeleteMapping(e, data.id)} label="Delete" borderWidth={0} icon={<Trash />} />

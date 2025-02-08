@@ -14,14 +14,14 @@ module.exports = {
             config: { policies: [] }
         },
         {
-            method: 'GET',
-            path: '/create-index/:indexName',
+            method: 'POST',
+            path: '/create-index',
             handler: 'indexes.createIndex',
             config: { policies: [] }
         },
         {
-            method: 'GET',
-            path: '/delete-index/:recordIndexNumber',
+            method: 'POST',
+            path: '/delete-index',
             handler: 'indexes.deleteIndex',
             config: { policies: [] },
         },

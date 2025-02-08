@@ -19,7 +19,7 @@ module.exports = ({ strapi }) => ({
         return record
     },
 
-    async createIndex(indexName) {
+    async createIndex(indexName, addToExternalIndex) {
         const helper = strapi.plugins['elasticsearch'].services.helper
         const esInterface = strapi.plugins['elasticsearch'].services.esInterface
 
@@ -41,6 +41,14 @@ module.exports = ({ strapi }) => ({
                     //mapping: 'crazy mapping'
                 }
             })
+
+
+            // ADD TO ELASTICSEARCH:
+            if (addToExternalIndex) {
+                console.log("SPE - createIndex, addToExternalIndex", addToExternalIndex)
+                let work = await esInterface.createIndex(indexName)
+                console.log("SPE - createIndex, addToExternalIndex work: ", work)
+            }
 
             return entry
 
@@ -85,12 +93,12 @@ module.exports = ({ strapi }) => ({
 
     },
 
-    async deleteIndex(recordIndexNumber) {
+    async deleteIndex(recordIndexNumber, deleteIndexInElasticsearch) {
 
         const helper = strapi.plugins['elasticsearch'].services.helper
         const esInterface = strapi.plugins['elasticsearch'].services.esInterface
         const indexes = strapi.plugins['elasticsearch'].services.indexes
-
+        console.log("SPE - deleteIndex, 111")
         try {
 
             //const oldIndexName = await helper.getCurrentIndexName()
@@ -100,12 +108,12 @@ module.exports = ({ strapi }) => ({
             //const newIndexName = await helper.getIncrementedIndexName()
 
             //await esInterface.deleteIndex(index)
-
+            console.log("SPE - deleteIndex, 222", recordIndexNumber)
             let work = await indexes.getIndex(recordIndexNumber)
 
             // Delete mappings associated with this registered index
             if (work.mappings) {
-
+                console.log("SPE - deleteIndex, 333")
                 for (i = 0; i < work.mappings.length; i++) {
 
                     // Ignore if mapping is a "preset" mapping
@@ -114,8 +122,20 @@ module.exports = ({ strapi }) => ({
                     }
                 }
             }
+            console.log("SPE - deleteIndex, 444")
 
             const entry = await strapi.entityService.delete('plugin::elasticsearch.registered-index', recordIndexNumber)
+            console.log("SPE - deleteIndex, 444bbb", entry)
+
+            // DELETE FROM ELASTICSEARCH:
+            if (work && deleteIndexInElasticsearch) {
+                console.log("SPE - deleteIndex, 555")
+                console.log("SPE - deleteIndex, deleteIndexInElasticsearch", deleteIndexInElasticsearch)
+                let work2 = await esInterface.deleteIndex(work.index_name)
+                console.log("SPE - deleteIndex, deleteIndexInElasticsearch work: ", work2)
+            }
+            console.log("SPE - deleteIndex, 666")
+
             return entry
 
         } catch(err) {

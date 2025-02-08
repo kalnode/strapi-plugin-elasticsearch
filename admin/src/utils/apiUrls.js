@@ -22,8 +22,8 @@ export const apiOrphansDelete = `/${pluginId}/orphans-delete`
 // INDEXES
 export const apiGetIndexes = `/${pluginId}/get-indexes`
 export const apiGetIndex = (indexIDNumber) => `/${pluginId}/get-index/${indexIDNumber}`
-export const apiCreateIndex = (indexName) => `/${pluginId}/create-index/${indexName}`
-export const apiDeleteIndex = (recordIDNumber) => `/${pluginId}/delete-index/${recordIDNumber}`
+export const apiCreateIndex = `/${pluginId}/create-index`
+export const apiDeleteIndex = `/${pluginId}/delete-index`
 export const apiUpdateIndex = (indexIDNumber) => `/${pluginId}/update-index/${indexIDNumber}`
 
 // MAPPING
