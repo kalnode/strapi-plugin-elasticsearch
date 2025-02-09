@@ -37,6 +37,7 @@ module.exports = ({ strapi }) => ({
             const entry = await strapi.entityService.create('plugin::elasticsearch.registered-index', {
                 data : {
                     index_name: indexName,
+                    active: true
                     //index_alias: 'myAlias',
                     //mapping: 'crazy mapping'
                 }

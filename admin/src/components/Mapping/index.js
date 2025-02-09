@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
 import PropTypes from 'prop-types'
 import pluginId from '../../pluginId'
-import { Box, Button, Typography, Link, Icon, ToggleInput, TextInput, Flex, Textarea, Table, Thead, Tbody, Tr, Td, Th, TFooter, Switch, SingleSelect, SingleSelectOption, TabGroup, Tabs, Tab, TabPanels, TabPanel, Grid, Field } from '@strapi/design-system'
+import { Box, Button, Typography, Link, Icon, ToggleInput, TextInput,TextButton, Flex, Textarea, Table, Thead, Tbody, Tr, Td, Th, TFooter, Switch, SingleSelect, SingleSelectOption, TabGroup, Tabs, Tab, TabPanels, TabPanel, Grid, Field } from '@strapi/design-system'
 import { apiGetMapping, apiGetMappings, apiCreateMapping, apiUpdateMapping, apiDeleteMapping, apiGetContentTypes } from '../../utils/apiUrls'
 import axiosInstance  from '../../utils/axiosInstance'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
@@ -54,6 +54,10 @@ export const Mapping = ({ indexId, mappingId }) => {
     const showNotification = useNotification()
 
     const changesExist = useMemo(() => mapping != mappingRaw)
+
+    const resetForm = () => {
+        setMapping(mappingRaw)
+    }
 
     const requestGetMapping = async () => {
 
@@ -349,6 +353,9 @@ export const Mapping = ({ indexId, mappingId }) => {
                                 <>
                                     <Icon as={ExclamationMarkCircle} />
                                     <Typography variant="sigma">Unsaved changes</Typography>
+                                    <TextButton onClick={() => resetForm()}>
+                                        Reset
+                                    </TextButton>
                                 </>
                             )}
 
@@ -521,19 +528,22 @@ export const Mapping = ({ indexId, mappingId }) => {
 
                             {/* -------- TAB: RAW OUTPUT ------------------*/}
                             <TabPanel id="raw">
-                                <Box padding={8} background="neutral0" shadow="filterShadow">
-                                    <Typography variant="delta">
-                                        This is the raw mapping output that will be applied to an Elasticsearch instance. Keep in mind, the instance may have additional mappings applied to it.
-                                    </Typography>
-                                </Box>
-                                <hr />
-                                <Box padding={8} background="neutral0" shadow="filterShadow">
-                                    { !mapping && (
-                                        <>(Please apply some mappings)</>
-                                    )}
-                                    { mapping && (
-                                        <pre>{ JSON.stringify(mapping, null, 8) }</pre>
-                                    )}
+                                <Box padding={4} background="neutral0" shadow="filterShadow">
+                                    <Typography variant="beta">Preview raw output</Typography>
+                                    <Box marginTop={2}>
+                                        <Typography variant="delta">
+                                            This is what the raw mapping output will look like when applied to an index Elasticsearch instance.
+                                            Keep in mind, in that ES index, you may see other fields if additional mappings have been applied to it.
+                                        </Typography>
+                                    </Box>
+                                    <Box padding={8} marginTop={4} background="secondary100">
+                                        { !mapping && (
+                                            <>(Please apply some mappings)</>
+                                        )}
+                                        { mapping && (
+                                            <pre>{ JSON.stringify(mapping, null, 8) }</pre>
+                                        )}
+                                    </Box>
                                 </Box>
                             </TabPanel>
 

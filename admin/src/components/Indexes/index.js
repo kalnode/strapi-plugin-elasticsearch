@@ -285,10 +285,10 @@ export const ComponentIndexes = () => {
 
                             <Flex direction="column" alignItems="start" gap={4}>
                                 <Typography as="h2" variant="beta">Create in Elasticsearch instance</Typography>
-                                <p>
+                                <Typography variant="delta">
                                     By default, the plugin will attempt to create this index in the connected Elasticsearch instance.
                                     You may turn this off and do this step later via the plugin UI, or manually create an ES index yourself.
-                                </p>
+                                </Typography>
                                 <Flex gap={4}>
                                     <>Create index in ES instance?</>
                                     <Switch

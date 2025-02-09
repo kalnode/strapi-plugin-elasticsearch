@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
 import PropTypes from 'prop-types'
 import pluginId from '../../pluginId'
-import { Link, Box, Button, Icon, Typography, ToggleInput, TextInput, Flex, Textarea, Switch, SingleSelect, SingleSelectOption, TabGroup, Tabs, Tab, TabPanels, TabPanel, Grid, Field } from '@strapi/design-system'
+import { Link, Box, Button, Icon, Typography, ToggleInput, TextButton, TextInput, Flex, Textarea, Switch, SingleSelect, SingleSelectOption, TabGroup, Tabs, Tab, TabPanels, TabPanel, Grid, Field } from '@strapi/design-system'
 import { apiUpdateIndex, apiGetIndex, apiGetMapping, apiGetMappings, apiCreateMapping, apiUpdateMapping, apiDeleteMapping, apiGetContentTypes } from '../../utils/apiUrls'
 import axiosInstance from '../../utils/axiosInstance'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
@@ -26,6 +26,10 @@ export const Index = ({ indexId, closeEvent }) => {
     const showNotification = useNotification()
 
     const changesExist = useMemo(() => index != indexRaw)
+
+    const resetForm = () => {
+        setIndex(indexRaw)
+    }
 
     const requestGetIndex = async () => {
 
@@ -128,6 +132,9 @@ export const Index = ({ indexId, closeEvent }) => {
                             <>
                             <Icon as={ExclamationMarkCircle} />
                             <Typography variant="sigma">Unsaved changes</Typography>
+                            <TextButton onClick={() => resetForm()}>
+                                Reset
+                            </TextButton>
                             </>
                         )}
 
