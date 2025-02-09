@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import pluginId from '../../pluginId'
 
-import { Box, Flex, Button, ModalLayout, ModalHeader, ModalFooter, ModalBody, Switch, Table, Thead, Tbody, Tr, Td, Th, TFooter, Typography, EmptyStateLayout, Checkbox, TextInput, IconButton, CaretDown } from '@strapi/design-system'
+import { Box, Flex, Button, ModalLayout, ModalHeader, ModalFooter, ModalBody, FieldInput, Switch, TextButton, Table, Thead, Tbody, Tr, Td, Th, TFooter, Typography, EmptyStateLayout, Checkbox, TabGroup, Tabs, Tab, TabPanels, TabPanel, Field, TextInput, IconButton, CaretDown } from '@strapi/design-system'
 import { Pencil, Trash, Refresh, Plus, Cross } from '@strapi/icons'
 import '../../styles/styles.css'
 
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 import axiosInstance  from '../../utils/axiosInstance'
-import { apiGetIndexes, apiCreateIndex, apiDeleteIndex } from '../../utils/apiUrls'
+import { apiGetIndexes, apiCreateIndex, apiDeleteIndex, apiGetESIndexes } from '../../utils/apiUrls'
 import { useHistory } from "react-router-dom"
 
 // NOTE: The "Indexes" component exists simply for file consistency, even though it will only ever have one instance (the main Indexes page).
@@ -16,9 +16,10 @@ export const ComponentIndexes = () => {
 
     const [isInProgress, setIsInProgress] = useState(false)
     const [indexes, setIndexes] = useState(null)
+    const [ESIndexes, setESIndexes] = useState(null)
     const [modalCreateIndexShow, setModalCreateIndexShow] = useState(false)
     const [newIndexName, setNewIndexName] = useState('')
-    const [addToElasticsearch, setAddToElasticsearch] = useState(false)
+    const [addToElasticsearch, setAddToElasticsearch] = useState(true)
     const [useNamePrepend, setUseNamePrepend] = useState(false)
     const namePrepend = "strapi_es_plugin_"
     const [modalRegisterExistingIndexShow, setModalRegisterExistingIndexShow] = useState(false)
@@ -34,9 +35,9 @@ export const ComponentIndexes = () => {
         requestGetRegisteredIndexes()
     }, [])
 
-    const requestGetRegisteredIndexes = () => {
+    const requestGetRegisteredIndexes = async () => {
         setIsInProgress(true)
-        axiosInstance.get(apiGetIndexes)
+        await axiosInstance.get(apiGetIndexes)
         .then((response) => {
             if (response.data && Array.isArray(response.data) && response.data.length > 0) {
                 setIndexes(response.data)
@@ -52,7 +53,7 @@ export const ComponentIndexes = () => {
         })
         .finally(() => {
             setIsInProgress(false)
-        })            
+        })
     } 
 
     const requestCreateIndex = (indexName, addToExternalIndex) => {
@@ -81,8 +82,11 @@ export const ComponentIndexes = () => {
         setModalCreateIndexShow(true)
     }
 
-    const modalRegExistingIndexOpen = () => {
+    const modalRegExistingIndexOpen = async () => {
         setNewIndexName('')
+        console.log("modalRegExistingIndexOpen 111")
+        await getESIndexes()
+        console.log("modalRegExistingIndexOpen 222")
         setModalRegisterExistingIndexShow(true)
     }
 
@@ -97,6 +101,29 @@ export const ComponentIndexes = () => {
         requestCreateIndex(newIndexName)
     }
 
+    const getESIndexes = async () => {
+        setIsInProgress(true)
+        console.log("getESIndexes 111")
+        await axiosInstance.get(apiGetESIndexes)
+        .then((response) => {
+            console.log("PAGE INDEXES - getESIndexes response: ", response)
+            if (response.data && Object.keys(response.data).length > 0) {
+                setESIndexes(Object.keys(response.data))
+            } else {
+                setESIndexes(null)
+            }
+        })
+        .catch((error) => {
+            console.log("PAGE INDEXES - getESIndexes ERROR: ", error)
+            showNotification({
+                type: "warning", message: "An error has encountered: " + error, timeout: 5000
+            })
+        })
+        .finally(() => {
+            setIsInProgress(false)
+        })
+        console.log("getESIndexes 222")
+    }
 
 
     const modalDeleteOpen = (e, recordIndexNumber) => {
@@ -234,19 +261,21 @@ export const ComponentIndexes = () => {
                     {/* labelledBy="title" */}
                     <ModalHeader>
                         <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
-                            Create & register index
+                            Create a Registered Index
                         </Typography>
                     </ModalHeader>
                     <ModalBody>
                         <Flex direction="column" alignItems="start" gap={8}>
-                            <Flex direction="column" alignItems="start" gap={4}>
+                            <Flex direction="column" alignItems="start" gap={4} width="100%">
                                 <Typography as="h2" variant="beta">Index name</Typography>
                                 <>
-                                    Create a name that's concise and descriptive.
+                                    Decide on a name that's concise, descriptive and unique enough to recognizeable in an ES instance.
                                 </>
-                                <Flex gap={4} alignItems="end">
+                                <Flex gap={4} alignItems="end" width="100%">
                                     {/* {useNamePrepend && (<>strapi_es_plugin_</>) } */}
-                                    <TextInput value={newIndexName} onChange={(event) => setNewIndexName(event.target.value) } label="Index name" placeholder="Enter index name" name="Index name field" />
+                                    <Box width="100%">
+                                        <TextInput value={newIndexName} onChange={(event) => setNewIndexName(event.target.value) } label="New index name" placeholder="Enter a new index name, e.g. 'myWebsite_testIndex'" name="newIndexName" />
+                                    </Box>
                                 </Flex>
                                 <Flex gap={4}>
                                     <Checkbox aria-label="Add prepend text" className="checkbox" checked={useNamePrepend} onChange={ () => setUseNamePrepend(!useNamePrepend)} />
@@ -255,13 +284,13 @@ export const ComponentIndexes = () => {
                             </Flex>
 
                             <Flex direction="column" alignItems="start" gap={4}>
-                                <Typography as="h2" variant="beta">Add to Elasticsearch instance</Typography>
-                                {/* <p>
-                                    By default we'll attempt to create this index in the Elasticsearch instance.
-                                    Turn this off if you'd rather not. You can still create the registered index, however for complete functionality.
-                                </p> */}
+                                <Typography as="h2" variant="beta">Create in Elasticsearch instance</Typography>
+                                <p>
+                                    By default, the plugin will attempt to create this index in the connected Elasticsearch instance.
+                                    You may turn this off and do this step later via the plugin UI, or manually create an ES index yourself.
+                                </p>
                                 <Flex gap={4}>
-                                    <>Add to ES index?</>
+                                    <>Create index in ES instance?</>
                                     <Switch
                                         onClick={ () => setAddToElasticsearch(!addToElasticsearch) }
                                         selected={ addToElasticsearch ? true : null }
@@ -270,35 +299,27 @@ export const ComponentIndexes = () => {
                                         offLabel = 'No'
                                     />
                                 </Flex>
-
-                                <Typography as="h2" variant="delta">You can manage this later.</Typography>
                             </Flex>
 
+                            
+                        </Flex>
+                    </ModalBody>
+                    <ModalFooter
+                        startActions={<></>}
+                        endActions={<>
                             <Flex width="100%" justifyContent="end" gap={4}>
                                 <Flex>
                                     {useNamePrepend && (<>{namePrepend}</>) }
                                     {newIndexName}
                                 </Flex>
 
-                                <Button onClick={createIndexActual} variant="primary">
+                                <Button onClick={createIndexActual} disabled={!newIndexName} variant="primary">
                                     {addToElasticsearch && (<>Create index & add to Elasticsearch</>) }
                                     {!addToElasticsearch && (<>Create index</>) }
                                 </Button>
                             </Flex>
-                        </Flex>
-                    </ModalBody>
-                    {/* <ModalFooter
-                        startActions={
-                            <>
-
-                            </>
-                        }
-                        endActions={
-                            <>
-
-                            </>
-                        }
-                    /> */}
+                        </>}
+                    />
                 </ModalLayout>
             )}
 
@@ -311,33 +332,72 @@ export const ComponentIndexes = () => {
                         </Typography>
                     </ModalHeader>
                     <ModalBody>
-                        <Flex direction="column" alignItems="start" gap={8}>
-                            <Typography as="h2" variant="beta">Existing Elasticsearch index</Typography>
-                            <>
-                                Register an existing Elasticsearch index with this plugin.
-                            </>                            
-                            <TextInput value={newIndexName} onChange={(event) => { setNewIndexName(event.target.value) }} label="Index name" placeholder="Enter index name" name="Index name field" />
 
-                            <Flex width="100%" justifyContent="end">
-                                <Button onClick={registerExistingIndexActual} variant="primary">
+                        <Box width="100%">
+
+                        {/* style={{ height: '200px', overflow: 'hidden'}} */}
+                            <TabGroup initialSelectedTabIndex={0} width="100%" height="100%" style={{ 
+                                overflow: 'hidden',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: '50vh'
+                            }}>
+
+                                {/* -------- TABS ACTUAL ------------------*/}
+                                <Tabs>
+                                    <Tab id="typeName">Input a Name</Tab>
+                                    <Tab id="chooseFromList">Select from List</Tab>
+                                </Tabs>
+
+                                <TabPanels style={{ overflow: 'hidden' }}>
+
+                                    <TabPanel id="typeName">
+                                    {/* style={{ overflow: 'auto', height: "100%" }} */}
+                                        {/* -------- TAB: TYPE NAME ------------------*/}
+                                        <Flex direction="column" alignItems="start" gap={8} padding={1} width="100%" style={{ width: "100%", flex: '1' }}>
+                                            <Box padding={2}>
+                                                Input the name of an existing Elasticsearch index.
+                                            </Box>
+                                            <Box width="100%">
+                                                <TextInput value={newIndexName}
+                                                onChange={(event) => { setNewIndexName(event.target.value) }}
+                                                label="Index name" placeholder="Enter index name" name="Index name field" />
+                                            </Box>
+                                        </Flex>
+                                    </TabPanel>
+
+                                    
+                                    {/* -------- TAB: SELECT FROM LIST ------------------*/}
+                                    <TabPanel id="chooseFromList" style={{ overflow: 'hidden', height: "100%" }}>
+                                        <Box padding={2}>
+                                            Select from a list of indexes returned from the Elasticsearch instance.
+                                        </Box>
+                                        <Flex direction="column" alignItems="start" gap={4} padding={2} style={{ overflow: 'auto',  height: "100%"}}>
+                                            { ESIndexes && ESIndexes.map((data, index) => {
+                                                return (
+                                                    <TextButton key={index} onClick={() => setNewIndexName(data)}>
+                                                        { data }
+                                                    </TextButton>
+                                                )
+                                            }) }
+                                        </Flex>
+                                    </TabPanel>                              
+
+                                </TabPanels>
+                            </TabGroup>
+                        </Box>
+                    </ModalBody>
+                    <ModalFooter
+                        startActions={<> </>}
+                        endActions={
+                            <Flex width="100%" justifyContent="end" gap={4}>
+                                <>{newIndexName}</>
+                                <Button disabled={!newIndexName} onClick={registerExistingIndexActual} variant="primary">
                                     Register index
                                 </Button>
                             </Flex>
-
-                        </Flex>
-                    </ModalBody>
-                    {/* <ModalFooter
-                        startActions={
-                            <>
-
-                            </>
                         }
-                        endActions={
-                            <>
-
-                            </>
-                        }
-                    /> */}
+                    />
                 </ModalLayout>
             )}
 
@@ -372,16 +432,8 @@ export const ComponentIndexes = () => {
                         </Flex>
                     </ModalBody>
                     {/* <ModalFooter
-                        startActions={
-                            <>
-
-                            </>
-                        }
-                        endActions={
-                            <>
-
-                            </>
-                        }
+                        startActions={<></>}
+                        endActions={<></>}
                     /> */}
                 </ModalLayout>
             )}

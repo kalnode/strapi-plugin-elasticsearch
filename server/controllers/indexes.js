@@ -3,7 +3,7 @@
 module.exports = ({ strapi }) => {
     
     const indexes = strapi.plugins['elasticsearch'].services.indexes
-
+    const ESindexes = strapi.plugins['elasticsearch'].services.esInterface
     const getIndex = async (ctx) => {
         const { body } = ctx.request
         try {
@@ -15,8 +15,13 @@ module.exports = ({ strapi }) => {
         }
     }
 
-    const getIndexes = async (ctx) => {
+    const getIndexes = async () => {
         return await indexes.getIndexes()
+    }
+
+    const getESIndexes = async () => {
+        console.log("getESIndexes 111")
+        return await ESindexes.getIndexes()
     }
 
     const createIndex = async (ctx) => {
@@ -56,6 +61,7 @@ module.exports = ({ strapi }) => {
     return {
         getIndex,
         getIndexes,
+        getESIndexes,
         createIndex,
         deleteIndex,
         updateIndex

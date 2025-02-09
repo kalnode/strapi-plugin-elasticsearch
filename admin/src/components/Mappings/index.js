@@ -346,22 +346,10 @@ export const Mappings = ({ indexId, showOnlyPresets, modeOnlySelection, mappingH
                             {/* closeEvent={(e) => modalSelectPresetMappingClose(e)} */}
                         </Box>                        
                     </ModalBody>
-
                     {/* <ModalFooter
-                        startActions={
-                            <Button onClick={() => console.log("Click!! 32324")} variant="tertiary">
-                                Cancel
-                            </Button>
-                        }
-                        endActions={
-                            <>
-                            <Button loading={isInProgress} onClick={() => console.log("Click!! 35fffff")}>
-                                Import
-                            </Button>
-                            </>
-                        }
+                        startActions={<></>}
+                        endActions={<></>}
                     /> */}
-                    
                 </ModalLayout>
 
             ) }

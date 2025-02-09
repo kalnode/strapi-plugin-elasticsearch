@@ -21,6 +21,7 @@ export const apiOrphansDelete = `/${pluginId}/orphans-delete`
 
 // INDEXES
 export const apiGetIndexes = `/${pluginId}/get-indexes`
+export const apiGetESIndexes = `/${pluginId}/get-es-indexes`
 export const apiGetIndex = (indexIDNumber) => `/${pluginId}/get-index/${indexIDNumber}`
 export const apiCreateIndex = `/${pluginId}/create-index`
 export const apiDeleteIndex = `/${pluginId}/delete-index`

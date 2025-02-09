@@ -106,6 +106,29 @@ module.exports = ({ strapi }) => ({
         }
     },
 
+    async getIndexes() {
+        try {
+            console.log("Try getIndexes 111")
+            //const exists = await client.indices.get({ index: "my-index-000001" })
+            
+            //WORKS: 
+            //const indexes = await client.indices.get({ index: "_all" })
+            const indexes = await client.indices.get({ index: "*" })
+            console.log("Try getIndexes 222", indexes)
+            if (indexes) {
+                return indexes
+            }
+        } catch(err) {
+            if (err.message.includes('ECONNREFUSED')) {
+                console.log('SPE - getIndexes - Connection to ElasticSearch refused.')
+                console.log(err)
+            } else {
+                console.log('SPE - getIndexes - Error while getting ES indexes.')
+                console.log(err)
+            }
+        }
+    },
+
     async deleteIndex(indexName) {
         try {
             console.log("Try deleteIndex 111", indexName)

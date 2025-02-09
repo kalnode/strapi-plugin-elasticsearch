@@ -14,6 +14,12 @@ module.exports = {
             config: { policies: [] }
         },
         {
+            method: 'GET',
+            path: '/get-es-indexes',
+            handler: 'indexes.getESIndexes',
+            config: { policies: [] }
+        },
+        {
             method: 'POST',
             path: '/create-index',
             handler: 'indexes.createIndex',
