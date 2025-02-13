@@ -1,4 +1,3 @@
-import React from 'react'
 import { useParams } from 'react-router-dom'
 import { SubNavigation } from '../../components/SubNavigation'
 import { Grid, Box, Breadcrumbs, Crumb, Link } from '@strapi/design-system'

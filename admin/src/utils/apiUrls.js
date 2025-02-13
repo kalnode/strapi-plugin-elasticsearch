@@ -2,7 +2,7 @@ import pluginId from "../pluginId"
 
 // GENERAL
 export const apiGetSystemInfo = `/${pluginId}/setup-info`
-export const apiGetContentConfig = `/${pluginId}/content-config/`
+export const apiGetContentConfig = `/${pluginId}/content-confi/`
 
 // SETTINGS
 export const apiInstantIndexing = `/${pluginId}/instant-indexing`
@@ -12,8 +12,8 @@ export const apiToggleIndexingEnabled = `/${pluginId}/toggle-indexing-enabled`
 
 
 // EXPORT/IMPORT
-export const apiExportContentConfig = `/${pluginId}/export-content-config/`
-export const apiImportContentConfig = `/${pluginId}/import-content-config/`
+export const apiExportContentConfig = `/${pluginId}/export-content-config`
+export const apiImportContentConfig = `/${pluginId}/import-content-config`
 
 // ORPHANS
 export const apiOrphansFind = `/${pluginId}/orphans-find`
@@ -45,7 +45,7 @@ export const apiSaveCollectionConfig = (collectionName) => `/${pluginId}/collect
 // INDEXING
 export const apiRequestCollectionIndexing = (collectionName) => `/${pluginId}/collection-reindex/${collectionName}`
 export const apiForceRebuildIndex = `/${pluginId}/reindex`
-export const apiTriggerIndexing = `/${pluginId}/trigger-indexing/`
+export const apiTriggerIndexing = `/${pluginId}/trigger-indexing`
 
 // LOGS
 export const apiFetchRecentIndexingRunLog = `/${pluginId}/indexing-run-log`

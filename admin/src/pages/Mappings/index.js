@@ -1,4 +1,3 @@
-import React from 'react'
 import { SubNavigation } from '../../components/SubNavigation'
 import { Mappings } from '../../components/Mappings'
 import { Grid, Box, Breadcrumbs, Crumb } from '@strapi/design-system'

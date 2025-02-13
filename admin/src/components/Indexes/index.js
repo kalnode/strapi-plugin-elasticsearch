@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import pluginId from '../../pluginId'
 
 import { Box, Flex, Button, ModalLayout, ModalHeader, ModalFooter, ModalBody, FieldInput, Switch, TextButton, Table, Thead, Tbody, Tr, Td, Th, TFooter, Typography, EmptyStateLayout, Checkbox, TabGroup, Tabs, Tab, TabPanels, TabPanel, Field, TextInput, IconButton, CaretDown } from '@strapi/design-system'

@@ -73,8 +73,6 @@ export default ({ strapi }) => ({
         const pluginStore = getPluginStore()
         const settings:any = await pluginStore.get({ key: 'configsettings' })
         const contentTypes = strapi.contentTypes
-        //console.log("ES getContentConfig 112233")
-        //console.log("ES - getContentConfig:", contentTypes)
         const apiContentTypes = Object.keys(contentTypes).filter((c) => c.includes('api::') || c.includes('plugin::users-permissions.user'))
         const apiContentConfig = {}
         for (let r = 0; r < apiContentTypes.length; r++) {

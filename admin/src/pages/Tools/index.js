@@ -1,10 +1,7 @@
-import React, { useState, useEffect } from 'react'
-// import PropTypes from 'prop-types'
-import pluginId from '../../pluginId'
+import { useState } from 'react'
 import  { SubNavigation } from '../../components/SubNavigation'
-import { Box, Flex, Button } from '@strapi/design-system'
+import { Box, Flex, Button, Typography } from '@strapi/design-system'
 import axiosInstance  from '../../utils/axiosInstance'
-import { Typography } from '@strapi/design-system'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 import { apiOrphansFind, apiOrphansDelete } from '../../utils/apiUrls'
 

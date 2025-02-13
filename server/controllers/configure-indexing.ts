@@ -1,20 +1,25 @@
 'use strict'
 
 export default ({ strapi }) => {
+
     const configureIndexingService = strapi.plugins['elasticsearch'].services.configureIndexing
 
     const getContentConfig = async (ctx) => {
         return configureIndexingService.getContentConfig()
     }
 
-    const saveCollectionConfig = async (ctx) => {
+    const setContentConfig = async (ctx) => {
         const { body } = ctx.request
         try {
-            const updatedConfig = await configureIndexingService.setContentConfig({collection: ctx.params.collectionname, config : body.data})
+            const updatedConfig = await configureIndexingService.setContentConfig({config : body})
             return updatedConfig
         } catch (err) {
             ctx.throw(500, err)
-        }
+        }    
+    }
+
+    const exportContentConfig = async (ctx) => {
+        return configureIndexingService.getContentConfig()
     }
 
     const importContentConfig = async (ctx) => {
@@ -31,20 +36,6 @@ export default ({ strapi }) => {
         }    
     }
 
-    const exportContentConfig = async (ctx) => {
-        return configureIndexingService.getContentConfig()
-    }
-
-    const setContentConfig = async (ctx) => {
-        const { body } = ctx.request
-        try {
-            const updatedConfig = await configureIndexingService.setContentConfig({config : body})
-            return updatedConfig
-        } catch (err) {
-            ctx.throw(500, err)
-        }    
-    }
-
     const getCollectionConfig = async (ctx) => {
         if (ctx.params.collectionname) {
             return configureIndexingService.getCollectionConfig({collectionName: ctx.params.collectionname})
@@ -53,12 +44,22 @@ export default ({ strapi }) => {
         }
     }
 
+    const saveCollectionConfig = async (ctx) => {
+        const { body } = ctx.request
+        try {
+            const updatedConfig = await configureIndexingService.setContentConfig({collection: ctx.params.collectionname, config : body.data})
+            return updatedConfig
+        } catch (err) {
+            ctx.throw(500, err)
+        }
+    }
+
     return {
         getContentConfig,
         setContentConfig,
-        getCollectionConfig,
-        saveCollectionConfig,
         exportContentConfig, 
-        importContentConfig
+        importContentConfig,
+        getCollectionConfig,
+        saveCollectionConfig
     }
 }

@@ -1,4 +1,3 @@
-import React from 'react'
 import { SubNavigation } from '../../components/SubNavigation'
 import { ComponentIndexes } from '../../components/Indexes' // TODO: For some reason, "Indexes" as component name fails, but "ComponentIndexes" works.
 import { Grid, Box, Breadcrumbs, Crumb } from '@strapi/design-system'

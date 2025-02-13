@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 
 import { SubNavigation } from '../../components/SubNavigation'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
