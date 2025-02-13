@@ -20,7 +20,13 @@
   },
   "dependencies": {
     "@elastic/elasticsearch": "^8.9.0",
-    "markdown-to-txt": "^2.0.1"
+    "markdown-to-txt": "^2.0.1",
+    "prop-types": "^15.7.2"
+  },
+  "devDependencies": {
+    "@strapi/typescript-utils": "^4.6.0",
+    "@types/react-router-dom": "^5.3.3",
+    "typescript": "5.0.4"
   },
   "peerDependencies": {
     "@strapi/strapi": "^4.25.2"

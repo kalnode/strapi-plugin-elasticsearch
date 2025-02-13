@@ -6,7 +6,7 @@ import { SubNav, SubNavHeader, SubNavSection, SubNavSections, SubNavLink } from 
 import { NavLink } from 'react-router-dom'
 import pluginId from "../../pluginId"
 
-export const SubNavigation = ({activeUrl}) => {
+export const SubNavigation = () => {
     const links = [
         {
             id: 1,

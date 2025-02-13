@@ -1,4 +1,3 @@
-import React from 'react'
 import { useParams } from 'react-router-dom'
 import { SubNavigation } from '../../components/SubNavigation'
 import { Mapping } from '../../components/Mapping'
@@ -7,7 +6,7 @@ import pluginId from '../../pluginId'
 
 const PageIndexMapping = () => {
 
-    const params = useParams()
+    const params = useParams<{ indexId: string, mappingId: string }>()
 
     return (
         <Flex alignItems="stretch" gap={4}>

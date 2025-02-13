@@ -1,13 +1,13 @@
 
 module.exports = ({ strapi }) => ({
 
-    async getMapping(mappingId) {
+    async getMapping(mappingId:string) {
         return await strapi.entityService.findOne('plugin::elasticsearch.mapping', mappingId, { populate: "indexes" })
     },
 
-    async getMappings(indexId, count = 100) {
+    async getMappings(indexId:string, count:number = 100) {
 
-        let payload = {
+        let payload:any = {
             sort: { createdAt: 'DESC' },
             start: 0,
             limit: count,
@@ -67,7 +67,7 @@ module.exports = ({ strapi }) => ({
                     // TODO: Scrutinize strapi field types "component" and "dynamiczone"; I know nothing of them and how we'd want to handle them.
                     if (rawAttributes[currentAttribute]["type"] === "component") {
                         attributeType = "component"
-                    } else if(rawAttributes[currentAttribute]["type"] === "dynamiczone") {
+                    } else if (rawAttributes[currentAttribute]["type"] === "dynamiczone") {
                         attributeType = "dynamiczone"
                     }
                 }
