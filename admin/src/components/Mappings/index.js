@@ -173,15 +173,6 @@ export const Mappings = ({ indexId, showOnlyPresets, modeOnlySelection, mappingH
                     </Box>
                     
                     <Flex gap={4}>
-
-                        { !indexId && (
-                            <Link to={`/plugins/${pluginId}/mappings/new`}>
-                                <Button variant="secondary" style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
-                                    Create Preset Mapping
-                                </Button>
-                            </Link>
-                        )}
-
                         { indexId && (
                             <Link to={`/plugins/${pluginId}/indexes/${indexId}/mappings/new`}>
                                 <Button variant="secondary" style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
@@ -189,7 +180,13 @@ export const Mappings = ({ indexId, showOnlyPresets, modeOnlySelection, mappingH
                                 </Button>
                             </Link>
                         )}
-                        
+                        { !indexId && (
+                            <Link to={`/plugins/${pluginId}/mappings/new`}>
+                                <Button variant="secondary" style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
+                                    Create Preset Mapping
+                                </Button>
+                            </Link>
+                        )}
                         { indexId && (
                             <Button loading={isInProgress} variant="secondary"
                             onClick={ () => modalSelectPresetMappingOpen() } style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
@@ -211,15 +208,26 @@ export const Mappings = ({ indexId, showOnlyPresets, modeOnlySelection, mappingH
                 { (!mappings || (mappings && mappings.length === 0)) && (
                     <EmptyStateLayout icon={<Cross />} content="You don't have any mappings yet..." action={
                         <Flex gap={4}>
-                            <Link to={`/plugins/${pluginId}/indexes/${indexId}/mappings/new`}>
-                                <Button variant="secondary" style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
-                                    Create Mapping
+                            { indexId && (
+                                <Link to={`/plugins/${pluginId}/indexes/${indexId}/mappings/new`}>
+                                    <Button variant="secondary" style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
+                                        Create Mapping
+                                    </Button>
+                                </Link>
+                            )}
+                            { !indexId && (
+                                <Link to={`/plugins/${pluginId}/mappings/new`}>
+                                    <Button variant="secondary" style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
+                                        Create Preset Mapping
+                                    </Button>
+                                </Link>
+                            )}
+                            { indexId && (
+                                <Button loading={isInProgress} variant="secondary"
+                                onClick={ () => modalSelectPresetMappingOpen() } style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
+                                    Add Preset Mapping
                                 </Button>
-                            </Link>
-                            <Button loading={isInProgress} variant="secondary"
-                            onClick={ () => modalSelectPresetMappingOpen() } style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
-                                Add Preset Mapping
-                            </Button>
+                            )}
                         </Flex>
                     } />
                 ) }
