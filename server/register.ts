@@ -1,5 +1,7 @@
-'use strict';
+'use strict'
 
-module.exports = ({ strapi }) => {
-  // register phase
-};
+import { Strapi } from '@strapi/strapi'
+
+export default ({ strapi }: { strapi: Strapi }) => {
+    // register phase
+}

@@ -1,4 +1,4 @@
-import { apiUpdateIndex, apiGetIndex, apiGetMapping, apiGetMappings, apiCreateMapping, apiUpdateMapping, apiDeleteMapping, apiGetContentTypes } from '../apiUrls'
+import { apiUpdateIndex } from '../apiUrls'
 import { convertEmptyStringsToNulls } from '../convertEmptyStringsToNulls'
 import axiosInstance from '../axiosInstance'
 export const requestUpdateIndex = async (indexId, payload) => {

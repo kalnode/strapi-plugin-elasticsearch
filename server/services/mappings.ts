@@ -1,5 +1,4 @@
-
-module.exports = ({ strapi }) => ({
+export default ({ strapi }) => ({
 
     async getMapping(mappingId:string) {
         return await strapi.entityService.findOne('plugin::elasticsearch.mapping', mappingId, { populate: "indexes" })
@@ -20,11 +19,11 @@ module.exports = ({ strapi }) => ({
 
         // TODO: Some sillyness going on here; for some reason all of these conditions are needed, and they must come first in the if-else order.
         // Simply checking !indexId doesn't seem to work.
-        if (!indexId || indexId === 'undefined' || indexId === undefined || typeof indexId === "undefined") {
+        if (!indexId || indexId === 'undefined' || indexId === undefined || typeof indexId === 'undefined') {
 
             delete payload.filters
 
-        } else if (indexId || indexId != 'undefined' || indexId != undefined || typeof indexId != "undefined") {
+        } else if (indexId || indexId != 'undefined' || indexId != undefined || typeof indexId != 'undefined') {
 
             payload.filters['indexes'] = {
                 id: {
@@ -116,32 +115,17 @@ module.exports = ({ strapi }) => ({
         // }
     },
 
-
     async createMapping(mapping) {
-
-        const helper = strapi.plugins['elasticsearch'].services.helper
-        const esInterface = strapi.plugins['elasticsearch'].services.esInterface
-
         try {
-
-            // Step 1: Create a new index
-            //const newIndexName = await helper.getIncrementedIndexName()
-
             let finalPayload = JSON.parse(JSON.stringify(mapping))
-
             finalPayload.mapping = JSON.stringify(finalPayload.mapping)
-
-            //let work = await esInterface.createIndex(newIndexName)
-
+            console.log("createMapping 111 finalPayload is: ", finalPayload)
             const entry = await strapi.entityService.create('plugin::elasticsearch.mapping', {
                 data : {
                     ...finalPayload
-                    //index_alias: 'myAlias'
                 }
             })
-
             return entry
-
         } catch(err) {
             console.log('SPE - createMapping: An error was encountered')
             console.log(err)
@@ -149,7 +133,6 @@ module.exports = ({ strapi }) => ({
         }
 
     },
-
 
     async updateMapping(mappingId, mapping) {
 

@@ -32,7 +32,7 @@ export const apiIndexRecords = (indexIDNumber) => `/${pluginId}/index-records/${
 
 // MAPPING
 export const apiGetMapping = (mappingIDNumber) => `/${pluginId}/get-mapping/${mappingIDNumber}`
-export const apiGetMappings = (mappingIDNumber) => `/${pluginId}/get-mappings/${mappingIDNumber}`
+export const apiGetMappings = (indexId) => `/${pluginId}/get-mappings/${indexId}`
 export const apiCreateMapping = `/${pluginId}/create-mapping`
 export const apiUpdateMapping = (mappingIDNumber) => `/${pluginId}/update-mapping/${mappingIDNumber}`
 export const apiDeleteMapping = (mappingIDNumber) => `/${pluginId}/delete-mapping/${mappingIDNumber}`
