@@ -1,5 +1,4 @@
 module.exports = {
-    // accessible only from admin UI
     type: 'admin',
     routes: [
         {
@@ -32,6 +31,5 @@ module.exports = {
             handler: 'setupInfo.getIndexingEnabled',
             config: { policies: [] }
         }
-    ]
-    
+    ]    
 }

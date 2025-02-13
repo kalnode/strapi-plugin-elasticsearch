@@ -54,7 +54,7 @@ module.exports = ({ strapi }) => ({
             return entry
 
         } catch(err) {
-            console.log('SPE - createIndex: An error was encountered while re-indexing.')
+            console.log('SPE - createIndex: An error was encountered while creating the index.')
             console.log(err)
             return err
         }
@@ -98,7 +98,7 @@ module.exports = ({ strapi }) => ({
 
         const helper = strapi.plugins['elasticsearch'].services.helper
         const esInterface = strapi.plugins['elasticsearch'].services.esInterface
-        const indexes = strapi.plugins['elasticsearch'].services.indexes
+        const indexesService = strapi.plugins['elasticsearch'].services.indexes
         console.log("SPE - deleteIndex, 111")
         try {
 
@@ -110,7 +110,7 @@ module.exports = ({ strapi }) => ({
 
             //await esInterface.deleteIndex(index)
             console.log("SPE - deleteIndex, 222", recordIndexNumber)
-            let work = await indexes.getIndex(recordIndexNumber)
+            let work = await indexesService.getIndex(recordIndexNumber)
 
             // Delete mappings associated with this registered index
             if (work.mappings) {
@@ -141,6 +141,36 @@ module.exports = ({ strapi }) => ({
 
         } catch(err) {
             console.log('SPE - deleteIndex: An error has encountered', err)
+            console.log(err)
+            return err
+        }
+
+    },
+
+
+    async createESindex(indexID) {
+        const helper = strapi.plugins['elasticsearch'].services.helper
+        const esInterface = strapi.plugins['elasticsearch'].services.esInterface
+        const indexesService = strapi.plugins['elasticsearch'].services.indexes
+        try {
+
+            //const oldIndexName = await helper.getCurrentIndexName()
+            //console.log('SPE - createIndex 222 - Previous index name:', oldIndexName)
+
+            // Step 1: Create a new index
+            //const newIndexName = await helper.getIncrementedIndexName()
+            console.log('SPE - createESindex 111 - Created new index with name:', indexID)
+            let index = await indexesService.getIndex(indexID)
+            console.log('SPE - createESindex 222 - index:', index)
+            if (index) {
+                let workNewESIndex = await esInterface.createIndex(index.index_name)
+                return workNewESIndex
+            }
+
+            return
+
+        } catch(err) {
+            console.log('SPE - createESindex: An error was encountered')
             console.log(err)
             return err
         }

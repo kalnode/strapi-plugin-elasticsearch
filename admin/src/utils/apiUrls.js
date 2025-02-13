@@ -26,6 +26,9 @@ export const apiGetIndex = (indexIDNumber) => `/${pluginId}/get-index/${indexIDN
 export const apiCreateIndex = `/${pluginId}/create-index`
 export const apiDeleteIndex = `/${pluginId}/delete-index`
 export const apiUpdateIndex = (indexIDNumber) => `/${pluginId}/update-index/${indexIDNumber}`
+export const apiCreateESindex = (indexIDNumber) => `/${pluginId}/create-es-index/${indexIDNumber}`
+export const apiIndexRecords = (indexIDNumber) => `/${pluginId}/index-records/${indexIDNumber}`
+
 
 // MAPPING
 export const apiGetMapping = (mappingIDNumber) => `/${pluginId}/get-mapping/${mappingIDNumber}`

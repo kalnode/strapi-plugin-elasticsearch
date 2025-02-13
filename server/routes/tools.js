@@ -1,5 +1,4 @@
 module.exports = {
-    // accessible only from admin UI
     type: 'admin',
     routes: [
         {
@@ -14,6 +13,5 @@ module.exports = {
             handler: 'tools.orphansDelete',
             config: { policies: [] }
         }
-    ]
-    
+    ]    
 }

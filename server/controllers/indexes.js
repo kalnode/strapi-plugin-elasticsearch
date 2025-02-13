@@ -58,12 +58,25 @@ module.exports = ({ strapi }) => {
         }
     }
 
+    const createESindex = async (ctx) => {
+        const { body } = ctx.request
+        try {
+            //return await scheduleIndexingService.addCollectionToIndex({collectionUid: ctx.params.collectionname})
+            const work = await indexes.createESindex(ctx.params.indexId)
+            return work
+        } catch (err) {
+            //return null ???
+            ctx.throw(500, err)
+        }
+    }
+
     return {
         getIndex,
         getIndexes,
         getESIndexes,
         createIndex,
         deleteIndex,
-        updateIndex
+        updateIndex,
+        createESindex
     }
 }

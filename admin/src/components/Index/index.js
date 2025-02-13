@@ -8,7 +8,7 @@ import { useEffect, useRef, useState, useMemo } from 'react'
 import PropTypes from 'prop-types'
 import pluginId from '../../pluginId'
 import { Link, Box, Button, Icon, Typography, ToggleInput, TextButton, TextInput, Flex, Textarea, Switch, SingleSelect, SingleSelectOption, TabGroup, Tabs, Tab, TabPanels, TabPanel, Grid, Field } from '@strapi/design-system'
-import { apiUpdateIndex, apiGetIndex, apiGetMapping, apiGetMappings, apiCreateMapping, apiUpdateMapping, apiDeleteMapping, apiGetContentTypes } from '../../utils/apiUrls'
+import { apiUpdateIndex, apiGetIndex, apiCreateESindex, apiIndexRecords, apiGetMapping, apiGetMappings, apiCreateMapping, apiUpdateMapping, apiDeleteMapping, apiGetContentTypes } from '../../utils/apiUrls'
 import axiosInstance from '../../utils/axiosInstance'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 import { Pencil, Trash, ExclamationMarkCircle, Plus } from '@strapi/icons'
@@ -106,6 +106,48 @@ export const Index = ({ indexId, closeEvent }) => {
         }
     }
 
+    const createOnES = async () => {
+        if (indexId) {
+            setIsInProgress(true)
+            let work = await axiosInstance.get(apiCreateESindex(indexId))
+            .then( (response) => {
+                console.log("get createOnES 111: ", response)
+                if (response.data) {
+                    return response.data
+                }
+            })
+            .catch((error) => {
+                console.log("PAGE createOnES ERROR: ", error)
+                showNotification({
+                    type: "warning", message: "An error has encountered: " + error, timeout: 5000
+                })
+            })
+            .finally(() => {
+                setIsInProgress(false)
+            })
+        }
+    }
+
+    const indexRecords = async () => {
+        setIsInProgress(true)
+        let work = await axiosInstance.get(apiIndexRecords(indexId))
+        .then( (response) => {
+            console.log("get indexRecords 111: ", response)
+            if (response.data) {
+                return response.data
+            }
+        })
+        .catch((error) => {
+            console.log("PAGE indexRecords ERROR: ", error)
+            showNotification({
+                type: "warning", message: "An error has encountered: " + error, timeout: 5000
+            })
+        })
+        .finally(() => {
+            setIsInProgress(false)
+        })
+    }
+
     // ===============================
     // LIFECYCLE
     // ===============================
@@ -179,6 +221,26 @@ export const Index = ({ indexId, closeEvent }) => {
                                 Mappings for Index {indexId}
                             </Button>
                         </Link>
+                    </Box>
+
+                    <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
+                        <Button variant="secondary" onClick={ () => createOnES()}>
+                            Create index on ES instance with current mappings
+                        </Button>
+
+                        <Button variant="secondary" onClick={ () => console.log("Delete index")}>
+                            Delete index
+                        </Button>
+
+                        <Button variant="secondary" onClick={ () => console.log("Re-build index")}>
+                            Re-build index
+                        </Button>
+
+                        <Button variant="secondary" onClick={ () => indexRecords()}>
+                            Index all records
+                        </Button>
+
+
                     </Box>
                     
                 </Flex>

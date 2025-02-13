@@ -119,14 +119,14 @@ module.exports = ({ strapi }) => ({
                 // -------------------------
                 // WORKS
                 const collectionConfig = await configureIndexingService.getCollectionConfig({collectionName})
-                let dataToIndex = await helper.extractDataToIndex({
+                let dataToIndex = await helper.extractRecordDataToIndex({
                     collectionName, data: item, collectionConfig
                 })
                 dataToIndex['posttype'] = collectionName.split('.').pop()
                 dataToIndex = this.processGeoLocation(dataToIndex)
                 // -------------------------
 
-                await esInterface.indexDataToSpecificIndex({itemId: indexItemId, itemData: dataToIndex}, indexName)
+                await esInterface.indexRecordToSpecificIndex({itemId: indexItemId, itemData: dataToIndex}, indexName)
             }
         }
 
@@ -173,7 +173,7 @@ module.exports = ({ strapi }) => ({
         const collectionConfig = await configureIndexingService.getCollectionConfig(collectionName)
 
         //console.log("spe.rebuildIndex -assembleDataToIndex collectionConfig:", collectionConfig)
-        let dataToIndex = await helper.extractDataToIndex({
+        let dataToIndex = await helper.extractRecordDataToIndex({
             collectionName, data: item, collectionConfig
         })
 
@@ -252,7 +252,7 @@ module.exports = ({ strapi }) => ({
                                     // -------------------------
                                     //WORKS
                                     const collectionConfig = await configureIndexingService.getCollectionConfig({collectionName: col})
-                                    let dataToIndex = await helper.extractDataToIndex({
+                                    let dataToIndex = await helper.extractRecordDataToIndex({
                                         collectionName: col, data: item, collectionConfig
                                     })
                                     dataToIndex['posttype'] = col.split('.').pop()
@@ -292,5 +292,135 @@ module.exports = ({ strapi }) => ({
             }
         }
         return true
-    }
+    },
+
+
+
+    async indexRecordsNEW(indexId) {
+
+        // 1. Get index with mappings
+
+        // 2. Loop through mapping posttypes
+
+        // 3. For each post type, get records and index them into ES index
+
+        const esInterface = strapi.plugins['elasticsearch'].services.esInterface
+        const indexesService = strapi.plugins['elasticsearch'].services.indexes
+        const configureIndexingService = strapi.plugins['elasticsearch'].services.configureIndexing
+        const helper = strapi.plugins['elasticsearch'].services.helper
+
+
+        let index = await indexesService.getIndex(indexId)
+        let entries = []
+
+        //console.log("indexRecordsNEW 111", index)
+
+        if (index && index.mappings) {
+            for (i = 0; i < index.mappings.length; i++) {
+
+                console.log("indexRecordsNEW 222", i)
+
+                let mapping = index.mappings[i]
+                
+console.log("mapping post type", mapping.post_type)
+//const populateAttrib = helper.getPopulateAttribute({collectionName: mapping.post_type})
+//const isCollectionDraftPublish = helper.isCollectionDraftPublish({collectionName: mapping.post_type})
+
+                if (mapping) {
+
+                    const populateAttrib = await helper.getPopulateAttribute({collectionName: mapping.post_type})
+                    const isCollectionDraftPublish = await helper.isCollectionDraftPublish({collectionName: mapping.post_type})
+
+                    console.log("populateAttrib 111: ", populateAttrib)
+                    console.log("isCollectionDraftPublish 111: ", isCollectionDraftPublish)
+
+                    if (isCollectionDraftPublish) {
+                        let work = await strapi.entityService.findMany(mapping.post_type, {
+                            sort: { createdAt: 'DESC' },
+                            populate: populateAttrib['populate'],
+                            filters: {
+                                publishedAt: {
+                                    $notNull: true
+                                }
+                            }
+                        })
+                        if (work) {
+                            //console.log("Work found AAA, length: ", work.length)
+                           // console.log("Work found AAA1, entries: ", entries)
+
+                            //                            entries.push({...work, post_type: mapping.post_type})
+                            //entries.push(work)
+                            entries.push({entries: work, post_type: mapping.post_type})
+                        }
+                    } else {
+
+     
+                        let work = await strapi.entityService.findMany(mapping.post_type, {
+                            sort: { createdAt: 'DESC' },
+                            populate: populateAttrib['populate']
+                        })
+                        if (work) {
+
+                            console.log("Work found BBB, length: ", work.length)
+                            console.log("Work found BBB1, entries: ", entries)
+                            entries.push({entries: work, post_type: mapping.post_type})
+                        }
+                    }
+
+                }
+            }
+        }
+        console.log("FUCK OFF -0-------")
+        if (entries.length > 0) {
+            console.log("entries.length 333", entries.length)
+            for (let i = 0; i < entries.length; i++) {
+
+                const parent = entries[i]
+
+                console.log("parent i: ", i)
+                
+
+                for (let k = 0; k < parent.entries.length; k++) {
+
+                    let entry = parent.entries[k]
+                    //console.log("indexRecordsNEW 333aaa entry: ", entry)
+                    console.log("entry k: ", k)
+                    const indexItemId = helper.getIndexItemId({collectionName: parent.post_type, itemId: entry.id})
+
+                    // FAILS
+                    // TODO: See what this did in old code
+                    // let dataToIndex = await this.assembleDataToIndex(collectionName, entry)
+
+                    // -------------------------
+                    // WORKS
+
+                    // 1. Get collection config
+                    // TODO: What's this for on high-level? Do we do the same for new "registered indexes" paradigm?
+                    const collectionConfig = await configureIndexingService.getCollectionConfig({collectionName: parent.post_type})
+                    
+                    console.log("wtf 1122233")
+                    //console.log("indexRecordsNEW 333bbb indexItemId: ", indexItemId)
+                    //console.log("indexRecordsNEW 333ccc collectionConfig: ", collectionConfig)
+
+
+                    let dataToIndex = await helper.extractRecordDataToIndex({ collectionName: parent.post_type, data: entry, collectionConfig: collectionConfig })
+
+                    // TODO: Add this as an option in the plugin... whether to add "posttype" field. This is useful is someone is trying to make a hybrid index containing multiple post types.
+                    dataToIndex['posttype'] = parent.post_type.split('.').pop()
+                    
+                    console.log("AAA ptype", parent.post_type)
+                    //console.log("BBB ptype", entry.posttype)
+
+                    // TODO: This logic should probably be integrated into extractRecordDataToIndex()
+                    dataToIndex = this.processGeoLocation(dataToIndex)
+                    // -------------------------
+                    console.log("indexRecordsNEW 444")
+                    let work4 = await esInterface.indexRecordToSpecificIndex({itemId: indexItemId, itemData: dataToIndex}, index.index_name)
+                    console.log("indexRecordsNEW 555", work4)
+                }
+            }
+        }
+
+        return true
+    },
 })

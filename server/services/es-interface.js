@@ -55,19 +55,18 @@ module.exports = ({ strapi }) => ({
         }
     },
 
-    async createIndex(indexName) {
+    async createIndex(indexName, mappings) {
         try {
             const exists = await client.indices.exists({ index: indexName })
 
             if (!exists) {
                 console.log('SPE - createIndex: ', indexName, ' does not exist. Creating index & mapping.')
 
-                let work = await client.indices.create({
-                    index: indexName,
+                let mappingsFinal = 
+                    {
+                        ...mappings,
 
-                    // Kal - Define custom mappings
-                    // TODO: Ideally these are controllable via UI for specific fields
-                    mappings: {
+                        // TODO: Old stuff, remove, but make sure the equivalent from UI works.
                         properties: {
                             "pin": {
                                 type: "geo_point",
@@ -81,14 +80,20 @@ module.exports = ({ strapi }) => ({
                             },
                             "child_terms": {
                                 type: "nested"
-                            },
-                            
+                            },                            
                             // "uuid": {
                             //     type: "string",
                             //     index: "not_analyzed"
                             // }
                         }
                     }
+                
+                let work = await client.indices.create({
+                    index: indexName,
+
+                    // Kal - Define custom mappings
+                    // TODO: Ideally these are controllable via UI for specific fields
+                    mappings: mappingsFinal
 
                 })
 
@@ -198,11 +203,35 @@ module.exports = ({ strapi }) => ({
         }
     },
 
-    async indexDataToSpecificIndex({ itemId, itemData }, iName) {
+    async updateMapping({indexName, mapping}) {
 
-       // console.log("indexDataToSpecificIndex 333:") //, itemData)
+        // NOTE: New new mappings can be added to an index.
+        // or some properties of existing mappings.
+        // However you cannot change the mapping itself for an existing index.
+
+        if (!client) {
+            return false
+        }
+
+        console.log("updateMapping 111", indexName)
+        console.log("updateMapping 222", mapping)
         try {
-            let indexName = iName
+            await client.indices.putMapping({
+                index: indexName,
+                properties: {...mapping},
+              })
+            return true
+        } catch(error) {
+            console.error('SPE - updateMapping error')
+            console.error(error)
+            return false
+        }
+    },
+
+    async indexRecordToSpecificIndex({ itemId, itemData }, indexName) {
+
+       // console.log("indexRecordToSpecificIndex 333:") //, itemData)
+        try {
             let work = await client.index({
                 index: indexName,
                 id: itemId,
@@ -219,7 +248,7 @@ module.exports = ({ strapi }) => ({
     async indexData({itemId, itemData}) {
         //console.log("ES plugin indexData", itemId)
         const pluginConfig = await strapi.config.get('plugin.elasticsearch')
-        return await this.indexDataToSpecificIndex({ itemId, itemData }, pluginConfig.indexAliasName)
+        return await this.indexRecordToSpecificIndex({ itemId, itemData }, pluginConfig.indexAliasName)
     },
 
     async removeItemFromIndex({itemId}) {
@@ -302,6 +331,6 @@ module.exports = ({ strapi }) => ({
 
     // async updateData({itemId, itemData}) {
     //     const pluginConfig = await strapi.config.get('plugin.elasticsearch')
-    //     return await this.indexDataToSpecificIndex({ itemId, itemData }, pluginConfig.indexAliasName)
+    //     return await this.indexRecordToSpecificIndex({ itemId, itemData }, pluginConfig.indexAliasName)
     // },
 })

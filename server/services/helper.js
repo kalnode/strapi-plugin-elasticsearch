@@ -211,7 +211,7 @@ module.exports = ({ strapi }) => ({
         return getFullPopulateObject(collectionName, 4, [])
     },
 
-    getIndexItemId ({collectionName, itemId}) {
+    getIndexItemId({collectionName, itemId}) {
         return collectionName+'::' + itemId
     },
 
@@ -354,10 +354,18 @@ module.exports = ({ strapi }) => ({
         return collectionConfig
     },
 
-    extractDataToIndex({collectionName, data, collectionConfig}) {
+    extractRecordDataToIndex({collectionName, data, collectionConfig}) {
+        console.log("extractRecordDataToIndex 111 ", collectionName)
+        console.log("extractRecordDataToIndex 222 ", collectionConfig)
+        //console.log("extractRecordDataToIndex 333 ", data)
+
         collectionConfig = this.modifySubfieldsConfigForExtractor(collectionConfig)
         const fti = Object.keys(collectionConfig[collectionName])
         const document = {}
+
+        console.log("extractRecordDataToIndex 444 ", collectionConfig)
+        //console.log("extractRecordDataToIndex 555 ", fti)
+
         for (let k = 0; k < fti.length; k++) {
             const fieldConfig = collectionConfig[collectionName][fti[k]]
             if (fieldConfig.index) {
@@ -371,8 +379,7 @@ module.exports = ({ strapi }) => ({
                         fieldConfig['transform'] === 'markdown') {
                         val = transformServiceProvider.transform({content: val, from: 'markdown'})
                     }
-                }
-                    
+                }                    
                 if (Object.keys(fieldConfig).includes('searchFieldName')) {
                     document[fieldConfig['searchFieldName']] = val
                 } else {

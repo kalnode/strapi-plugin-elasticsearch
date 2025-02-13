@@ -3,7 +3,7 @@
 const configureIndexing = require('./configure-indexing')
 const scheduleIndexing = require('./schedule-indexing')
 const esInterface = require('./es-interface')
-const indexer = require('./perform-indexing')
+const performIndexing = require('./perform-indexing')
 const logIndexing = require('./log-indexing')
 const helper = require('./helper')
 const indexes = require('./indexes')
@@ -14,7 +14,7 @@ module.exports = {
     configureIndexing,
     scheduleIndexing,
     esInterface,
-    indexer,
+    performIndexing,
     logIndexing,
     helper,
     transformContent,

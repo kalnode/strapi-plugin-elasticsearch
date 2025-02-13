@@ -1,8 +1,6 @@
 module.exports = {
-    // accessible only from admin UI
     type: 'admin',
     routes: [
-
         {
             method: 'GET',
             path: '/get-mapping/:mappingId',
@@ -31,14 +29,13 @@ module.exports = {
             method: 'GET',
             path: '/delete-mapping/:mappingIndexNumber',
             handler: 'mappings.deleteMapping',
-            config: { policies: [] },
+            config: { policies: [] }
         },
         {
             method: 'GET',
             path: '/get-content-types',
             handler: 'mappings.getContentTypes',
             config: { policies: [] }
-        },
-    ]
-    
+        }
+    ]    
 }

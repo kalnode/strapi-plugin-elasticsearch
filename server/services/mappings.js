@@ -2,13 +2,10 @@
 module.exports = ({ strapi }) => ({
 
     async getMapping(mappingId) {
-        const record = await strapi.entityService.findOne('plugin::elasticsearch.mapping', mappingId, {
-            populate: "indexes"
-        })
-        return record
+        return await strapi.entityService.findOne('plugin::elasticsearch.mapping', mappingId, { populate: "indexes" })
     },
 
-    async getMappings(indexId, count = 50) {
+    async getMappings(indexId, count = 100) {
 
         let payload = {
             sort: { createdAt: 'DESC' },
@@ -18,8 +15,6 @@ module.exports = ({ strapi }) => ({
             populate: "indexes"
         }
 
-        // console.log("indexId is: ", indexId)
-        // console.log("indexId type: ", typeof indexId)
         // TODO: This is really stupid, but need to figure out a better way to dynamically add "filters: {}" to the payload.
         // Right now we start with it empty, and delete or fill it. Ideally we don't have any of this and just add filters to payload.
 
@@ -30,21 +25,6 @@ module.exports = ({ strapi }) => ({
             delete payload.filters
 
         } else if (indexId || indexId != 'undefined' || indexId != undefined || typeof indexId != "undefined") {
-            
-            // OLD WAY
-            // payload.filters.registered_index = {
-            //     $in: indexId,
-            // }
-
-            // payload.filters.indexes = {
-            //     id: {
-            //         $eq: indexId
-            //     }
-            // }
-
-            // payload.filters.indexes = {
-            //     id: indexId
-            // }
 
             payload.filters['indexes'] = {
                 id: {
@@ -52,86 +32,46 @@ module.exports = ({ strapi }) => ({
                 }
             }
 
-            // filters: {
-            //     $or: [
-            //       { author: { id: user.id }},
-            //       { reviewers: { user: { id: user.id }}},
-            //     ],  		
-            //   },\
-            
-            // where: {
-            //     $or: [{[relationship]: {id: {$null: true}}}],
-            //   },
-
-
-            //const fullEvent = await strapi.entityService.findOne('api::event.event', eventID, { populate: "Participants" })
-
-
         }
 
-        //console.log("Payload is: ", payload)
-        const records = await strapi.entityService.findMany('plugin::elasticsearch.mapping', {...payload})
-        return records
+        return await strapi.entityService.findMany('plugin::elasticsearch.mapping', {...payload})
+
     },
-
-
-    async getContentTypesEarly() {
-
-        // let contentTypes = []
-        // Object.values(strapi.contentTypes).map(contentType => {
-        //   if ((contentType.kind === "collectionType" || contentType.kind === "singleType") && !contentType.plugin) {
-        //     contentTypes.push(contentType);
-        //   }
-        // })
-        let work = strapi.contentTypes
-
-        return work
-                // axiosInstance.get('/content-type-builder/content-types')
-        //     .then((response) => {
-        //         console.log("PAGE getContentTypes response: ", response)
-        //     })
-        //     .catch((error) => {
-        //         console.log("PAGE getContentTypes ERROR: ", error)
-        //     })
-
-        // const records = await strapi.entityService.findMany('plugin::elasticsearch.mapping', {
-        //     sort: { createdAt: 'DESC' },
-        //     start: 0,
-        //     limit: count
-        // })
-        // return records
-    },
-
-
-
 
     async getContentTypes() {
-        //const pluginStore = getPluginStore()
-        //const settings = await pluginStore.get({ key: 'configsettings' })
 
         const contentTypes = strapi.contentTypes
-        // TODO: Use the below array in filteredContentTypes:
+        
+        // TODO: Use the below array in filteredContentTypes .filter(), instead of having so many "c.includes"
         // allowedContentTypes = ['api::', 'plugin::users-permissions.user']
+        
         const filteredContentTypes = Object.keys(contentTypes).filter((c) => c.includes('api::') || c.includes('plugin::users-permissions.user'))
         const fieldsToExclude = ['createdAt', 'createdBy', 'publishedAt', 'publishedBy', 'updatedAt', 'updatedBy']
 
         const finalOutput = {}
 
         for (let r = 0; r < filteredContentTypes.length; r++) {
+
             finalOutput[filteredContentTypes[r]] = {}
+
             const rawAttributes = contentTypes[filteredContentTypes[r]].attributes
-            const filteredAttributes = Object.keys(rawAttributes).filter((i) => fieldsToExclude.includes(i) === false)
+
+            // Filter out fields we don't want (fieldsToExclude)
+            const filteredAttributes = Object.keys(rawAttributes).filter((i) => !fieldsToExclude.includes(i))
 
             for (let k = 0; k < filteredAttributes.length; k++) {
                 const currentAttribute = filteredAttributes[k]
                 let attributeType = "regular"
                 if (typeof rawAttributes[currentAttribute]["type"] !== "undefined" && rawAttributes[currentAttribute]["type"] !== null) {
+
+                    // TODO: Scrutinize strapi field types "component" and "dynamiczone"; I know nothing of them and how we'd want to handle them.
                     if (rawAttributes[currentAttribute]["type"] === "component") {
                         attributeType = "component"
                     } else if(rawAttributes[currentAttribute]["type"] === "dynamiczone") {
                         attributeType = "dynamiczone"
                     }
                 }
+
                 finalOutput[filteredContentTypes[r]][filteredAttributes[k]] = {
                     raw_type: rawAttributes[currentAttribute]["type"],
                     field_type: attributeType
@@ -140,6 +80,11 @@ module.exports = ({ strapi }) => ({
         }
 
         return finalOutput
+
+
+        // LEGACY CODE; still may need this if we need to interact with the plugin store.
+        //const pluginStore = getPluginStore()
+        //const settings = await pluginStore.get({ key: 'configsettings' })
 
         // if (settings) {
         //     const objSettings = JSON.parse(settings)
@@ -179,26 +124,22 @@ module.exports = ({ strapi }) => ({
 
         try {
 
-            //const oldIndexName = await helper.getCurrentIndexName()
-            //console.log('SPE - createMapping 222 - Previous index name:', oldIndexName)
-
             // Step 1: Create a new index
             //const newIndexName = await helper.getIncrementedIndexName()
-            console.log('SPE - createMapping 333 - Created new index with name:', mapping)
 
             let finalPayload = JSON.parse(JSON.stringify(mapping))
 
             finalPayload.mapping = JSON.stringify(finalPayload.mapping)
+
             //let work = await esInterface.createIndex(newIndexName)
+
             const entry = await strapi.entityService.create('plugin::elasticsearch.mapping', {
                 data : {
                     ...finalPayload
-                    //index_alias: 'myAlias',
-                    //mapping: 'crazy mapping'
+                    //index_alias: 'myAlias'
                 }
             })
 
-            console.log('SPE - createMapping 444 - Created new mapping:', entry)
             return entry
 
         } catch(err) {
@@ -210,7 +151,6 @@ module.exports = ({ strapi }) => ({
     },
 
 
-
     async updateMapping(mappingId, mapping) {
 
         const helper = strapi.plugins['elasticsearch'].services.helper
@@ -218,25 +158,34 @@ module.exports = ({ strapi }) => ({
 
         try {
 
-            //const oldIndexName = await helper.getCurrentIndexName()
-            //console.log('SPE - updateMapping 222 - Previous index name:', oldIndexName)
-
-            // Step 1: Create a new index
             //const newIndexName = await helper.getIncrementedIndexName()
-            console.log('SPE - updateMapping 111 - mappingId:', mappingId)
-            console.log('SPE - updateMapping 222', mapping)
             //let work = await esInterface.createIndex(newIndexName)
             //JSON.stringify(body.data)
-            let finalPayload = JSON.parse(JSON.stringify(mapping))
 
+            let finalPayload = JSON.parse(JSON.stringify(mapping))
+            let finalPayload2 = JSON.parse(JSON.stringify(finalPayload.mapping))
             finalPayload.mapping = JSON.stringify(finalPayload.mapping)
             const entry = await strapi.entityService.update('plugin::elasticsearch.mapping', mappingId, {
-                data: {
-                    ...finalPayload
-                }
+                data: finalPayload,
+                populate: 'indexes'
             })
 
-            console.log('SPE - updateMapping 444 - Updated mapping:', entry)
+            console.log("Mapping entry is: ", entry)
+            console.log("finalPayload2 is: ", finalPayload2)
+
+            // EXPERIMENTAL
+            // Updating mappings on existing index; basically not possible however you can 1. add new mappings to an existing index, or 2. change the secondary properties (?) of an existing mapping.
+            // if (entry.indexes) {
+            //     // 1 - Loop through indexes, updateMapping for each
+            //     for (i = 0; i < entry.indexes.length; i++) {
+            //         let index = entry.indexes[i]
+            //         console.log("ESwork index is:", index)
+            //         let ESwork = await esInterface.updateMapping({indexName: index.index_name, mapping: finalPayload2})
+            //         console.log("ESwork after work is: ", ESwork)
+            //     }
+            // }
+
+
             return entry
 
         } catch(err) {

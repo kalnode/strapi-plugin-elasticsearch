@@ -36,6 +36,18 @@ module.exports = {
             path: '/update-index/:indexId',
             handler: 'indexes.updateIndex',
             config: { policies: [] }
+        },
+        {
+            method: 'GET',
+            path: '/create-es-index/:indexId',
+            handler: 'indexes.createESindex',
+            config: { policies: [] }
+        },
+        {
+            method: 'GET',
+            path: '/index-records/:indexId',
+            handler: 'performIndexing.indexRecordsNEW',
+            config: { policies: [] }
         }
     ]    
 }
