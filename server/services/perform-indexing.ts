@@ -321,9 +321,9 @@ export default ({ strapi }) => ({
 
                 let mapping = index.mappings[i]
                 
-console.log("mapping post type", mapping.post_type)
-//const populateAttrib = helper.getPopulateAttribute({collectionName: mapping.post_type})
-//const isCollectionDraftPublish = helper.isCollectionDraftPublish({collectionName: mapping.post_type})
+                console.log("mapping post type", mapping.post_type)
+                //const populateAttrib = helper.getPopulateAttribute({collectionName: mapping.post_type})
+                //const isCollectionDraftPublish = helper.isCollectionDraftPublish({collectionName: mapping.post_type})
 
                 if (mapping) {
 
