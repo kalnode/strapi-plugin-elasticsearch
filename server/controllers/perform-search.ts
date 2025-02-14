@@ -3,9 +3,9 @@
 import qs from "qs"
 
 export default ({ strapi }) => ({
-    search : async (ctx) => {
+    search: async (ctx) => {
         try {
-            const esInterface = strapi.plugins['elasticsearch'].services.esInterface
+            const esInterface = strapi.plugins['esplugin'].services.esInterface
             if (ctx.query.query) {
                 const query = qs.parse(ctx.query.query)
                 const resp = await esInterface.searchData(query)

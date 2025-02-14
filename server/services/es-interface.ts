@@ -130,10 +130,10 @@ export default ({ strapi }) => ({
 
     async attachAliasToIndex(indexName) {
         try {
-            const pluginConfig = await strapi.config.get('plugin.elasticsearch')
+            const pluginConfig = await strapi.config.get('plugin.esplugin')
             const aliasName = pluginConfig.indexAliasName
             const aliasExists = await client.indices.existsAlias({ name: aliasName })
-            const esInterface = strapi.plugins['elasticsearch'].services.esInterface
+            const esInterface = strapi.plugins['esplugin'].services.esInterface
 
             if (aliasExists) {
                 //console.log('SPE - attachAliasToIndex: Alias with this name already exists, removing it.')
@@ -146,7 +146,7 @@ export default ({ strapi }) => ({
                 await esInterface.createIndex(indexName)
             }
 
-            //console.log('SPE - attachAliasToIndex: ', aliasName, ' to index : ', indexName)
+            //console.log('SPE - attachAliasToIndex: ', aliasName, ' to index: ', indexName)
             await client.indices.putAlias({ index: indexName, name: aliasName })
 
         } catch(err) {
@@ -246,14 +246,14 @@ export default ({ strapi }) => ({
 
     async indexData({itemId, itemData}) {
         //console.log("ES plugin indexData", itemId)
-        const pluginConfig = await strapi.config.get('plugin.elasticsearch')
+        const pluginConfig = await strapi.config.get('plugin.esplugin')
         return await this.indexRecordToSpecificIndex({ itemId, itemData }, pluginConfig.indexAliasName)
     },
 
     async removeItemFromIndex({itemId}) {
         console.log("removeItemFromIndex itemId is: ", itemId)
-        const pluginConfig = await strapi.config.get('plugin.elasticsearch')
-        const helper = strapi.plugins['elasticsearch'].services.helper
+        const pluginConfig = await strapi.config.get('plugin.esplugin')
+        const helper = strapi.plugins['esplugin'].services.helper
         const idxName = await helper.getCurrentIndexName()
 
         console.log("getCurrentIndexName is: ", idxName)
@@ -288,7 +288,7 @@ export default ({ strapi }) => ({
         // }
 
         try {
-            const pluginConfig = await strapi.config.get('plugin.elasticsearch')
+            const pluginConfig = await strapi.config.get('plugin.esplugin')
 
             console.log("Helllo 111", searchQuery)
 
@@ -329,7 +329,7 @@ export default ({ strapi }) => ({
     // },
 
     // async updateData({itemId, itemData}) {
-    //     const pluginConfig = await strapi.config.get('plugin.elasticsearch')
+    //     const pluginConfig = await strapi.config.get('plugin.esplugin')
     //     return await this.indexRecordToSpecificIndex({ itemId, itemData }, pluginConfig.indexAliasName)
     // },
 })

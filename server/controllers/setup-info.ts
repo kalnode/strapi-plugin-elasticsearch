@@ -1,7 +1,7 @@
 'use strict'
 
 export default ({ strapi }) => {
-    const helperService = strapi.plugins['elasticsearch'].services.helper
+    const helperService = strapi.plugins['esplugin'].services.helper
 
     const getElasticsearchInfo = async (ctx) => {
         return helperService.getElasticsearchInfo()
@@ -10,7 +10,7 @@ export default ({ strapi }) => {
     const setPluginConfig = async (ctx) => {
         const { body } = ctx.request
         try {
-            const updatedConfig = await helperService.storeToggleSettingInstantIndex() //({config : body})
+            const updatedConfig = await helperService.storeToggleSettingInstantIndex() //({config: body})
             return updatedConfig
         } catch (err) {
             ctx.throw(500, err)
@@ -29,7 +29,7 @@ export default ({ strapi }) => {
     const toggleIndexingEnabled = async (ctx) => {
         const { body } = ctx.request
         try {
-            const updatedConfig = await helperService.storeSettingToggleInstantIndexing() //({config : body})
+            const updatedConfig = await helperService.storeSettingToggleInstantIndexing() //({config: body})
             return updatedConfig
         } catch (err) {
             ctx.throw(500, err)

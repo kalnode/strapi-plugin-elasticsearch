@@ -1,7 +1,7 @@
 export default ({ strapi }) => ({
 
     async getMapping(mappingId:string) {
-        return await strapi.entityService.findOne('plugin::elasticsearch.mapping', mappingId, { populate: "indexes" })
+        return await strapi.entityService.findOne('plugin::esplugin.mapping', mappingId, { populate: "indexes" })
     },
 
     async getMappings(indexId:string, count:number = 100) {
@@ -33,7 +33,7 @@ export default ({ strapi }) => ({
 
         }
 
-        return await strapi.entityService.findMany('plugin::elasticsearch.mapping', {...payload})
+        return await strapi.entityService.findMany('plugin::esplugin.mapping', {...payload})
 
     },
 
@@ -120,8 +120,8 @@ export default ({ strapi }) => ({
             let finalPayload = JSON.parse(JSON.stringify(mapping))
             finalPayload.mapping = JSON.stringify(finalPayload.mapping)
             console.log("createMapping 111 finalPayload is: ", finalPayload)
-            const entry = await strapi.entityService.create('plugin::elasticsearch.mapping', {
-                data : {
+            const entry = await strapi.entityService.create('plugin::esplugin.mapping', {
+                data: {
                     ...finalPayload
                 }
             })
@@ -136,8 +136,8 @@ export default ({ strapi }) => ({
 
     async updateMapping(mappingId, mapping) {
 
-        const helper = strapi.plugins['elasticsearch'].services.helper
-        const esInterface = strapi.plugins['elasticsearch'].services.esInterface
+        const helper = strapi.plugins['esplugin'].services.helper
+        const esInterface = strapi.plugins['esplugin'].services.esInterface
 
         try {
 
@@ -148,7 +148,7 @@ export default ({ strapi }) => ({
             let finalPayload = JSON.parse(JSON.stringify(mapping))
             let finalPayload2 = JSON.parse(JSON.stringify(finalPayload.mapping))
             finalPayload.mapping = JSON.stringify(finalPayload.mapping)
-            const entry = await strapi.entityService.update('plugin::elasticsearch.mapping', mappingId, {
+            const entry = await strapi.entityService.update('plugin::esplugin.mapping', mappingId, {
                 data: finalPayload,
                 populate: 'indexes'
             })
@@ -181,14 +181,14 @@ export default ({ strapi }) => ({
 
     async deleteMapping(mappingIndexNumber) {
 
-        const helper = strapi.plugins['elasticsearch'].services.helper
-        const esInterface = strapi.plugins['elasticsearch'].services.esInterface
+        const helper = strapi.plugins['esplugin'].services.helper
+        const esInterface = strapi.plugins['esplugin'].services.esInterface
 
         try {
 
             //await esInterface.deleteIndex(index)
 
-            const entry = await strapi.entityService.delete('plugin::elasticsearch.mapping', mappingIndexNumber)
+            const entry = await strapi.entityService.delete('plugin::esplugin.mapping', mappingIndexNumber)
 
             console.log('SPE - deleteMapping 333', entry)
             return entry

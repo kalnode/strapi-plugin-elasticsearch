@@ -5,18 +5,18 @@ export default async ({ strapi }) => {
     // TODO: Move cron and lifecycle events to a separate file, like "lifecycle.ts".
     // Why: Easier for future devs troubleshooting real-time events to just open a file "lifecycles" to see all real-time events in one place without extra fluff.
 
-    const pluginConfig = await strapi.config.get('plugin.elasticsearch') // Grabs hardcoded plugin config from Strapi root ./config/plugins
-    const configureIndexingService = strapi.plugins['elasticsearch'].services.configureIndexing
-    const scheduleIndexingService = strapi.plugins['elasticsearch'].services.scheduleIndexing
-    const esInterface = strapi.plugins['elasticsearch'].services.esInterface
-    const performIndexing = strapi.plugins['elasticsearch'].services.performIndexing
-    const helper = strapi.plugins['elasticsearch'].services.helper
+    const pluginConfig = await strapi.config.get('plugin.esplugin') // Grabs hardcoded plugin config from Strapi root ./config/plugins
+    const configureIndexingService = strapi.plugins['esplugin'].services.configureIndexing
+    const scheduleIndexingService = strapi.plugins['esplugin'].services.scheduleIndexing
+    const esInterface = strapi.plugins['esplugin'].services.esInterface
+    const performIndexing = strapi.plugins['esplugin'].services.performIndexing
+    const helper = strapi.plugins['esplugin'].services.helper
 
     const getPluginStore = () => {
         return strapi.store({
             environment: '', // TODO: What's this for ?
             type: 'plugin',
-            name: 'elasticsearch' // TODO: Scrutinize this name; what is it and should it not be the full unique plugin name?
+            name: 'esplugin' // TODO: Scrutinize this name; what is it and should it not be the full unique plugin name?
         })
     }
 
@@ -26,7 +26,7 @@ export default async ({ strapi }) => {
 
         // PLUGIN CONFIG - NO ES CONNECTION PROPERTIES; fail
         if (!Object.keys(pluginConfig).includes('searchConnector')) {
-            console.warn("The plugin strapi-plugin-elasticsearch is enabled but the searchConnector is not configured.")
+            console.warn("The es plugin is enabled but the searchConnector is not configured.")
 
         // PLUGIN CONFIG - ALL GOOD
         } else {
@@ -44,7 +44,7 @@ export default async ({ strapi }) => {
             // CRON
             // If Cron config not set, we log a warning.
             if (!Object.keys(pluginConfig).includes('indexingCronSchedule')) {
-                console.warn("The plugin strapi-plugin-elasticsearch is enabled but the indexingCronSchedule is not configured.")
+                console.warn("The es plugin is enabled but the indexingCronSchedule is not configured.")
 
             // Setup cron
             } else {
@@ -55,13 +55,13 @@ export default async ({ strapi }) => {
                         task: async ({ strapi }) => {
 
                             // TODO: Do we need to re-get plugin store on each cron cycle, or can this be moved to global
-                            console.log("WTF 111: ", strapi.elasticsearch.collections)
-
                             const pluginStore = getPluginStore()
                             const settings = JSON.parse(await pluginStore.get({ key: 'configsettings' }))
                             if (settings) {
                                 // Cron can be enabled/disabled via plugin UI settings, so we check that here.
                                 // TODO: Future: Instant vs Scheduled may be dictated by individual indexes, which will change this logic.
+
+                                // TODO: We need to make default setting for these things, because these won't work until user toggles them in plugin ui at least once.
                                 if (settings['settingIndexingEnabled'] && !settings['settingInstantIndex']) {
                                     console.log("CRON TASK: settingIndexingEnabled is enabled; doing work")
                                     await performIndexing.indexPendingData()
@@ -98,7 +98,7 @@ export default async ({ strapi }) => {
             // ------------------------------
             if (event.action === 'afterCreate' || event.action === 'afterUpdate') {
 
-                if (strapi.elasticsearch.collections.includes(event.model.uid)) {
+                if (strapi.esplugin.collections.includes(event.model.uid)) {
 
                     // Collection without draft-publish
                     if (typeof event.model.attributes.publishedAt === "undefined") {
@@ -157,7 +157,7 @@ export default async ({ strapi }) => {
             // afterCreateMany / afterUpdateMany
             // ------------------------------
             if (event.action === 'afterCreateMany' || event.action === 'afterUpdateMany') {
-                if (strapi.elasticsearch.collections.includes(event.model.uid)) {
+                if (strapi.esplugin.collections.includes(event.model.uid)) {
                     if (Object.keys(event.params.where.id).includes('$in')) {
                         const updatedItemIds = event.params.where.id['$in']
 
@@ -199,7 +199,7 @@ export default async ({ strapi }) => {
             // afterDelete
             // ------------------------------
             if (event.action === 'afterDelete') {
-                if (strapi.elasticsearch.collections.includes(event.model.uid)) {
+                if (strapi.esplugin.collections.includes(event.model.uid)) {
                     await scheduleIndexingService.removeItemFromIndex({
                         collectionUid: event.model.uid,
                         recordId: event.result.id
@@ -224,7 +224,7 @@ export default async ({ strapi }) => {
             // afterDeleteMany
             // ------------------------------
             if (event.action === 'afterDeleteMany') {
-                if (strapi.elasticsearch.collections.includes(event.model.uid)) {
+                if (strapi.esplugin.collections.includes(event.model.uid)) {
                     if (Object.keys(event.params.where).includes('$and') &&
                     Array.isArray(event.params.where['$and']) &&
                     Object.keys(event.params.where['$and'][0]).includes('id') && 
@@ -261,7 +261,7 @@ export default async ({ strapi }) => {
 
     } catch (err) {
         // TODO: Pass-in plugin name here; get rid of hardcoded name.
-        console.error('An error was encountered while initializing the strapi-plugin-elasticsearch plugin.')
+        console.error('An error was encountered while initializing the es plugin.')
         console.error(err)
     }  
 }

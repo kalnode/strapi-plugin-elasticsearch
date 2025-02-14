@@ -6,7 +6,7 @@ function transformMarkdownToText(md) {
         text = markdownToTxt(md)
     }
     catch(err) {
-        console.error('strapi-plugin-elasticsearch : Error while transforming markdown to text.')
+        console.error('ES transformMarkdownToText: Error while transforming markdown to text.')
         console.error(err)
     }
     return text

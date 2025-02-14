@@ -1,8 +1,8 @@
 'use strict'
 
 export default ({ strapi }) => {
-    const indexerService = strapi.plugins['elasticsearch'].services.performIndexing
-    const scheduleIndexingService = strapi.plugins['elasticsearch'].services.scheduleIndexing
+    const indexerService = strapi.plugins['esplugin'].services.performIndexing
+    const scheduleIndexingService = strapi.plugins['esplugin'].services.scheduleIndexing
 
     const rebuildIndex = async (ctx) => {
         return await indexerService.rebuildIndex()

@@ -1,14 +1,14 @@
 import { isEmpty, merge } from "lodash/fp"
 import transformContent from "./transform-content"
 
-///START : via https://raw.githubusercontent.com/Barelydead/strapi-plugin-populate-deep/main/server/helpers/index.js
+///START: via https://raw.githubusercontent.com/Barelydead/strapi-plugin-populate-deep/main/server/helpers/index.js
 
 
 const getPluginStore = () => {
     return strapi.store({
         environment: '',
         type: 'plugin',
-        name: 'elasticsearch'
+        name: 'esplugin'
     })
 }
 
@@ -71,41 +71,41 @@ const getFullPopulateObject = (modelUid, maxDepth = 20, ignore?) => {
     return isEmpty(populate) ? true : { populate }
 }
 
-///END : via https://raw.githubusercontent.com/Barelydead/strapi-plugin-populate-deep/main/server/helpers/index.js
+///END: via https://raw.githubusercontent.com/Barelydead/strapi-plugin-populate-deep/main/server/helpers/index.js
   
 
 /*
 //Example config to cover extraction cases
             collectionConfig[collectionName] = {
-                'major' : {index: true},
-                'sections' : { index: true, searchFieldName: 'information',
-                    'subfields' : [
-                        { 'component' : 'try.paragraph',
-                            'field' : 'Text'}, 
-                        { 'component' : 'try.paragraph',
-                            'field' : 'Heading'},
-                        { 'component' : 'try.footer',
-                            'field' : 'footer_link',
-                            'subfields' :[ {
-                                'component' : 'try.link',
-                                'field' : 'display_text'
+                'major': {index: true},
+                'sections': { index: true, searchFieldName: 'information',
+                    'subfields': [
+                        { 'component': 'try.paragraph',
+                            'field': 'Text'}, 
+                        { 'component': 'try.paragraph',
+                            'field': 'Heading'},
+                        { 'component': 'try.footer',
+                            'field': 'footer_link',
+                            'subfields':[ {
+                                'component': 'try.link',
+                                'field': 'display_text'
                             }] 
                         }] },
-                'seo_details' : {
+                'seo_details': {
                     index: true, searchFieldName: 'seo',
-                    'subfields' : [
+                    'subfields': [
                         {
-                            'component' : 'try.seo',
-                            'field' : 'meta_description'
+                            'component': 'try.seo',
+                            'field': 'meta_description'
                         }
                     ]
                 },
-                'changelog' : {
+                'changelog': {
                     index: true, searchFieldName: 'breakdown',
-                    'subfields' : [
+                    'subfields': [
                         {
-                            'component' : 'try.revision',
-                            'field' : 'summary'
+                            'component': 'try.revision',
+                            'field': 'summary'
                         }
                     ]
                 }
@@ -184,26 +184,26 @@ function extractSubfieldData({config, data }) {
 
 export default ({ strapi }) => ({
     async getElasticsearchInfo() {
-        const configureService = strapi.plugins['elasticsearch'].services.configureIndexing
-        const esInterface = strapi.plugins['elasticsearch'].services.esInterface
-        const pluginConfig = await strapi.config.get('plugin.elasticsearch')
+        const configureService = strapi.plugins['esplugin'].services.configureIndexing
+        const esInterface = strapi.plugins['esplugin'].services.esInterface
+        const pluginConfig = await strapi.config.get('plugin.esplugin')
       
         const connected = pluginConfig.searchConnector && pluginConfig.searchConnector.host
-         ? await esInterface.checkESConnection() : false
+         ? await esInterface.checkESConnection(): false
 
         //console.log("getElasticsearchInfo 11223344")
 
         return {
-            indexingCronSchedule : pluginConfig.indexingCronSchedule || "Not configured",
-            elasticHost : pluginConfig.searchConnector ? 
+            indexingCronSchedule: pluginConfig.indexingCronSchedule || "Not configured",
+            elasticHost: pluginConfig.searchConnector ? 
                             pluginConfig.searchConnector.host || "Not configured" : "Not configured",
-            elasticUserName : pluginConfig.searchConnector ? 
+            elasticUserName: pluginConfig.searchConnector ? 
                             pluginConfig.searchConnector.username || "Not configured" : "Not configured",
-            elasticCertificate : pluginConfig.searchConnector ? 
+            elasticCertificate: pluginConfig.searchConnector ? 
             pluginConfig.searchConnector.certificate || "Not configured" : "Not configured",
-            elasticIndexAlias : pluginConfig.indexAliasName || "Not configured",
-            connected : connected,
-            initialized : configureService.isInitialized()
+            elasticIndexAlias: pluginConfig.indexAliasName || "Not configured",
+            connected: connected,
+            initialized: configureService.isInitialized()
         }
     },
 
@@ -213,7 +213,7 @@ export default ({ strapi }) => ({
     },
 
     getPopulateAttribute({collectionName}) {
-        //TODO : We currently have set populate to upto 4 levels, should
+        // TODO: We currently have set populate to upto 4 levels, should
         //this be configurable or a different default value?
         return getFullPopulateObject(collectionName, 4, [])
     },
@@ -247,11 +247,11 @@ export default ({ strapi }) => ({
         const settings:any = await pluginStore.get({ key: 'configsettings' })
         if (settings) {
             const objSettings = JSON.parse(settings)
-            objSettings['indexConfig'] = {'name' : indexName}
-            await pluginStore.set({ key: 'configsettings', value : JSON.stringify(objSettings)})
+            objSettings['indexConfig'] = {'name': indexName}
+            await pluginStore.set({ key: 'configsettings', value: JSON.stringify(objSettings)})
         } else {
-            const newSettings =  JSON.stringify({'indexConfig' : {'name' : indexName}})
-            await pluginStore.set({ key: 'configsettings', value : newSettings})
+            const newSettings =  JSON.stringify({'indexConfig': {'name': indexName}})
+            await pluginStore.set({ key: 'configsettings', value: newSettings})
         }
     },
 
@@ -262,14 +262,14 @@ export default ({ strapi }) => ({
         const settings:any = await pluginStore.get({ key: 'configsettings' })
         if (settings) {
             const objSettings = JSON.parse(settings)
-            //objSettings['settingInstantIndex'] = {'instantIndexing' : value}
+            //objSettings['settingInstantIndex'] = {'instantIndexing': value}
             objSettings['settingInstantIndex'] = !objSettings['settingInstantIndex']
             //console.log("storeToggleSettingInstantIndex objSettings 111", objSettings['settingInstantIndex'])
-            await pluginStore.set({ key: 'configsettings', value : JSON.stringify(objSettings)})
+            await pluginStore.set({ key: 'configsettings', value: JSON.stringify(objSettings)})
             //console.log("storeToggleSettingInstantIndex objSettings 222", objSettings['settingInstantIndex'])
             return objSettings['settingInstantIndex']
         } else {
-            const newSettings = JSON.stringify({'settingInstantIndex' : false})
+            const newSettings = JSON.stringify({'settingInstantIndex': false})
             await pluginStore.set({ key: 'configsettings', value: newSettings})
             //console.log("ES helper II 333")
             return false
@@ -303,14 +303,14 @@ export default ({ strapi }) => ({
         const settings:any = await pluginStore.get({ key: 'configsettings' })
         if (settings) {
             const objSettings = JSON.parse(settings)
-            //objSettings['settingIndexingEnabled'] = {'instantIndexing' : value}
+            //objSettings['settingIndexingEnabled'] = {'instantIndexing': value}
             objSettings['settingIndexingEnabled'] = !objSettings['settingIndexingEnabled']
             //console.log("storeSettingToggleInstantIndexing objSettings 111", objSettings['settingIndexingEnabled'])
-            await pluginStore.set({ key: 'configsettings', value : JSON.stringify(objSettings)})
+            await pluginStore.set({ key: 'configsettings', value: JSON.stringify(objSettings)})
             //console.log("storeSettingToggleInstantIndexing objSettings 222", objSettings['settingIndexingEnabled'])
             return objSettings['settingIndexingEnabled']
         } else {
-            const newSettings = JSON.stringify({'settingIndexingEnabled' : false})
+            const newSettings = JSON.stringify({'settingIndexingEnabled': false})
             await pluginStore.set({ key: 'configsettings', value: newSettings})
             //console.log("ES helper II 333")
             return false
@@ -399,7 +399,7 @@ export default ({ strapi }) => ({
 
     async orphansFind() {
 
-        const esInterface = strapi.plugins['elasticsearch'].services.esInterface
+        const esInterface = strapi.plugins['esplugin'].services.esInterface
 
         let query = {
             query: {
@@ -435,7 +435,7 @@ export default ({ strapi }) => ({
 
     async orphansDelete() {
 
-        const esInterface = strapi.plugins['elasticsearch'].services.esInterface
+        const esInterface = strapi.plugins['esplugin'].services.esInterface
 
         let query = {
             query: {

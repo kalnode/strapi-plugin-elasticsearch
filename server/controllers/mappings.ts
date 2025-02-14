@@ -2,7 +2,7 @@
 
 export default ({ strapi }) => {
     
-    const mappings = strapi.plugins['elasticsearch'].services.mappings
+    const mappings = strapi.plugins['esplugin'].services.mappings
 
     const getMapping = async (ctx) => {
         try {

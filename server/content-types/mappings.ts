@@ -30,12 +30,12 @@ export default {
             "type": "boolean",
         },
         "nested_level": {
-            "type": "number"
+            "type": "integer"
         },
         "indexes": {
             "type": "relation",
             "relation": "manyToMany",
-            "target": "plugin::elasticsearch.registered-index",
+            "target": "plugin::esplugin.registered-index",
             "mappedBy": "mappings" // TODO: Or should this be inversedBy?
         },
         "default_preset": {

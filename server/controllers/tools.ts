@@ -1,7 +1,7 @@
 'use strict'
 
 export default ({ strapi }) => {
-    const helperService = strapi.plugins['elasticsearch'].services.helper
+    const helperService = strapi.plugins['esplugin'].services.helper
     
     const orphansFind = async (ctx) => {
         try {

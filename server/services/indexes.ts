@@ -2,7 +2,7 @@
 export default ({ strapi }) => ({
 
     async getIndexes(count = 50) {
-        const records = await strapi.entityService.findMany('plugin::elasticsearch.registered-index', {
+        const records = await strapi.entityService.findMany('plugin::esplugin.registered-index', {
             sort: { createdAt: 'DESC' },
             start: 0,
             limit: count,
@@ -13,15 +13,15 @@ export default ({ strapi }) => ({
 
     async getIndex(indexId) {
         console.log('SPE - getIndex 111', indexId)
-        const record = await strapi.entityService.findOne('plugin::elasticsearch.registered-index', indexId, {
+        const record = await strapi.entityService.findOne('plugin::esplugin.registered-index', indexId, {
             populate: "mappings"
         })
         return record
     },
 
     async createIndex(indexName, addToExternalIndex) {
-        const helper = strapi.plugins['elasticsearch'].services.helper
-        const esInterface = strapi.plugins['elasticsearch'].services.esInterface
+        const helper = strapi.plugins['esplugin'].services.helper
+        const esInterface = strapi.plugins['esplugin'].services.esInterface
 
         try {
 
@@ -34,8 +34,8 @@ export default ({ strapi }) => ({
 
 
             //let work = await esInterface.createIndex(newIndexName)
-            const entry = await strapi.entityService.create('plugin::elasticsearch.registered-index', {
-                data : {
+            const entry = await strapi.entityService.create('plugin::esplugin.registered-index', {
+                data: {
                     index_name: indexName,
                     active: true
                     //index_alias: 'myAlias',
@@ -63,8 +63,8 @@ export default ({ strapi }) => ({
 
     async updateIndex(indexId, payload) {
 
-        const helper = strapi.plugins['elasticsearch'].services.helper
-        const esInterface = strapi.plugins['elasticsearch'].services.esInterface
+        const helper = strapi.plugins['esplugin'].services.helper
+        const esInterface = strapi.plugins['esplugin'].services.esInterface
 
         try {
 
@@ -80,7 +80,7 @@ export default ({ strapi }) => ({
             let finalPayload = payload
            //let finalPayload = JSON.parse(JSON.stringify(payload))
             //finalPayload.mapping = JSON.stringify(finalPayload.payload)
-            const entry = await strapi.entityService.update('plugin::elasticsearch.registered-index', indexId, {
+            const entry = await strapi.entityService.update('plugin::esplugin.registered-index', indexId, {
                 data: finalPayload
             })
 
@@ -96,9 +96,9 @@ export default ({ strapi }) => ({
 
     async deleteIndex(recordIndexNumber, deleteIndexInElasticsearch) {
 
-        const helper = strapi.plugins['elasticsearch'].services.helper
-        const esInterface = strapi.plugins['elasticsearch'].services.esInterface
-        const indexesService = strapi.plugins['elasticsearch'].services.indexes
+        const helper = strapi.plugins['esplugin'].services.helper
+        const esInterface = strapi.plugins['esplugin'].services.esInterface
+        const indexesService = strapi.plugins['esplugin'].services.indexes
         console.log("SPE - deleteIndex, 111")
         try {
 
@@ -119,13 +119,13 @@ export default ({ strapi }) => ({
 
                     // Ignore if mapping is a "preset" mapping
                     if (!work.mappings[i].preset) {
-                        await strapi.entityService.delete('plugin::elasticsearch.mapping', work.mappings[i].id) 
+                        await strapi.entityService.delete('plugin::esplugin.mapping', work.mappings[i].id) 
                     }
                 }
             }
             console.log("SPE - deleteIndex, 444")
 
-            const entry = await strapi.entityService.delete('plugin::elasticsearch.registered-index', recordIndexNumber)
+            const entry = await strapi.entityService.delete('plugin::esplugin.registered-index', recordIndexNumber)
             console.log("SPE - deleteIndex, 444bbb", entry)
 
             // DELETE FROM ELASTICSEARCH:
@@ -149,9 +149,9 @@ export default ({ strapi }) => ({
 
 
     async createESindex(indexID) {
-        const helper = strapi.plugins['elasticsearch'].services.helper
-        const esInterface = strapi.plugins['elasticsearch'].services.esInterface
-        const indexesService = strapi.plugins['elasticsearch'].services.indexes
+        const helper = strapi.plugins['esplugin'].services.helper
+        const esInterface = strapi.plugins['esplugin'].services.esInterface
+        const indexesService = strapi.plugins['esplugin'].services.indexes
         try {
 
             //const oldIndexName = await helper.getCurrentIndexName()

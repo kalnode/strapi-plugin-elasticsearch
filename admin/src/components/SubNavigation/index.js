@@ -10,42 +10,42 @@ export const SubNavigation = () => {
     const links = [
         {
             id: 1,
-            label : 'Home',
-            icon : Connector,
-            to : `/plugins/${pluginId}/home`
+            label: 'Home',
+            icon: Connector,
+            to: `/plugins/${pluginId}/home`
         },
         {
             id: 2,
-            label : 'Indexes',
-            icon : Connector,
-            to : `/plugins/${pluginId}/indexes`
+            label: 'Indexes',
+            icon: Connector,
+            to: `/plugins/${pluginId}/indexes`
         },
         {
             id: 5,
-            label : 'Mappings',
-            icon : Connector,
-            to : `/plugins/${pluginId}/mappings`
+            label: 'Mappings',
+            icon: Connector,
+            to: `/plugins/${pluginId}/mappings`
         },
         {
             id: 6,
-            label : 'Tools',
-            icon : Connector,
-            to : `/plugins/${pluginId}/tools`
+            label: 'Tools',
+            icon: Connector,
+            to: `/plugins/${pluginId}/tools`
         },
     ]
 
     const links_old = [
         {
             id: 3,
-            label : 'Configure Collections',
-            icon : Connector,
-            to : `/plugins/${pluginId}/configure-collections`
+            label: 'Configure Collections',
+            icon: Connector,
+            to: `/plugins/${pluginId}/configure-collections`
         },
         {
             id: 4,
-            label : 'Indexing Run Logs',
-            icon : Connector,
-            to : `/plugins/${pluginId}/view-indexing-logs`
+            label: 'Indexing Run Logs',
+            icon: Connector,
+            to: `/plugins/${pluginId}/view-indexing-logs`
         },
     ]
 

@@ -2,8 +2,8 @@
 
 export default ({ strapi }) => {
     
-    const indexes = strapi.plugins['elasticsearch'].services.indexes
-    const ESindexes = strapi.plugins['elasticsearch'].services.esInterface
+    const indexes = strapi.plugins['esplugin'].services.indexes
+    const ESindexes = strapi.plugins['esplugin'].services.esInterface
     const getIndex = async (ctx) => {
         const { body } = ctx.request
         try {

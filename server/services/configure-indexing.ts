@@ -4,7 +4,7 @@ const getPluginStore = () => {
     return strapi.store({
         environment: '',
         type: 'plugin',
-        name: 'elasticsearch'
+        name: 'esplugin'
     })
 }
 
@@ -15,21 +15,23 @@ export default ({ strapi }) => ({
     },
 
     async markInitialized() {
-        if (!strapi.elasticsearch) {
-            strapi.elasticsearch = {}
-            strapi.elasticsearch.initialized = true
+        if (!strapi.esplugin) {
+            strapi.esplugin = {}
+            strapi.esplugin.initialized = true
+            strapi.esplugin.settingIndexingEnabled = true
+            strapi.esplugin.settingInstantIndex = true
         }
     },
 
     isInitialized() {
-        return strapi.elasticsearch?.initialized || false
+        return strapi.esplugin?.initialized || false
     },
 
     async cacheConfig() {
-        if (!strapi.elasticsearch) {
-            strapi.elasticsearch = {}
-            strapi.elasticsearch.collectionsconfig = await this.getCollectionsConfiguredForIndexing()
-            strapi.elasticsearch.collections = await this.getCollectionsConfiguredForIndexing()
+        if (!strapi.esplugin) {
+            strapi.esplugin = {}
+            strapi.esplugin.collectionsconfig = await this.getCollectionsConfiguredForIndexing()
+            strapi.esplugin.collections = await this.getCollectionsConfiguredForIndexing()
         }
     },
 
@@ -135,10 +137,10 @@ export default ({ strapi }) => ({
             const objSettings = JSON.parse(settings)
             objSettings['contentConfig'] = JSON.parse(config)
             const stringifySettings = JSON.stringify(objSettings)
-            await pluginStore.set({ key: 'configsettings', value : stringifySettings })
+            await pluginStore.set({ key: 'configsettings', value: stringifySettings })
         } else {
-            const newSettings =  JSON.stringify({'contentConfig' : config})
-            await pluginStore.set({ key: 'configsettings', value : newSettings})
+            const newSettings = JSON.stringify({'contentConfig': config})
+            await pluginStore.set({ key: 'configsettings', value: newSettings })
         }
 
         const updatedSettings = await pluginStore.get({ key: 'configsettings' })
@@ -166,12 +168,12 @@ export default ({ strapi }) => ({
             } else {
                 objSettings['contentConfig'] = config
                 const stringifySettings = JSON.stringify(objSettings)
-                await pluginStore.set({ key: 'configsettings', value : stringifySettings })
+                await pluginStore.set({ key: 'configsettings', value: stringifySettings })
             }
         
         } else {
-            const newSettings =  JSON.stringify({'contentConfig' : config})
-            await pluginStore.set({ key: 'configsettings', value : newSettings})
+            const newSettings =  JSON.stringify({'contentConfig': config })
+            await pluginStore.set({ key: 'configsettings', value: newSettings })
         }
 
         const updatedSettings = await pluginStore.get({ key: 'configsettings' })

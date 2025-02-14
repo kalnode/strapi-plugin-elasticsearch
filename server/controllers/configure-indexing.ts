@@ -2,7 +2,7 @@
 
 export default ({ strapi }) => {
 
-    const configureIndexingService = strapi.plugins['elasticsearch'].services.configureIndexing
+    const configureIndexingService = strapi.plugins['esplugin'].services.configureIndexing
 
     const getContentConfig = async (ctx) => {
         return configureIndexingService.getContentConfig()
@@ -11,7 +11,7 @@ export default ({ strapi }) => {
     const setContentConfig = async (ctx) => {
         const { body } = ctx.request
         try {
-            const updatedConfig = await configureIndexingService.setContentConfig({config : body})
+            const updatedConfig = await configureIndexingService.setContentConfig({config: body})
             return updatedConfig
         } catch (err) {
             ctx.throw(500, err)
@@ -26,7 +26,7 @@ export default ({ strapi }) => {
         const { body } = ctx.request
         try {
             if (body['data']) {
-                const updatedConfig = await configureIndexingService.importContentConfig({config : body['data']})
+                const updatedConfig = await configureIndexingService.importContentConfig({config: body['data']})
                 return updatedConfig
             } else {
                 ctx.throw(400, 'Invalid parameters')
@@ -47,7 +47,7 @@ export default ({ strapi }) => {
     const saveCollectionConfig = async (ctx) => {
         const { body } = ctx.request
         try {
-            const updatedConfig = await configureIndexingService.setContentConfig({collection: ctx.params.collectionname, config : body.data})
+            const updatedConfig = await configureIndexingService.setContentConfig({collection: ctx.params.collectionname, config: body.data})
             return updatedConfig
         } catch (err) {
             ctx.throw(500, err)

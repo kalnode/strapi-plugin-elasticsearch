@@ -29,13 +29,13 @@ const PageHome = () => {
     const showNotification = useNotification()
 
     const displayLabels = {
-        'connected' : 'Connected',
-        'elasticCertificate' : 'Certificate',
-        'elasticHost' : 'Elasticsearch host',
-        'elasticIndexAlias' : 'Elasticsearch index Alias name',
-        'elasticUserName' : 'Elasticsearch username',
-        'indexingCronSchedule' : 'Indexing cron schedule',
-        'initialized' : 'Elasticsearch configuration loaded'
+        'connected': 'Connected',
+        'elasticCertificate': 'Certificate',
+        'elasticHost': 'Elasticsearch host',
+        'elasticIndexAlias': 'Elasticsearch index Alias name',
+        'elasticUserName': 'Elasticsearch username',
+        'indexingCronSchedule': 'Indexing cron schedule',
+        'initialized': 'Elasticsearch configuration loaded'
     }
 
     // =========================

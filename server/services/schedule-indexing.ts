@@ -1,8 +1,8 @@
 export default ({ strapi }) => ({
 
     async addFullSiteIndexingTask () {
-        const data = await strapi.entityService.create('plugin::elasticsearch.task', {
-            data : {
+        const data = await strapi.entityService.create('plugin::esplugin.task', {
+            data: {
                 collection_name: '',
                 indexing_status: 'to-be-done',
                 full_site_indexing: true,
@@ -13,8 +13,8 @@ export default ({ strapi }) => ({
     },
 
     async addCollectionToIndex({collectionUid}) {
-        const data = await strapi.entityService.create('plugin::elasticsearch.task', {
-            data : {
+        const data = await strapi.entityService.create('plugin::esplugin.task', {
+            data: {
                 collection_name: collectionUid,
                 indexing_status: 'to-be-done',
                 full_site_indexing: false,
@@ -25,8 +25,8 @@ export default ({ strapi }) => ({
     },
 
     async addItemToIndex({collectionUid, recordId}) {
-        const data = await strapi.entityService.create('plugin::elasticsearch.task', {
-            data : {
+        const data = await strapi.entityService.create('plugin::esplugin.task', {
+            data: {
                 item_id: recordId, 
                 collection_name: collectionUid,
                 indexing_status: 'to-be-done',
@@ -38,8 +38,8 @@ export default ({ strapi }) => ({
     },
 
     async removeItemFromIndex({collectionUid, recordId}) {
-        const data = await strapi.entityService.create('plugin::elasticsearch.task', {
-            data : {
+        const data = await strapi.entityService.create('plugin::esplugin.task', {
+            data: {
                 item_id: recordId, 
                 collection_name: collectionUid,
                 indexing_status: 'to-be-done',
@@ -50,16 +50,16 @@ export default ({ strapi }) => ({
     },
 
     async getItemsPendingToBeIndexed(){
-        const entries = await strapi.entityService.findMany('plugin::elasticsearch.task', {
-            filters: { indexing_status : 'to-be-done'},
+        const entries = await strapi.entityService.findMany('plugin::esplugin.task', {
+            filters: { indexing_status: 'to-be-done'},
          })
          return entries
     },
 
     async markIndexingTaskComplete (recId) {
-        const entries = await strapi.entityService.update('plugin::elasticsearch.task', recId, {
-            data : {
-                'indexing_status' : 'done'
+        const entries = await strapi.entityService.update('plugin::esplugin.task', recId, {
+            data: {
+                'indexing_status': 'done'
             }
         })
     }

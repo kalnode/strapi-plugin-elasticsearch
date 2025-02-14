@@ -8,11 +8,11 @@ export default ({ strapi }) => ({
 
         console.log('SPE - rebuildIndex - REQUEST: rebuild the index')
 
-        const helper = strapi.plugins['elasticsearch'].services.helper
-        const esInterface = strapi.plugins['elasticsearch'].services.esInterface
-        const scheduleIndexingService = strapi.plugins['elasticsearch'].services.scheduleIndexing
-        const configureIndexingService = strapi.plugins['elasticsearch'].services.configureIndexing
-        const logIndexingService = strapi.plugins['elasticsearch'].services.logIndexing
+        const helper = strapi.plugins['esplugin'].services.helper
+        const esInterface = strapi.plugins['esplugin'].services.esInterface
+        const scheduleIndexingService = strapi.plugins['esplugin'].services.scheduleIndexing
+        const configureIndexingService = strapi.plugins['esplugin'].services.configureIndexing
+        const logIndexingService = strapi.plugins['esplugin'].services.logIndexing
 
         try {
 
@@ -77,11 +77,11 @@ export default ({ strapi }) => ({
 
     async indexCollection(collectionName, indexName = null) {
 
-        const helper = strapi.plugins['elasticsearch'].services.helper
+        const helper = strapi.plugins['esplugin'].services.helper
         const populateAttrib = helper.getPopulateAttribute({collectionName})
         const isCollectionDraftPublish = helper.isCollectionDraftPublish({collectionName})
-        const configureIndexingService = strapi.plugins['elasticsearch'].services.configureIndexing
-        const esInterface = strapi.plugins['elasticsearch'].services.esInterface
+        const configureIndexingService = strapi.plugins['esplugin'].services.configureIndexing
+        const esInterface = strapi.plugins['esplugin'].services.esInterface
 
         if (indexName === null) {
             indexName = await helper.getCurrentIndexName()
@@ -166,8 +166,8 @@ export default ({ strapi }) => ({
     // =============================================
 
     async assembleDataToIndexOrig(collectionName, item) {
-        const helper = strapi.plugins['elasticsearch'].services.helper
-        const configureIndexingService = strapi.plugins['elasticsearch'].services.configureIndexing
+        const helper = strapi.plugins['esplugin'].services.helper
+        const configureIndexingService = strapi.plugins['esplugin'].services.configureIndexing
         //console.log("spe.rebuildIndex -assembleDataToIndex collectionName:", collectionName)
         const collectionConfig = await configureIndexingService.getCollectionConfig(collectionName)
 
@@ -211,11 +211,11 @@ export default ({ strapi }) => ({
 
     async indexPendingData() {
 
-        const scheduleIndexingService = strapi.plugins['elasticsearch'].services.scheduleIndexing
-        const configureIndexingService = strapi.plugins['elasticsearch'].services.configureIndexing
-        const logIndexingService = strapi.plugins['elasticsearch'].services.logIndexing
-        const esInterface = strapi.plugins['elasticsearch'].services.esInterface
-        const helper = strapi.plugins['elasticsearch'].services.helper
+        const scheduleIndexingService = strapi.plugins['esplugin'].services.scheduleIndexing
+        const configureIndexingService = strapi.plugins['esplugin'].services.configureIndexing
+        const logIndexingService = strapi.plugins['esplugin'].services.logIndexing
+        const esInterface = strapi.plugins['esplugin'].services.esInterface
+        const helper = strapi.plugins['esplugin'].services.helper
         const recs = await scheduleIndexingService.getItemsPendingToBeIndexed()
         const fullSiteIndexing = recs.filter(r => r.full_site_indexing === true).length > 0
 
@@ -259,12 +259,12 @@ export default ({ strapi }) => ({
                                     //console.log("Kal - dataToIndex: ", dataToIndex)
                                     // -------------------------
 
-                                    await esInterface.indexData({itemId : indexItemId, itemData: dataToIndex})
+                                    await esInterface.indexData({itemId: indexItemId, itemData: dataToIndex})
                                     await scheduleIndexingService.markIndexingTaskComplete(recs[r].id)
                                 }
                             } else {
                                 const indexItemId = helper.getIndexItemId({collectionName: col, itemId: recs[r].item_id})
-                                await esInterface.removeItemFromIndex({itemId : indexItemId})
+                                await esInterface.removeItemFromIndex({itemId: indexItemId})
                                 await scheduleIndexingService.markIndexingTaskComplete(recs[r].id)
                             }
 
@@ -303,10 +303,10 @@ export default ({ strapi }) => ({
 
         // 3. For each post type, get records and index them into ES index
 
-        const esInterface = strapi.plugins['elasticsearch'].services.esInterface
-        const indexesService = strapi.plugins['elasticsearch'].services.indexes
-        const configureIndexingService = strapi.plugins['elasticsearch'].services.configureIndexing
-        const helper = strapi.plugins['elasticsearch'].services.helper
+        const esInterface = strapi.plugins['esplugin'].services.esInterface
+        const indexesService = strapi.plugins['esplugin'].services.indexes
+        const configureIndexingService = strapi.plugins['esplugin'].services.configureIndexing
+        const helper = strapi.plugins['esplugin'].services.helper
 
 
         let index = await indexesService.getIndex(indexId)

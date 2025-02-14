@@ -32,7 +32,7 @@ export default {
         "mappings": {
             "type": "relation",
             "relation": "manyToMany",
-            "target": "plugin::elasticsearch.mapping",
+            "target": "plugin::esplugin.mapping",
             "inversedBy": "indexes" // TODO: Or should this be mappedBy?
         }
     }
