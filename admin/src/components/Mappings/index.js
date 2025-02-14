@@ -302,15 +302,14 @@ export const Mappings = ({ indexId, showOnlyPresets, modeOnlySelection, mappingH
                                                         <>
                                                         { data.indexes.map((item, indexItem) => {
                                                                 return (
-                                                                    <>
-                                                                    <Link onClick={(e) => { requestGoToIndex(e, item.id) } } key={indexItem}>
-                                                                        { item.id }
-                                                                    </Link>
-                                                                    
-                                                                    { indexItem != data.indexes.length && (
-                                                                        <>&nbsp;</>
-                                                                    ) }
-                                                                    </>
+                                                                    <Box key={indexItem}>
+                                                                        <Link onClick={(e) => { requestGoToIndex(e, item.id) } } key={indexItem}>
+                                                                            { item.id }
+                                                                        </Link>                                                                    
+                                                                        { indexItem != data.indexes.length && (
+                                                                            <>&nbsp;</>
+                                                                        ) }
+                                                                    </Box>
                                                                 )
                                                             })
                                                         }
