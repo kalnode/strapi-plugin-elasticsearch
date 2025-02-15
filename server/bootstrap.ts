@@ -6,19 +6,11 @@ export default async ({ strapi }) => {
     // Why: Easier for future devs troubleshooting real-time events to just open a file "lifecycles" to see all real-time events in one place without extra fluff.
 
     const pluginConfig = await strapi.config.get('plugin.esplugin') // Grabs hardcoded plugin config from Strapi root ./config/plugins
+    const esInterface = strapi.plugins['esplugin'].services.esInterface
+    const helper = strapi.plugins['esplugin'].services.helper
     const configureIndexingService = strapi.plugins['esplugin'].services.configureIndexing
     const scheduleIndexingService = strapi.plugins['esplugin'].services.scheduleIndexing
-    const esInterface = strapi.plugins['esplugin'].services.esInterface
     const performIndexing = strapi.plugins['esplugin'].services.performIndexing
-    const helper = strapi.plugins['esplugin'].services.helper
-
-    const getPluginStore = () => {
-        return strapi.store({
-            environment: '', // TODO: What's this for ?
-            type: 'plugin',
-            name: 'esplugin' // TODO: Scrutinize this name; what is it and should it not be the full unique plugin name?
-        })
-    }
 
     try {
 
@@ -55,7 +47,7 @@ export default async ({ strapi }) => {
                         task: async ({ strapi }) => {
 
                             // TODO: Do we need to re-get plugin store on each cron cycle, or can this be moved to global
-                            const pluginStore = getPluginStore()
+                            const pluginStore = helper.getPluginStore()
                             const settings = JSON.parse(await pluginStore.get({ key: 'configsettings' }))
                             if (settings) {
                                 // Cron can be enabled/disabled via plugin UI settings, so we check that here.
@@ -93,61 +85,55 @@ export default async ({ strapi }) => {
 
         strapi.db.lifecycles.subscribe(async (event) => {
 
+            //console.log("ES LIFECYCLE", event)
+
             // ------------------------------
             // afterCreate / afterUpdate
             // ------------------------------
             if (event.action === 'afterCreate' || event.action === 'afterUpdate') {
 
+                console.log("ES LIFECYCLE - afterCreate / afterUpdate", event.action)
+
+                // LEGACY
                 if (strapi.esplugin.collections.includes(event.model.uid)) {
 
-                    // Collection without draft-publish
+                    console.log("Strapi collections includes")
+
+                    const payload = {
+                        collectionUid: event.model.uid,
+                        recordId: event.result.id
+                    }
+
+                    // POST TYPE DOES NOT HAVE DRAFT-PUBLISH
                     if (typeof event.model.attributes.publishedAt === "undefined") {
-                        await scheduleIndexingService.addItemToIndex({
-                            collectionUid: event.model.uid,
-                            recordId: event.result.id
-                        })
 
-                        //await indexer.indexPendingData()
+                        // TODO: If instant index, do it right away rather than schedule it as a task
+                        await scheduleIndexingService.addItemToIndex(payload)
 
-                        //await setTimeout( async () => {
-                         //   console.log("es watch index DONE 111")                
-                        //}, 5000)
-
+                    // POST TYPE HAS DRAFT-PUBLISH
                     } else if (event.model.attributes.publishedAt) {
                         if (event.result.publishedAt) {
-                            await scheduleIndexingService.addItemToIndex({
-                                collectionUid: event.model.uid,
-                                recordId: event.result.id
-                            })
-
-                            // let work2 = await indexer.indexPendingData()
-
-                            //await setTimeout(() => {
-                            //  console.log("es watch index DONE 222", work2)   
-
-                           // console.log("es watch afterUpdate", ctx)
-                           // ctx.response.body = { status: 'success', data: event.result }
-                            //}, 5000)
+                            await scheduleIndexingService.addItemToIndex(payload)
                         } else {
-                            //unpublish
-                            await scheduleIndexingService.removeItemFromIndex({
-                                collectionUid: event.model.uid,
-                                recordId: event.result.id
-                            })
+                            // Unpublish
+                            await scheduleIndexingService.removeItemFromIndex(payload)
                         }
                     }
 
-                    const pluginStore = getPluginStore()
+                    // INSTANT WORK
+                    const pluginStore = helper.getPluginStore()
                     const settings = JSON.parse(await pluginStore.get({ key: 'configsettings' }))
                     const ctx = strapi.requestContext.get()
 
                     if (settings) {
+                        console.log("Settings found, doing instant work")
                         if (settings['settingIndexingEnabled'] && settings['settingInstantIndex']) {
                             console.log("afterCreate instantIndex enabled, doing index work")
                             await performIndexing.indexPendingData()
                         }
                         ctx.response.body = { status: 'success', data: event.result }
                     } else {
+                        console.log("Settings NOT FOUND")
                         ctx.response.body = { status: 'error', data: "ES afterCreate/afterUpdate - Could not get config settings" }
                     }
                 }
@@ -178,7 +164,8 @@ export default async ({ strapi }) => {
                             }
                         }
 
-                        const pluginStore = getPluginStore()
+                        // INSTANT WORK
+                        const pluginStore = helper.getPluginStore()
                         const settings = JSON.parse(await pluginStore.get({ key: 'configsettings' }))
                         const ctx = strapi.requestContext.get()
                         if (settings) {
@@ -200,12 +187,14 @@ export default async ({ strapi }) => {
             // ------------------------------
             if (event.action === 'afterDelete') {
                 if (strapi.esplugin.collections.includes(event.model.uid)) {
+
                     await scheduleIndexingService.removeItemFromIndex({
                         collectionUid: event.model.uid,
                         recordId: event.result.id
                     })
 
-                    const pluginStore = getPluginStore()
+                    // INSTANT WORK
+                    const pluginStore = helper.getPluginStore()
                     const settings = JSON.parse(await pluginStore.get({ key: 'configsettings' }))
                     const ctx = strapi.requestContext.get()
                     if (settings) {
@@ -225,10 +214,11 @@ export default async ({ strapi }) => {
             // ------------------------------
             if (event.action === 'afterDeleteMany') {
                 if (strapi.esplugin.collections.includes(event.model.uid)) {
-                    if (Object.keys(event.params.where).includes('$and') &&
-                    Array.isArray(event.params.where['$and']) &&
-                    Object.keys(event.params.where['$and'][0]).includes('id') && 
-                    Object.keys(event.params.where['$and'][0]['id']).includes('$in')) {
+                    if (Object.keys(event.params.where).includes('$and')
+                    && Array.isArray(event.params.where['$and'])
+                    && Object.keys(event.params.where['$and'][0]).includes('id')
+                    && Object.keys(event.params.where['$and'][0]['id']).includes('$in')) {
+
                         const deletedItemIds = event.params.where['$and'][0]['id']['$in']
                         for (let k = 0; k< deletedItemIds.length; k++) {
                             await scheduleIndexingService.removeItemFromIndex({
@@ -237,7 +227,8 @@ export default async ({ strapi }) => {
                             })                            
                         }
 
-                        const pluginStore = getPluginStore()
+                        // INSTANT WORK
+                        const pluginStore = helper.getPluginStore()
                         const settings = JSON.parse(await pluginStore.get({ key: 'configsettings' }))
                         const ctx = strapi.requestContext.get()
                         if (settings) {
@@ -257,7 +248,7 @@ export default async ({ strapi }) => {
         // ============================
         // FINISH PLUGIN INITIALIZATION
         // ============================
-        configureIndexingService.markInitialized()
+        configureIndexingService.pluginStoreInitialize()
 
     } catch (err) {
         // TODO: Pass-in plugin name here; get rid of hardcoded name.

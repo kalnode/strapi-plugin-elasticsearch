@@ -82,7 +82,7 @@ export default ({ strapi }) => ({
 
 
         // LEGACY CODE; still may need this if we need to interact with the plugin store.
-        //const pluginStore = getPluginStore()
+        //const pluginStore = helper.getPluginStore()
         //const settings = await pluginStore.get({ key: 'configsettings' })
 
         // if (settings) {

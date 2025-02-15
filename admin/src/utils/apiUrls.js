@@ -2,7 +2,7 @@ import pluginId from "../pluginId"
 
 // GENERAL
 export const apiGetSystemInfo = `/${pluginId}/setup-info`
-export const apiGetContentConfig = `/${pluginId}/content-confi/`
+export const apiGetContentConfig = `/${pluginId}/content-config`
 
 // SETTINGS
 export const apiInstantIndexing = `/${pluginId}/instant-indexing`
