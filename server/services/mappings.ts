@@ -1,10 +1,47 @@
+import { v4 as uuidv4 } from 'uuid'
+
+// TODO: Is there a better way to import these types? Maybe no import (set them globally), or if importing here, then a better path than using a bunch of "..\"'s ?
+import { TMapping1, MappingExperimental } from "../../types"
+
 export default ({ strapi }) => ({
 
     async getMapping(mappingId:string) {
-        return await strapi.entityService.findOne('plugin::esplugin.mapping', mappingId, { populate: "indexes" })
+
+        // -------------------------------------------
+        const helperGetPluginStore = () => {
+            return strapi.store({
+                environment: '',
+                type: 'plugin',
+                name: 'esplugin'
+            })
+        }
+        const pluginStore = helperGetPluginStore()         
+        const mappings:Array<TMapping1> = JSON.parse(await pluginStore.get({ key: 'mappings' }))
+        console.log("getMapping 000", mappings)
+
+        //console.log("getMapping 000aaa", JSON.parse(mappings))
+        //if (mappings) {
+        const mappingsArray:Array<TMapping1> = JSON.parse(JSON.stringify(mappings)) //JSON.parse(mappings)
+
+        console.log("getMapping 111 mappingsArray", mappingsArray)
+
+        //console.log("getMapping 111aaa mappingsArray",  JSON.parse(mappingsArray))
+        //console.log("getMapping 111", mappings)
+       
+            let work = mappings.find( (x:TMapping1) => x.uuid === mappingId)
+            console.log("getMapping 111 work is: ", work)
+            return work
+
+        //}
+        // -------------------------------------------
+
+        // DB PARADIGM
+        //return await strapi.entityService.findOne('plugin::esplugin.mapping', mappingId, { populate: "indexes" })
     },
 
     async getMappings(indexId:string, count:number = 100) {
+
+        // TODO: Change this to use plugin store instead of db table.
 
         let payload:any = {
             sort: { createdAt: 'DESC' },
@@ -33,11 +70,28 @@ export default ({ strapi }) => ({
 
         }
 
-        return await strapi.entityService.findMany('plugin::esplugin.mapping', {...payload})
+        // -------------------------------------------
+        const helperGetPluginStore = () => {
+            return strapi.store({
+                environment: '',
+                type: 'plugin',
+                name: 'esplugin'
+            })
+        }
+        const pluginStore = helperGetPluginStore()         
+        const mappings:string = await pluginStore.get({ key: 'mappings' })
+        return JSON.parse(JSON.stringify(mappings)) //JSON.parse(mappings)
+        // -------------------------------------------
+
+      
+
+        // return await strapi.entityService.findMany('plugin::esplugin.mapping', payload)
 
     },
 
     async getContentTypes() {
+
+        // TODO: Change this to use plugin store instead of db table.
 
         const contentTypes = strapi.contentTypes
         
@@ -115,18 +169,53 @@ export default ({ strapi }) => ({
         // }
     },
 
-    async createMapping(mapping) {
+    async createMapping(mapping:TMapping1) {
+        // TODO: This type doesn't seem to do anything; it accepts anything.
+        // For example, below, change .uuid to .uuidFoo and there's no warning.
+
         try {
-            let finalPayload = JSON.parse(JSON.stringify(mapping))
+
+            let finalPayload:TMapping1 = mapping
             finalPayload.mapping = JSON.stringify(finalPayload.mapping)
-            console.log("createMapping 111 finalPayload is: ", finalPayload)
-            const entry = await strapi.entityService.create('plugin::esplugin.mapping', {
-                data: {
-                    ...finalPayload
-                }
-            })
-            return entry
-        } catch(err) {
+            finalPayload.uuid = uuidv4()
+
+            // ------------------------------------------
+            // ADD TO PLUGIN STORE
+            const helperGetPluginStore = () => {
+                return strapi.store({
+                    environment: '',
+                    type: 'plugin',
+                    name: 'esplugin'
+                })
+            }
+            const pluginStore = helperGetPluginStore()         
+            let mappings:any = await pluginStore.get({ key: 'mappings' })
+
+            console.log("createMapping 222 finalPayload", finalPayload)
+
+            console.log("createMapping 333 mappings", mappings)
+
+            if (mappings) {
+                //mappings = JSON.parse(mappings)
+            } else {
+                mappings = []
+            }
+
+            console.log("createMapping 444", mappings)
+            if (Array.isArray(mappings)) {
+                mappings.push(finalPayload)
+            }
+            
+            console.log("createMapping 555", mappings)
+            await pluginStore.set({ key: 'mappings', value: mappings })
+            // -------------------------------------------
+
+            // const entry = await strapi.entityService.create('plugin::esplugin.mapping', {
+            //     data: finalPayload
+            // })
+            return finalPayload
+
+        } catch (err) {
             console.log('SPE - createMapping: An error was encountered')
             console.log(err)
             return err
@@ -136,27 +225,42 @@ export default ({ strapi }) => ({
 
     async updateMapping(mappingId, mapping) {
 
+        // Change to uuid
+
         const helper = strapi.plugins['esplugin'].services.helper
         const esInterface = strapi.plugins['esplugin'].services.esInterface
 
         try {
-
-            //const newIndexName = await helper.getIncrementedIndexName()
-            //let work = await esInterface.createIndex(newIndexName)
-            //JSON.stringify(body.data)
-
-            let finalPayload = JSON.parse(JSON.stringify(mapping))
-            let finalPayload2 = JSON.parse(JSON.stringify(finalPayload.mapping))
+            let finalPayload = mapping
             finalPayload.mapping = JSON.stringify(finalPayload.mapping)
-            const entry = await strapi.entityService.update('plugin::esplugin.mapping', mappingId, {
-                data: finalPayload,
-                populate: 'indexes'
-            })
 
-            console.log("Mapping entry is: ", entry)
-            console.log("finalPayload2 is: ", finalPayload2)
+            // -------------------------------------------
+            // UPDATE THE PLUGIN STORE
+            const helperGetPluginStore = () => {
+                return strapi.store({
+                    environment: '',
+                    type: 'plugin',
+                    name: 'esplugin'
+                })
+            }
+            const pluginStore = helperGetPluginStore()         
+            let mappings:any = await pluginStore.get({ key: 'mappings' })
+            if (Array.isArray(mappings)) {
+                let foundMapping = mappings.find( (x:any) => x.uuid === mapping.uuid)
+                foundMapping.mapping = finalPayload
+            }           
+            await pluginStore.set({ key: 'mappings', value: JSON.stringify(mappings) })
+            // -------------------------------------------
+
+            // UPDATE DB
+            // const entry = await strapi.entityService.update('plugin::esplugin.mapping', mappingId, {
+            //     data: finalPayload,
+            //     populate: 'indexes'
+            // })
+            return finalPayload
 
             // EXPERIMENTAL
+            // TODO: PROBABLY REMOVE... ES basically cannot accept updates to mappings
             // Updating mappings on existing index; basically not possible however you can 1. add new mappings to an existing index, or 2. change the secondary properties (?) of an existing mapping.
             // if (entry.indexes) {
             //     // 1 - Loop through indexes, updateMapping for each
@@ -168,10 +272,7 @@ export default ({ strapi }) => ({
             //     }
             // }
 
-
-            return entry
-
-        } catch(err) {
+        } catch (err) {
             console.log('SPE - updateMapping: An error was encountered')
             console.log(err)
             return err
@@ -179,21 +280,39 @@ export default ({ strapi }) => ({
 
     },
 
-    async deleteMapping(mappingIndexNumber) {
+    async deleteMapping(mappingUUID) {
 
+        // TODO: Change to mappingUUID
         const helper = strapi.plugins['esplugin'].services.helper
-        const esInterface = strapi.plugins['esplugin'].services.esInterface
-
+        console.log("deleteMapping 111 ", mappingUUID)
         try {
 
-            //await esInterface.deleteIndex(index)
+            // -------------------------------------------
+            // UPDATE THE PLUGIN STORE
+            const helperGetPluginStore = () => {
+                return strapi.store({
+                    environment: '',
+                    type: 'plugin',
+                    name: 'esplugin'
+                })
+            }
+            const pluginStore = helperGetPluginStore()         
+            let mappings:any = await pluginStore.get({ key: 'mappings' })
 
-            const entry = await strapi.entityService.delete('plugin::esplugin.mapping', mappingIndexNumber)
+            console.log("deleteMapping 222 mappings", mappings)
+            if (mappings && Array.isArray(mappings)) {
+                let foundMappingIndex = mappings.findIndex( (x:any) => x.uuid === mappingUUID)
+                console.log("deleteMapping 333 foundMappingIndex", foundMappingIndex)
+                mappings.splice(foundMappingIndex, 1)
+            }           
+            await pluginStore.set({ key: 'mappings', value: JSON.stringify(mappings) })
+            // -------------------------------------------
+            
+            console.log("deleteMapping 444")
+            //const entry = await strapi.entityService.delete('plugin::esplugin.mapping', mappingUUID)
+            return "success"
 
-            console.log('SPE - deleteMapping 333', entry)
-            return entry
-
-        } catch(err) {
+        } catch (err) {
             console.log('SPE - deleteMapping: An error has encountered', err)
             console.log(err)
             return err

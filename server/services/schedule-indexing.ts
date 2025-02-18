@@ -1,7 +1,7 @@
 export default ({ strapi }) => ({
 
     async addFullSiteIndexingTask () {
-        const data = await strapi.entityService.create('plugin::esplugin.task', {
+        return await strapi.entityService.create('plugin::esplugin.task', {
             data: {
                 collection_name: '',
                 indexing_status: 'to-be-done',
@@ -9,39 +9,40 @@ export default ({ strapi }) => ({
                 indexing_type: "add-to-index" 
             }
         })
-        return data
     },
 
-    async addCollectionToIndex({collectionUid}) {
-        const data = await strapi.entityService.create('plugin::esplugin.task', {
+    async addCollectionToIndex(params: { collectionUid:string, indexName?:string }) {
+        return await strapi.entityService.create('plugin::esplugin.task', {
             data: {
-                collection_name: collectionUid,
+                index_name: params.indexName,
+                collection_name: params.collectionUid,
                 indexing_status: 'to-be-done',
                 full_site_indexing: false,
                 indexing_type: "add-to-index" 
             }
         })
-        return data
     },
 
-    async addItemToIndex({collectionUid, recordId}) {
-        const data = await strapi.entityService.create('plugin::esplugin.task', {
+    async addOrUpdateItemToIndex(params: { collectionUid:string, recordId:string, indexName?:string }) {
+        console.log("addOrUpdateItemToIndex 111", params)
+        return await strapi.entityService.create('plugin::esplugin.task', {
             data: {
-                item_id: recordId, 
-                collection_name: collectionUid,
+                index_name: params.indexName,
+                item_id: params.recordId, 
+                collection_name: params.collectionUid,
                 indexing_status: 'to-be-done',
                 full_site_indexing: false,
                 indexing_type: "add-to-index" 
             }
         })
-        return data
     },
 
-    async removeItemFromIndex({collectionUid, recordId}) {
-        const data = await strapi.entityService.create('plugin::esplugin.task', {
+    async removeItemFromIndex(params: { collectionUid:string, recordId:string, indexName?:string }) {
+        return await strapi.entityService.create('plugin::esplugin.task', {
             data: {
-                item_id: recordId, 
-                collection_name: collectionUid,
+                index_name: params.indexName,
+                item_id: params.recordId, 
+                collection_name: params.collectionUid,
                 indexing_status: 'to-be-done',
                 full_site_indexing: false,
                 indexing_type: "remove-from-index"
@@ -49,18 +50,15 @@ export default ({ strapi }) => ({
         })
     },
 
-    async getItemsPendingToBeIndexed(){
-        const entries = await strapi.entityService.findMany('plugin::esplugin.task', {
-            filters: { indexing_status: 'to-be-done'},
-         })
-         return entries
+    async getItemsPendingToBeIndexed() {
+        return await strapi.entityService.findMany('plugin::esplugin.task', {
+            filters: { indexing_status: 'to-be-done'}
+        })
     },
 
-    async markIndexingTaskComplete (recId) {
-        const entries = await strapi.entityService.update('plugin::esplugin.task', recId, {
-            data: {
-                'indexing_status': 'done'
-            }
+    async markIndexingTaskComplete(taskId) {
+        return await strapi.entityService.update('plugin::esplugin.task', taskId, {
+            data: { 'indexing_status': 'done' }
         })
     }
 

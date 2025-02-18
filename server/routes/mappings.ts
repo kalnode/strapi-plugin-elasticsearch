@@ -3,10 +3,20 @@ export default {
     routes: [
         {
             method: 'GET',
-            path: '/get-mapping/:mappingId',
+            path: '/get-mapping/:mappingUUID',
             handler: 'mappings.getMapping',
             config: { policies: [] }
         },
+
+        // TODO: This is stupid, but we have to make a seperate route for the case of generic /get-mappings without :indexId specified.... WHY?
+        {
+            method: 'GET',
+            path: '/get-mappings',
+            handler: 'mappings.getMappings',
+            config: { policies: [] }
+        },
+
+        // IDEALLY we just use this route for all cases:
         {
             method: 'GET',
             path: '/get-mappings/:indexId',
@@ -21,13 +31,13 @@ export default {
         },
         {
             method: 'POST',
-            path: '/update-mapping/:mappingId',
+            path: '/update-mapping/:mappingUUID',
             handler: 'mappings.updateMapping',
             config: { policies: [] }
         },
         {
             method: 'GET',
-            path: '/delete-mapping/:mappingIndexNumber',
+            path: '/delete-mapping/:mappingUUID',
             handler: 'mappings.deleteMapping',
             config: { policies: [] }
         },

@@ -19,6 +19,10 @@ export default {
         }        
     },
     "attributes": {
+        "uuid": {
+            "type": "string",
+            "required": true
+        },
         "index_name": {
             "type": "string",
             "required": true

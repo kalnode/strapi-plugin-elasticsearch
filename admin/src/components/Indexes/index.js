@@ -186,12 +186,15 @@ export const ComponentIndexes = () => {
 
                 { indexes && Array.isArray(indexes) && indexes.length > 0 && (
                     <>
-                    <Table colCount={6} rowCount={indexes.length} width="100%">
+                    <Table colCount={7} rowCount={indexes.length} width="100%">
                     {/* footer={<TFooter icon={<Plus />}>Add another field to this collection type</TFooter>} */}
                         <Thead>
                             <Tr>
                                 <Th>
                                     <Checkbox aria-label="Select all entries" className="checkbox" />
+                                </Th>
+                                <Th>
+                                    <Typography variant="sigma">UUID</Typography>
                                 </Th>
                                 <Th>
                                 {/* action={<IconButton label="Sort on ID" borderWidth={0}>
@@ -219,9 +222,12 @@ export const ComponentIndexes = () => {
                         <Tbody>
                             { indexes.map((data, index) => {
                                 return (
-                                    <Tr key={index} className="row" onClick={() => history.push(`/plugins/${pluginId}/indexes/${data.id}`)}>
+                                    <Tr key={index} className="row" onClick={() => history.push(`/plugins/${pluginId}/indexes/${data.uuid}`)}>
                                         <Td>
                                             <Checkbox aria-label={`Select ${data.index_name}`} className="checkbox" />
+                                        </Td>
+                                        <Td>
+                                            <Typography textColor="neutral600">{data.uuid}</Typography>
                                         </Td>
                                         <Td>
                                             <Typography textColor="neutral600">{data.index_name}</Typography>
@@ -241,7 +247,7 @@ export const ComponentIndexes = () => {
                                         <Td>
                                             <Flex alignItems="end" gap={2}>
                                                 <IconButton label="Edit" borderWidth={0} icon={<Pencil />} />                                                  
-                                                <IconButton onClick={(e) => modalDeleteOpen(e, data.id)} label="Delete" borderWidth={0} icon={<Trash />} />                                                
+                                                <IconButton onClick={(e) => modalDeleteOpen(e, data.uuid)} label="Delete" borderWidth={0} icon={<Trash />} />                                                
                                             </Flex>
                                         </Td>
                                     </Tr>

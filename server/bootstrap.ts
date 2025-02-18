@@ -14,7 +14,7 @@ export default async ({ strapi }) => {
 
     try {
 
-        await configureIndexingService.initializeStrapiElasticsearch()
+        await configureIndexingService.initializeESPlugin()
 
         // PLUGIN CONFIG - NO ES CONNECTION PROPERTIES; fail
         if (!Object.keys(pluginConfig).includes('searchConnector')) {
@@ -45,10 +45,7 @@ export default async ({ strapi }) => {
 
                     elasticsearchIndexing: {
                         task: async ({ strapi }) => {
-
-                            // TODO: Do we need to re-get plugin store on each cron cycle, or can this be moved to global
-                            const pluginStore = helper.getPluginStore()
-                            const settings = JSON.parse(await pluginStore.get({ key: 'configsettings' }))
+                            const settings = strapi.espluginCache.settings
                             if (settings) {
                                 // Cron can be enabled/disabled via plugin UI settings, so we check that here.
                                 // TODO: Future: Instant vs Scheduled may be dictated by individual indexes, which will change this logic.
@@ -94,48 +91,101 @@ export default async ({ strapi }) => {
 
                 console.log("ES LIFECYCLE - afterCreate / afterUpdate", event.action)
 
-                // LEGACY
-                if (strapi.esplugin.collections.includes(event.model.uid)) {
+                // TODO: After dev, remove these lines and uncomment the same lines at the INSTANT WORK step below
+                const settings = strapi.espluginCache.settings
 
-                    console.log("Strapi collections includes")
+                if (settings['useNewPluginParadigm']) {
 
-                    const payload = {
-                        collectionUid: event.model.uid,
-                        recordId: event.result.id
-                    }
+                    if (strapi.espluginCache.posttypes.includes(event.model.uid)) {
 
-                    // POST TYPE DOES NOT HAVE DRAFT-PUBLISH
-                    if (typeof event.model.attributes.publishedAt === "undefined") {
+                        //console.log("-------- Strapi collections is: ", strapi.espluginCache.collections)
+                        console.log("-------- Strapi posttypes is: ", strapi.espluginCache)
+                        //strapi.espluginCache.posttypes
 
-                        // TODO: If instant index, do it right away rather than schedule it as a task
-                        await scheduleIndexingService.addItemToIndex(payload)
+                        const payload = {
+                            indexName: 'foo',
+                            collectionUid: event.model.uid,
+                            recordId: event.result.id
+                        }
 
-                    // POST TYPE HAS DRAFT-PUBLISH
-                    } else if (event.model.attributes.publishedAt) {
-                        if (event.result.publishedAt) {
-                            await scheduleIndexingService.addItemToIndex(payload)
+                        // POST TYPE DOES NOT HAVE DRAFT-PUBLISH
+                        if (typeof event.model.attributes.publishedAt === "undefined") {
+
+                            // TODO: If instant index, do it right away rather than schedule it as a task
+                            await scheduleIndexingService.addOrUpdateItemToIndex(payload)
+
+                        // POST TYPE HAS DRAFT-PUBLISH
+                        } else if (event.model.attributes.publishedAt) {
+
+                            // PUBLISH
+                            if (event.result.publishedAt) {
+                                await scheduleIndexingService.addOrUpdateItemToIndex(payload)
+
+                            // UNPUBLISH
+                            } else {                                
+                                await scheduleIndexingService.removeItemFromIndex(payload)
+                            }
+                        }
+
+                        // INSTANT WORK
+                        const ctx = strapi.requestContext.get()
+                        if (settings) {
+                            console.log("Settings found, doing instant work")
+                            if (settings['settingIndexingEnabled'] && settings['settingInstantIndex']) {
+                                console.log("afterCreate instantIndex enabled, doing index work")
+                                await performIndexing.indexPendingData()
+                            }
+                            ctx.response.body = { status: 'success', data: event.result }
                         } else {
-                            // Unpublish
-                            await scheduleIndexingService.removeItemFromIndex(payload)
+                            console.log("Settings NOT FOUND")
+                            ctx.response.body = { status: 'error', data: "ES afterCreate/afterUpdate - Could not get config settings" }
                         }
                     }
 
-                    // INSTANT WORK
-                    const pluginStore = helper.getPluginStore()
-                    const settings = JSON.parse(await pluginStore.get({ key: 'configsettings' }))
-                    const ctx = strapi.requestContext.get()
+                } else {
 
-                    if (settings) {
-                        console.log("Settings found, doing instant work")
-                        if (settings['settingIndexingEnabled'] && settings['settingInstantIndex']) {
-                            console.log("afterCreate instantIndex enabled, doing index work")
-                            await performIndexing.indexPendingData()
+                    // GET LIST OF TYPES THAT ARE REGISTERED FOR INDEXING
+                    if (strapi.espluginCache.collections.includes(event.model.uid)) {
+
+                        const payload = {
+                            indexName: 'foo',
+                            collectionUid: event.model.uid,
+                            recordId: event.result.id
                         }
-                        ctx.response.body = { status: 'success', data: event.result }
-                    } else {
-                        console.log("Settings NOT FOUND")
-                        ctx.response.body = { status: 'error', data: "ES afterCreate/afterUpdate - Could not get config settings" }
+
+                        // POST TYPE DOES NOT HAVE DRAFT-PUBLISH
+                        if (typeof event.model.attributes.publishedAt === "undefined") {
+
+                            // TODO: If instant index, do it right away rather than schedule it as a task
+                            await scheduleIndexingService.addOrUpdateItemToIndex(payload)
+
+                        // POST TYPE HAS DRAFT-PUBLISH
+                        } else if (event.model.attributes.publishedAt) {
+                            if (event.result.publishedAt) {
+                                await scheduleIndexingService.addOrUpdateItemToIndex(payload)
+                            } else {
+                                // Unpublish
+                                await scheduleIndexingService.removeItemFromIndex(payload)
+                            }
+                        }
+
+                        // INSTANT WORK
+
+                        const ctx = strapi.requestContext.get()
+
+                        if (settings) {
+                            console.log("Settings found, doing instant work")
+                            if (settings['settingIndexingEnabled'] && settings['settingInstantIndex']) {
+                                console.log("afterCreate instantIndex enabled, doing index work")
+                                await performIndexing.indexPendingData()
+                            }
+                            ctx.response.body = { status: 'success', data: event.result }
+                        } else {
+                            console.log("Settings NOT FOUND")
+                            ctx.response.body = { status: 'error', data: "ES afterCreate/afterUpdate - Could not get config settings" }
+                        }
                     }
+
                 }
             }
 
@@ -143,7 +193,7 @@ export default async ({ strapi }) => {
             // afterCreateMany / afterUpdateMany
             // ------------------------------
             if (event.action === 'afterCreateMany' || event.action === 'afterUpdateMany') {
-                if (strapi.esplugin.collections.includes(event.model.uid)) {
+                if (strapi.espluginCache.collections.includes(event.model.uid)) {
                     if (Object.keys(event.params.where.id).includes('$in')) {
                         const updatedItemIds = event.params.where.id['$in']
 
@@ -157,7 +207,7 @@ export default async ({ strapi }) => {
                             }    
                         } else {
                             for (let k = 0; k< updatedItemIds.length; k++) {
-                                await scheduleIndexingService.addItemToIndex({
+                                await scheduleIndexingService.addOrUpdateItemToIndex({
                                     collectionUid: event.model.uid,
                                     recordId: updatedItemIds[k]
                                 })
@@ -165,18 +215,13 @@ export default async ({ strapi }) => {
                         }
 
                         // INSTANT WORK
-                        const pluginStore = helper.getPluginStore()
-                        const settings = JSON.parse(await pluginStore.get({ key: 'configsettings' }))
+                        const settings = strapi.espluginCache.settings
                         const ctx = strapi.requestContext.get()
-                        if (settings) {
-                            if (settings['settingIndexingEnabled'] && settings['settingInstantIndex']) {
-                                console.log("afterCreateMany instantIndex enabled, doing index work")
-                                await performIndexing.indexPendingData()
-                            }
-                            ctx.response.body = { status: 'success', data: event.result }
-                        } else {
-                            ctx.response.body = { status: 'error', data: "ES afterCreateMany/afterUpdateMany - Could not get configsettings" }
+                        if (settings['settingIndexingEnabled'] && settings['settingInstantIndex']) {
+                            console.log("afterCreateMany instantIndex enabled, doing index work")
+                            await performIndexing.indexPendingData()
                         }
+                        ctx.response.body = { status: 'success', data: event.result }
 
                     }
                 }
@@ -186,7 +231,7 @@ export default async ({ strapi }) => {
             // afterDelete
             // ------------------------------
             if (event.action === 'afterDelete') {
-                if (strapi.esplugin.collections.includes(event.model.uid)) {
+                if (strapi.espluginCache.collections.includes(event.model.uid)) {
 
                     await scheduleIndexingService.removeItemFromIndex({
                         collectionUid: event.model.uid,
@@ -194,18 +239,14 @@ export default async ({ strapi }) => {
                     })
 
                     // INSTANT WORK
-                    const pluginStore = helper.getPluginStore()
-                    const settings = JSON.parse(await pluginStore.get({ key: 'configsettings' }))
+                    const settings = strapi.espluginCache.settings
                     const ctx = strapi.requestContext.get()
-                    if (settings) {
-                        if (settings['settingIndexingEnabled'] && settings['settingInstantIndex']) {
-                            console.log("afterDelete instantIndex enabled, doing index work")
-                            await performIndexing.indexPendingData()
-                        }
-                        ctx.response.body = { status: 'success', data: event.result }
-                    } else {
-                        ctx.response.body = { status: 'error', data: "ES afterDelete - Could not get configsettings" }
+                    if (settings['settingIndexingEnabled'] && settings['settingInstantIndex']) {
+                        console.log("afterDelete instantIndex enabled, doing index work")
+                        await performIndexing.indexPendingData()
                     }
+                    ctx.response.body = { status: 'success', data: event.result }
+
                 }
             }
 
@@ -213,7 +254,8 @@ export default async ({ strapi }) => {
             // afterDeleteMany
             // ------------------------------
             if (event.action === 'afterDeleteMany') {
-                if (strapi.esplugin.collections.includes(event.model.uid)) {
+
+                if (strapi.espluginCache.collections.includes(event.model.uid)) {
                     if (Object.keys(event.params.where).includes('$and')
                     && Array.isArray(event.params.where['$and'])
                     && Object.keys(event.params.where['$and'][0]).includes('id')
@@ -228,18 +270,14 @@ export default async ({ strapi }) => {
                         }
 
                         // INSTANT WORK
-                        const pluginStore = helper.getPluginStore()
-                        const settings = JSON.parse(await pluginStore.get({ key: 'configsettings' }))
+                        const settings = strapi.espluginCache.settings
                         const ctx = strapi.requestContext.get()
-                        if (settings) {
-                            if (settings['settingIndexingEnabled'] && settings['settingInstantIndex']) {
-                                console.log("afterDeleteMany instantIndex enabled, doing index work")
-                                await performIndexing.indexPendingData()
-                            }
-                            ctx.response.body = { status: 'success', data: event.result }
-                        } else {
-                            ctx.response.body = { status: 'error', data: "ES afterDeleteMany - Could not get configsettings" } 
-                        }                        
+                        if (settings['settingIndexingEnabled'] && settings['settingInstantIndex']) {
+                            console.log("afterDeleteMany instantIndex enabled, doing index work")
+                            await performIndexing.indexPendingData()
+                        }
+                        ctx.response.body = { status: 'success', data: event.result }
+
                     }
                 }
             }
@@ -248,7 +286,7 @@ export default async ({ strapi }) => {
         // ============================
         // FINISH PLUGIN INITIALIZATION
         // ============================
-        configureIndexingService.pluginStoreInitialize()
+        configureIndexingService.pluginFinalize()
 
     } catch (err) {
         // TODO: Pass-in plugin name here; get rid of hardcoded name.

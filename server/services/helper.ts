@@ -281,6 +281,20 @@ export default ({ strapi }) => ({
         }
     },
 
+    async storeSettingToggleUseNewPluginParadigm() {
+        const pluginStore = this.getPluginStore()
+        const settings:any = JSON.parse(await pluginStore.get({ key: 'configsettings' }) as unknown as string)
+        if (settings) {
+            settings['useNewPluginParadigm'] = !settings['useNewPluginParadigm']
+            await pluginStore.set({ key: 'configsettings', value: JSON.stringify(settings)})
+            return settings['useNewPluginParadigm']
+        } else {
+            const newSettings = JSON.stringify({'useNewPluginParadigm': false})
+            await pluginStore.set({ key: 'configsettings', value: newSettings})
+            return false
+        }
+    },
+
     async storeSettingIndexingEnabled() {
         const pluginStore = this.getPluginStore()
         const settings:any = JSON.parse(await pluginStore.get({ key: 'configsettings' }) as unknown as string)

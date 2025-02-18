@@ -9,7 +9,7 @@ export const apiInstantIndexing = `/${pluginId}/instant-indexing`
 export const apiToggleInstantIndexing = `/${pluginId}/toggle-instant-indexing`
 export const apiIndexingEnabled = `/${pluginId}/indexing-enabled`
 export const apiToggleIndexingEnabled = `/${pluginId}/toggle-indexing-enabled`
-
+export const apiToggleUseNewPluginParadigmEnabled = `/${pluginId}/toggle-usenewpluginparadigm-enabled`
 
 // EXPORT/IMPORT
 export const apiExportContentConfig = `/${pluginId}/export-content-config`
@@ -32,10 +32,12 @@ export const apiIndexRecords = (indexIDNumber) => `/${pluginId}/index-records/${
 
 // MAPPING
 export const apiGetMapping = (mappingIDNumber) => `/${pluginId}/get-mapping/${mappingIDNumber}`
-export const apiGetMappings = (indexId) => `/${pluginId}/get-mappings/${indexId}`
+
+// 
+export const apiGetMappings = (indexId) => indexId ? `/${pluginId}/get-mappings/${indexId}` : `/${pluginId}/get-mappings`
 export const apiCreateMapping = `/${pluginId}/create-mapping`
 export const apiUpdateMapping = (mappingIDNumber) => `/${pluginId}/update-mapping/${mappingIDNumber}`
-export const apiDeleteMapping = (mappingIDNumber) => `/${pluginId}/delete-mapping/${mappingIDNumber}`
+export const apiDeleteMapping = (mappingID) => `/${pluginId}/delete-mapping/${mappingID}`
 
 export const apiGetContentTypes = `/${pluginId}/get-content-types`
 

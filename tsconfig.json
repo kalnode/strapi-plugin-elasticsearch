@@ -8,7 +8,7 @@
     "checkJs": false
   },
 
-  "include": ["admin", "custom.d.ts"],
+  "include": ["admin", "custom.d.ts", "types"],
 
   "exclude": [
     "node_modules/",

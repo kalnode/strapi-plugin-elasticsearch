@@ -85,18 +85,23 @@ export const Mapping = ({ indexId, mappingId }) => {
 
 
             console.log("Work is 111: ", work)
+            
+            if (work && work.mapping) {
 
+                let work2 = work
 
-            let work2 = work
+                work2.mapping = JSON.parse(work2.mapping)
 
-            work2.mapping = JSON.parse(work2.mapping)
+                console.log("work2 is 222: ", work2.post_type)
+                setMappingRaw(work2)
+                setMapping(work2)
+                setPosttypeFinal(work2.post_type)
 
-            console.log("work2 is 222: ", work2.post_type)
-            setMappingRaw(work2)
-            setMapping(work2)
-            setPosttypeFinal(work2.post_type)
-
-            console.log("posttypeFinal 111 is: ", posttypeFinal)
+                console.log("posttypeFinal 111 is: ", posttypeFinal)
+            } else {
+                // TODO: Maybe show an error view?
+                console.log("Problem getting the mapping")
+            }
 
         }
         
@@ -173,10 +178,10 @@ export const Mapping = ({ indexId, mappingId }) => {
                 setMapping(work)
 
                 if (indexId) {
-                    await history.replace(`/plugins/${pluginId}/indexes/${indexId}/mappings/${response.data.id}`)
+                    await history.replace(`/plugins/${pluginId}/indexes/${indexId}/mappings/${response.data.uuid}`)
 
                 } else {
-                    await history.replace(`/plugins/${pluginId}/mappings/${response.data.id}`)
+                    await history.replace(`/plugins/${pluginId}/mappings/${response.data.uuid}`)
                 }
 
             })

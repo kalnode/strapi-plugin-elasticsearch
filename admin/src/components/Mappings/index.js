@@ -62,21 +62,22 @@ export const Mappings = ({ indexId, showOnlyPresets, modeOnlySelection, mappingH
             })
     }
 
-    const requestDeleteMapping = (e, mappingIDNumber) => {
+    const requestDeleteMapping = (e, mappingID) => {
         e.stopPropagation()
         setIsInProgress(true)
 
         // TODO: Determine if mapping is preset or actual
         // If preset, just remove it, not delete
 
-        let mapping = mappings.find( (x) => x.id === mappingIDNumber)
+        // TODO: Should we do this by UUID? Anything wrong with doing it by id?
+        let mapping = mappings.find( (x) => x.id === mappingID)
 
         // TODO: Add warning to user that they are attempting to delete a preset, which may be associated with another registered index
         if (mapping.preset) {
             console.log("Attempting to remove preset mapping from index")
         }
         
-        return axiosInstance.get(apiDeleteMapping(mappingIDNumber))
+        return axiosInstance.get(apiDeleteMapping(mappingID))
         .then((response) => {
             console.log("Delete response is: ", response)
         })
@@ -235,12 +236,15 @@ export const Mappings = ({ indexId, showOnlyPresets, modeOnlySelection, mappingH
                 {/* DISPLAY RECORDS  */}
                 { mappings && Array.isArray(mappings) && mappings.length > 0 && (
                     <>
-                       <Table colCount={7} rowCount={mappings.length} width="100%">
+                       <Table colCount={8} rowCount={mappings.length} width="100%">
                         {/* footer={<TFooter icon={<Plus />}>Add another field to this collection type</TFooter>} */}
                             <Thead>
                                 <Tr>
                                     <Th>
                                         <Checkbox aria-label="Select all entries" className="checkbox" />
+                                    </Th>
+                                    <Th>
+                                        <Typography variant="sigma">UUID</Typography>
                                     </Th>
                                     <Th>
                                         <Typography variant="sigma">Post Type</Typography>
@@ -273,9 +277,12 @@ export const Mappings = ({ indexId, showOnlyPresets, modeOnlySelection, mappingH
                             <Tbody>
                             { mappings.map((data, index) => {
                                 return (
-                                    <Tr key={index} className="row" onClick={() => handleRowClick(data.id) }>
+                                    <Tr key={index} className="row" onClick={() => handleRowClick(data.uuid) }>
                                         <Td>
-                                            <Checkbox aria-label={`Select ${data.id}`} className="checkbox" />
+                                            <Checkbox aria-label={`Select ${data.uuid}`} className="checkbox" />
+                                        </Td>
+                                        <Td style={{ overflow: 'hidden' }}>
+                                            <Typography textColor="neutral600">{data.uuid}</Typography>
                                         </Td>
                                         <Td style={{ overflow: 'hidden' }}>
                                             <Typography textColor="neutral600">{data.post_type}</Typography>
@@ -303,8 +310,8 @@ export const Mappings = ({ indexId, showOnlyPresets, modeOnlySelection, mappingH
                                                         { data.indexes.map((item, indexItem) => {
                                                                 return (
                                                                     <Box key={indexItem}>
-                                                                        <Link onClick={(e) => { requestGoToIndex(e, item.id) } } key={indexItem}>
-                                                                            { item.id }
+                                                                        <Link onClick={(e) => { requestGoToIndex(e, item.uuid) } } key={indexItem}>
+                                                                            { item.uuid }
                                                                         </Link>                                                                    
                                                                         { indexItem != data.indexes.length && (
                                                                             <>&nbsp;</>
@@ -320,7 +327,7 @@ export const Mappings = ({ indexId, showOnlyPresets, modeOnlySelection, mappingH
 
                                         <Td>
                                             <Flex alignItems="end" gap={2}>
-                                                <IconButton label="Edit mapping" noBorder icon={<Pencil />} onClick={(e) => requestEditMapping(e, data.id) } />
+                                                <IconButton label="Edit mapping" noBorder icon={<Pencil />} onClick={(e) => requestEditMapping(e, data.uuid) } />
 
                                                 { !modeOnlySelection && (
                                                     <IconButton onClick={(e) => requestDeleteMapping(e, data.id)} label="Delete" borderWidth={0} icon={<Trash />} />

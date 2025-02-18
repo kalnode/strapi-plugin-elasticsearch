@@ -27,6 +27,12 @@ export default {
         },
         {
             method: 'GET',
+            path: '/toggle-usenewpluginparadigm-enabled',
+            handler: 'setupInfo.toggleUseNewPluginParadigm',
+            config: { policies: [] }
+        },
+        {
+            method: 'GET',
             path: '/indexing-enabled',
             handler: 'setupInfo.getIndexingEnabled',
             config: { policies: [] }

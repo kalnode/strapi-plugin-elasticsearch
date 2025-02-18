@@ -35,6 +35,16 @@ export default ({ strapi }) => {
             ctx.throw(500, err)
         }    
     }
+
+    const toggleUseNewPluginParadigm = async (ctx) => {
+        const { body } = ctx.request
+        try {
+            const updatedConfig = await helperService.storeSettingToggleUseNewPluginParadigm() //({config: body})
+            return updatedConfig
+        } catch (err) {
+            ctx.throw(500, err)
+        }    
+    }
     
     const getIndexingEnabled = async (ctx) => {
         try {
@@ -47,6 +57,11 @@ export default ({ strapi }) => {
     
 
     return {
-        getElasticsearchInfo, setPluginConfig, getPluginConfig, toggleIndexingEnabled, getIndexingEnabled
+        getElasticsearchInfo,
+        setPluginConfig,
+        getPluginConfig,
+        toggleIndexingEnabled,
+        getIndexingEnabled,
+        toggleUseNewPluginParadigm
     }
 }

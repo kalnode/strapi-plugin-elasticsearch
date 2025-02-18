@@ -6,7 +6,7 @@ import { Refresh } from '@strapi/icons'
 import { Box, Flex, Switch, ToggleInput, RadioGroup, Radio, Tab, TwoColsLayout, Button, IconButton, Table, Tr, Td, Grid, GridItem, Divider, Checkbox, ContentLayout, Container, ActionLayout, Layout, Link, Option, Select, Typography } from '@strapi/design-system';
 
 import axiosInstance  from '../../utils/axiosInstance'
-import { apiGetSystemInfo, apiForceRebuildIndex, apiTriggerIndexing, apiIndexingEnabled, apiToggleIndexingEnabled, apiInstantIndexing, apiToggleInstantIndexing } from '../../utils/apiUrls'
+import { apiGetSystemInfo, apiForceRebuildIndex, apiTriggerIndexing, apiIndexingEnabled, apiToggleIndexingEnabled, apiToggleUseNewPluginParadigmEnabled, apiInstantIndexing, apiToggleInstantIndexing } from '../../utils/apiUrls'
 
 const loadSystemInfo = () => {
     return axiosInstance.get(apiGetSystemInfo)
@@ -25,6 +25,7 @@ const PageHome = () => {
     const [setupInfo, setSystemInfo] = useState(null)
     const [isInProgress, setIsInProgress] = useState(false)
     const [indexingEnabled, setIndexingEnabled] = useState(false)
+    const [useNewPluginParadigmEnabled, setUseNewPluginParadigmEnabled] = useState(false)
     const [IndexingMode, setIndexingMode] = useState(false)
     const showNotification = useNotification()
 
@@ -108,6 +109,21 @@ const PageHome = () => {
         setIsInProgress(false)
     }
 
+    const toggleUseNewPluginParadigmEnabled = async () => {
+        setIsInProgress(true)
+        let work = await axiosInstance.get(apiToggleUseNewPluginParadigmEnabled)
+        
+        if (work) {
+            setUseNewPluginParadigmEnabled(work.data)
+        } else {
+            showNotification({
+                type: "warning", message: "An error was encountered trying to set UseNewPluginParadigm.", timeout: 5000
+            })
+        }
+        setIsInProgress(false)
+    }
+
+
     const getIndexingMode = async () => {
         let work = await axiosInstance.get(apiInstantIndexing)
         if (work) {
@@ -169,6 +185,19 @@ const PageHome = () => {
                                         <Typography variant="delta">Indexing</Typography>
                                         <Switch 
                                             onClick={toggleIndexingEnabled}
+                                            selected={indexingEnabled}
+                                            visibleLabels
+                                            onLabel = 'Enabled'
+                                            offLabel = 'Disabled'
+                                        />
+                                    </Flex>
+                                </Box>
+
+                                <Box>
+                                    <Flex gap={4}>
+                                        <Typography variant="delta">Use new paradigm</Typography>
+                                        <Switch 
+                                            onClick={toggleUseNewPluginParadigmEnabled}
                                             selected={indexingEnabled}
                                             visibleLabels
                                             onLabel = 'Enabled'

@@ -27,7 +27,6 @@ export default ({ strapi }) => {
     const createIndex = async (ctx) => {
         const { body } = ctx.request
         try {
-            //return await scheduleIndexingService.addCollectionToIndex({collectionUid: ctx.params.collectionname})
             const work = await indexes.createIndex(body.data.indexName, body.data.addToExternalIndex)
             return work
         } catch (err) {
@@ -61,7 +60,6 @@ export default ({ strapi }) => {
     const createESindex = async (ctx) => {
         const { body } = ctx.request
         try {
-            //return await scheduleIndexingService.addCollectionToIndex({collectionUid: ctx.params.collectionname})
             const work = await indexes.createESindex(ctx.params.indexId)
             return work
         } catch (err) {

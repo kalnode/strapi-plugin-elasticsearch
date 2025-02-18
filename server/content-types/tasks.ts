@@ -19,6 +19,13 @@ export default {
         }
     },
     "attributes": {
+        "index_name": {
+            "type": "string",
+            //"required": true // TODO: Future: We want this to be required.
+        },
+
+        // TODO: Add index "alias" here???
+
         "collection_name": {
             "type": "string",
             "required": true

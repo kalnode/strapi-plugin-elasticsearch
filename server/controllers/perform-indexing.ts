@@ -23,7 +23,6 @@ export default ({ strapi }) => {
     const indexRecordsNEW = async (ctx) => {
         const { body } = ctx.request
         try {
-            //return await scheduleIndexingService.addCollectionToIndex({collectionUid: ctx.params.collectionname})
             const work = await indexerService.indexRecordsNEW(ctx.params.indexId)
             return work
         } catch (err) {

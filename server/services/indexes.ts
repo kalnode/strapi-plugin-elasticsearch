@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid'
 
 export default ({ strapi }) => ({
 
@@ -25,17 +26,14 @@ export default ({ strapi }) => ({
 
         try {
 
+            // TODO: Look at legacy name incrementing and whether it's still useful
             //const oldIndexName = await helper.getCurrentIndexName()
-            //console.log('SPE - createIndex 222 - Previous index name:', oldIndexName)
-
-            // Step 1: Create a new index
             //const newIndexName = await helper.getIncrementedIndexName()
-            console.log('SPE - createIndex 333 - Created new index with name:', indexName)
 
-
-            //let work = await esInterface.createIndex(newIndexName)
+            // TODO: RECORD TO PLUGIN STORE
             const entry = await strapi.entityService.create('plugin::esplugin.registered-index', {
                 data: {
+                    uuid: uuidv4(),
                     index_name: indexName,
                     active: true
                     //index_alias: 'myAlias',
@@ -119,7 +117,7 @@ export default ({ strapi }) => ({
 
                     // Ignore if mapping is a "preset" mapping
                     if (!work.mappings[i].preset) {
-                        await strapi.entityService.delete('plugin::esplugin.mapping', work.mappings[i].id) 
+                        await strapi.entityService.delete('plugin::esplugin.mapping', work.mappings[i].uuid) 
                     }
                 }
             }

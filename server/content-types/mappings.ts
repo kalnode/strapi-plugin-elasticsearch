@@ -19,6 +19,10 @@ export default {
         }
     },
     "attributes": {
+        "uuid": {
+            "type": "string",
+            "required": true
+        },
         "post_type": {
             "type": "string",
             "required": true

@@ -18,48 +18,75 @@
 //  *  The terminal process "/bin/zsh '-c', 'npm run 'strapi gen typings''" terminated with exit code: 1. 
 //  *  Terminal will be reused by tasks, press any key to close it. 
 
-// FOR NOW: We define duplicate function here, and project does not fail:
-const helperGetPluginStore = () => {
-    return strapi.store({
-        environment: '',
-        type: 'plugin',
-        name: 'esplugin'
-    })
-}
+
 export default ({ strapi }) => ({
 
-    async initializeStrapiElasticsearch() {
-        await this.cacheConfig()
+    // FOR NOW: We define duplicate function here, and project does not fail:
+    helperGetPluginStore() {
+        return strapi.store({
+            environment: '',
+            type: 'plugin',
+            name: 'esplugin'
+        })
     },
 
-    async pluginStoreInitialize() {
-        if (!strapi.esplugin) {
-            strapi.esplugin = {}
-        }
+    async initializeESPlugin() {
+        await this.cacheThePluginStore()
+    },
 
-        strapi.esplugin.initialized = true
-
-        if (!strapi.esplugin.settingIndexingEnabled) {
-            strapi.esplugin.settingIndexingEnabled = true
-        }
+    async pluginFinalize() {
         
-        if (!strapi.esplugin.settingInstantIndex) {
-            strapi.esplugin.settingInstantIndex = true
-        }
+        strapi.espluginCache.initialized = true
+
+        console.log("============ strapi.espluginCache is: ", strapi.espluginCache)
+
+        // TODO: Is any of this actually working?
+        // TODO: Move these into settings child object, otherwise these toggles all re-toggle on every re-boot !!!!!!!!
+        // if (!strapi.espluginCache.settingIndexingEnabled) {
+        //     strapi.espluginCache.settingIndexingEnabled = true
+        // }
+        
+        // if (!strapi.espluginCache.settingInstantIndex) {
+        //     strapi.espluginCache.settingInstantIndex = true
+        // }
+
+        // if (!strapi.espluginCache.useNewPluginParadigm) {
+        //     strapi.espluginCache.useNewPluginParadigm = true
+        // }
 
     },
 
     isInitialized() {
-        return strapi.esplugin?.initialized || false
+        return strapi.espluginCache?.initialized || false
     },
 
-    async cacheConfig() {
-        if (!strapi.esplugin) {
-            strapi.esplugin = {}
+    async cacheThePluginStore() {
+        if (!strapi.espluginCache) {
+            strapi.espluginCache = {}
         }
 
-        strapi.esplugin.collectionsconfig = await this.getCollectionsConfiguredForIndexing()
-        strapi.esplugin.collections = await this.getCollectionsConfiguredForIndexing()
+        // TODO: This doesn't seem to be needed; commenting for now
+        //strapi.espluginCache.collectionsconfig = await this.getCollectionsConfiguredForIndexing()
+
+        // TODO: Keep for now to support legacy; delete later
+        strapi.espluginCache.collections = await this.getCollectionsConfiguredForIndexing()
+
+        // Plugin settings
+        const pluginStore = this.helperGetPluginStore()
+        const settings:any = await pluginStore.get({ key: 'configsettings' })
+        strapi.espluginCache.settings = settings
+
+        // Mappings
+        const mappingsService = await strapi.plugins['esplugin'].services.mappings
+        strapi.espluginCache.mappings = await mappingsService.getMappings()
+
+        // Indexes
+        const indexingService = await strapi.plugins['esplugin'].services.indexes
+        strapi.espluginCache.indexes = await indexingService.getIndexes()
+
+        // TODO: Maybe not needed because we have "mappings" stored above, but keeping for convenience
+        strapi.espluginCache.posttypes = await this.NEWgetPostTypesForIndexing()
+
     },
 
     async getCollectionConfig({collectionName}) {
@@ -79,7 +106,7 @@ export default ({ strapi }) => ({
             return Object.keys(contentConfig).filter((i) => {
                 let hasAtleastOneIndexableAttribute = false
                 const attribs = Object.keys(contentConfig[i])
-                for (let k=0; k<attribs.length; k++) {
+                for (let k = 0; k < attribs.length; k++) {
                     if (contentConfig[i][attribs[k]]['index'] === true) {
                         hasAtleastOneIndexableAttribute = true
                         break
@@ -92,6 +119,35 @@ export default ({ strapi }) => ({
         }
     },
 
+    async NEWgetPostTypesForIndexing() {
+        const indexesService = await strapi.plugins['esplugin'].services.indexes
+        let work = await indexesService.getIndexes()
+        console.log("NEWgetPostTypesForIndexing 111 is: ", work)
+        if (work) {
+
+            // TODO: Ideally we use a one-liner for all this logic, but got lost and spun my wheels:
+            //e.g. let work2 = work.map( (x:any) => x.mappings.map( (y:any) => y.post_type ))
+            //e.g. let work2 = work.flatMap( (x:any) => x.mappings.map( (y:any) => y.post_type ))
+
+            // FOR NOW, DOING IT THE BLUNT WAY:
+            let uniqueTypes:Array<string> = []
+            for (let x = 0; x < work.length; x++) {
+                let object = work[x]
+                if (object.mappings) {
+                    for (let y = 0; y < object.mappings.length; y++) {
+                        let mapping:any = object.mappings[y]
+                        if (!uniqueTypes.includes(mapping.post_type)) {
+                            uniqueTypes.push(mapping.post_type)
+                        }
+                    }
+                }
+            }
+
+            console.log("NEWgetPostTypesForIndexing 222aaa is: ", uniqueTypes)
+            return uniqueTypes
+        }
+    },
+
     async isCollectionConfiguredToBeIndexed({collectionName}) {
         const collectionsToIndex = await this.getCollectionsConfiguredForIndexing()
         return collectionsToIndex.includes(collectionName)
@@ -99,16 +155,20 @@ export default ({ strapi }) => ({
 
     async getContentConfig() {
 
-        const fieldsToExclude = ['createdAt', 'createdBy', 'publishedAt', 'publishedBy', 'updatedAt', 'updatedBy']
-        const pluginStore = helperGetPluginStore()
+        const pluginStore = this.helperGetPluginStore()
         const settings:any = await pluginStore.get({ key: 'configsettings' })
-        const contentTypes = strapi.contentTypes
-        const apiContentTypes = Object.keys(contentTypes).filter((c) => c.includes('api::') || c.includes('plugin::users-permissions.user'))
-        const apiContentConfig = {}
 
-        for (let r = 0; r < apiContentTypes.length; r++) {
-            apiContentConfig[apiContentTypes[r]] = {}
-            const collectionAttributes = contentTypes[apiContentTypes[r]].attributes
+        const fieldsToExclude = ['createdAt', 'createdBy', 'publishedAt', 'publishedBy', 'updatedAt', 'updatedBy']
+
+        const rawContentTypes = strapi.contentTypes
+        const filteredContentTypes = Object.keys(rawContentTypes).filter((c) => c.includes('api::') || c.includes('plugin::users-permissions.user'))
+        const finalOutput = {}
+
+        for (let r = 0; r < filteredContentTypes.length; r++) {
+
+            let contentType = filteredContentTypes[r]
+            finalOutput[contentType] = {}
+            const collectionAttributes = rawContentTypes[contentType].attributes
             const listOfAttributes = Object.keys(collectionAttributes).filter( (i) => fieldsToExclude.includes(i) === false )
             
             for (let k = 0; k < listOfAttributes.length; k++) {
@@ -122,7 +182,7 @@ export default ({ strapi }) => ({
                     }
                 }
 
-                apiContentConfig[apiContentTypes[r]][listOfAttributes[k]] = { index: false, type: attributeType }
+                finalOutput[contentType][listOfAttributes[k]] = { index: false, type: attributeType }
             }
             
         }
@@ -130,34 +190,34 @@ export default ({ strapi }) => ({
         if (settings) {
             const objSettings = JSON.parse(settings)
             if (Object.keys(objSettings).includes('contentConfig')) {
-                const collections = Object.keys(apiContentConfig)
+                const collections = Object.keys(finalOutput)
                 for (let r=0; r< collections.length; r++) {
                     if (Object.keys(objSettings['contentConfig']).includes(collections[r])) {
-                        const attribsForCollection = Object.keys(apiContentConfig[collections[r]])
+                        const attribsForCollection = Object.keys(finalOutput[collections[r]])
                         for (let s = 0; s < attribsForCollection.length; s++) {
                             if (!Object.keys(objSettings['contentConfig'][collections[r]]).includes(attribsForCollection[s])) {
-                                objSettings['contentConfig'][collections[r]][attribsForCollection[s]] = { index: false, type: apiContentConfig[collections[r]][attribsForCollection[s]].type }
+                                objSettings['contentConfig'][collections[r]][attribsForCollection[s]] = { index: false, type: finalOutput[collections[r]][attribsForCollection[s]].type }
                             } else {
                                 if (!Object.keys(objSettings['contentConfig'][collections[r]][attribsForCollection[s]]).includes('type')) {
-                                    objSettings['contentConfig'][collections[r]][attribsForCollection[s]]['type'] = apiContentConfig[collections[r]][attribsForCollection[s]].type
+                                    objSettings['contentConfig'][collections[r]][attribsForCollection[s]]['type'] = finalOutput[collections[r]][attribsForCollection[s]].type
                                 }
                             }
                         }
                     } else {
-                        objSettings['contentConfig'][collections[r]] = apiContentConfig[collections[r]]
+                        objSettings['contentConfig'][collections[r]] = finalOutput[collections[r]]
                     }
                 }
                 return objSettings['contentConfig']
             } else {
-                return apiContentConfig
+                return finalOutput
             }
         } else {
-            return apiContentConfig
+            return finalOutput
         }
     },
 
     async importContentConfig({config}){
-        const pluginStore = helperGetPluginStore()
+        const pluginStore = this.helperGetPluginStore()
         const settings:any = await pluginStore.get({ key: 'configsettings' })
         
         if (settings) {
@@ -171,7 +231,7 @@ export default ({ strapi }) => ({
         }
 
         const updatedSettings = await pluginStore.get({ key: 'configsettings' })
-        await this.cacheConfig()
+        await this.cacheThePluginStore()
 
         if (updatedSettings && Object.keys(updatedSettings).includes('contentConfig')) {
             return updatedSettings['contentConfig']
@@ -181,7 +241,7 @@ export default ({ strapi }) => ({
     },
 
     async setContentConfig({collection, config}){
-        const pluginStore = helperGetPluginStore()
+        const pluginStore = this.helperGetPluginStore()
         const settings:any = await pluginStore.get({ key: 'configsettings' })
 
         if (settings) {
@@ -204,7 +264,7 @@ export default ({ strapi }) => ({
         }
 
         const updatedSettings = await pluginStore.get({ key: 'configsettings' })
-        await this.cacheConfig()
+        await this.cacheThePluginStore()
 
         if (updatedSettings && Object.keys(updatedSettings).includes('contentConfig')) {
             return updatedSettings['contentConfig']
