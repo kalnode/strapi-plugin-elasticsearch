@@ -6,58 +6,51 @@ export default ({ strapi }) => {
 
     const getMapping = async (ctx) => {
         try {
-            const work = await mappings.getMapping(ctx.params.mappingUUID)
-            return work
+            return await mappings.getMapping(ctx.params.mappingUUID)
         } catch (err) {
-            //return null ???
             ctx.throw(500, err)
         }
     }
 
     const getMappings = async (ctx) => {
         try {
-            const work = await mappings.getMappings(ctx.params.indexId)
-            return work
+            return await mappings.getMappings()
         } catch (err) {
-            //return null ???
             ctx.throw(500, err)
         }
     }
 
     const getContentTypes = async (ctx) => {
-        return await mappings.getContentTypes()
+        try {
+            return await mappings.getContentTypes()
+        } catch (err) {
+            ctx.throw(500, err)
+        }
     }
 
     const createMapping = async (ctx) => {
         const { body } = ctx.request
         try {
-            const work = await mappings.createMapping(body.data)
-            return work
+            return await mappings.createMapping(body.data)
         } catch (err) {
-            //return null ???
             ctx.throw(500, err)
         }
     }
 
     const updateMapping = async (ctx) => {
-        console.log("Controller updateMapping 343434", ctx.params.mappingUUID)
         const { body } = ctx.request
         try {
-            const work = await mappings.updateMapping(ctx.params.mappingUUID, body.data)
-            return work
+            return await mappings.updateMapping(body.data)
         } catch (err) {
-            //return null ???
             ctx.throw(500, err)
         }
     }
 
-
-
     const deleteMapping = async (ctx) => {
-        if (ctx.params.mappingUUID) {
+        try {
             return await mappings.deleteMapping(ctx.params.mappingUUID)
-        } else {
-            return null
+        } catch (err) {
+            ctx.throw(500, err)
         }
     }
 

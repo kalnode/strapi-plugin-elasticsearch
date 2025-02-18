@@ -31,19 +31,16 @@ export const Mappings = ({ indexId, showOnlyPresets, modeOnlySelection, mappingH
 
     const requestGetMappings = () => {
         setIsInProgress(true)
-        console.log("Mappings component requestGetMappings: ", indexId)
 
         axiosInstance.get(apiGetMappings(indexId))
             .then((response) => {
-                console.log("requestGetMappings dfdfdfd333",response.data)
                 if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-                    
-                    console.log("apiGetMappings 111", showOnlyPresets)
+
+                    // TODO: Legacy idea here of "preset", however if mappings are not binded to indexes, then they're _all_ presets, in theory.
+                    // Keeping for now.
                     if (showOnlyPresets) {
-                        console.log("apiGetMappings 222")
                         setMappings(response.data.filter( (x) => x.preset))
                     } else {
-                        console.log("apiGetMappings 333")
                         setMappings(response.data)
                     }
 
@@ -78,9 +75,9 @@ export const Mappings = ({ indexId, showOnlyPresets, modeOnlySelection, mappingH
         }
         
         return axiosInstance.get(apiDeleteMapping(mappingID))
-        .then((response) => {
-            console.log("Delete response is: ", response)
-        })
+        // .then((response) => {
+        //     console.log("Delete response is: ", response)
+        // })
         .catch((error) => {
             console.log("PAGE MAPPINGS - requestDeleteMapping ERROR: ", error)
             showNotification({
@@ -110,12 +107,9 @@ export const Mappings = ({ indexId, showOnlyPresets, modeOnlySelection, mappingH
     }
 
     const handleRowClick = (mappingId) => {
-        console.log("handleRowClick 111", mappingId)
         if (modeOnlySelection) {
-            console.log("handleRowClick 333", mappingId)
             mappingHasBeenSelected(mappingId)
         } else {
-            console.log("handleRowClick 444")
             if (indexId) {
                 history.push(`/plugins/${pluginId}/indexes/${indexId}/mappings/${mappingId}`)
             } else {

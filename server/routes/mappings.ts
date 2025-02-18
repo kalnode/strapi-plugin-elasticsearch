@@ -8,6 +8,7 @@ export default {
             config: { policies: [] }
         },
 
+        // ----------------------------------------
         // TODO: This is stupid, but we have to make a seperate route for the case of generic /get-mappings without :indexId specified.... WHY?
         {
             method: 'GET',
@@ -15,14 +16,15 @@ export default {
             handler: 'mappings.getMappings',
             config: { policies: [] }
         },
-
         // IDEALLY we just use this route for all cases:
         {
             method: 'GET',
-            path: '/get-mappings/:indexId',
+            path: '/get-mappings',
             handler: 'mappings.getMappings',
             config: { policies: [] }
         },
+        // ----------------------------------------
+
         {
             method: 'POST',
             path: '/create-mapping',

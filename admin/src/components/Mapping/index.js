@@ -14,6 +14,9 @@ import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 import { getTypefromStrapiID } from '../../utils/getTypefromStrapiID'
 import { useHistory } from "react-router-dom"
 import { Pencil, Trash, ExclamationMarkCircle, Plus } from '@strapi/icons'
+
+// LEGACY HARDCODED MAPPINGS, for reference.
+// TODO: Delete when ready to.
 // mappings: {
 //     properties: {
 //         "pin": {
@@ -36,8 +39,6 @@ import { Pencil, Trash, ExclamationMarkCircle, Plus } from '@strapi/icons'
 //     }
 // }
 
-
-
 export const Mapping = ({ indexId, mappingId }) => {
 
     // ===============================
@@ -56,6 +57,11 @@ export const Mapping = ({ indexId, mappingId }) => {
     const changesExist = useMemo(() => mapping != mappingRaw)
 
     const resetForm = () => {
+        console.log("------------------------------------------------------------")
+        console.log("Reset mapping form 111 mappingRaw: ", mappingRaw)
+        console.log("Reset mapping form 222 mapping: ", mapping)
+        setMapping(null)
+        console.log("Reset mapping form 333 mapping: ", mapping)
         setMapping(mappingRaw)
     }
 
@@ -63,41 +69,32 @@ export const Mapping = ({ indexId, mappingId }) => {
 
         if (mappingId) {
 
-            console.log("requestGetMapping - 11111111", mappingId)
             setIsInProgress(true)
             let work = await axiosInstance.get(apiGetMapping(mappingId))
-                .then( (response) => {
-                    console.log("get requestGetMapping 222: ", response)
-                    if (response.data) {
-                        return response.data
-                    }
+            .then( (response) => {
+                if (response.data) {
+                    return response.data
+                }
+            })
+            .catch((error) => {
+                console.log("PAGE requestGetMapping ERROR: ", error)
+                showNotification({
+                    type: "warning", message: "An error has encountered: " + error, timeout: 5000
                 })
-                // .catch((error) => {
-                //     console.log("PAGE requestGetMapping ERROR: ", error)
-                //     showNotification({
-                //         type: "warning", message: "An error has encountered: " + error, timeout: 5000
-                //     })
-                // })
-                // .finally(() => {
-                //     setIsInProgress(false)
-                //     //getContentTypes()
-                // })
+            })
+            .finally(() => {
+                setIsInProgress(false)
+                //getContentTypes()
+            })
 
-
-            console.log("Work is 111: ", work)
-            
             if (work && work.mapping) {
 
                 let work2 = work
-
                 work2.mapping = JSON.parse(work2.mapping)
-
-                console.log("work2 is 222: ", work2.post_type)
                 setMappingRaw(work2)
                 setMapping(work2)
                 setPosttypeFinal(work2.post_type)
 
-                console.log("posttypeFinal 111 is: ", posttypeFinal)
             } else {
                 // TODO: Maybe show an error view?
                 console.log("Problem getting the mapping")
@@ -112,7 +109,6 @@ export const Mapping = ({ indexId, mappingId }) => {
     
         let work = await axiosInstance.get(apiGetContentTypes)
         .then((response) => {
-            console.log("PAGE getContentTypes response 111: ", response.data)
             // showNotification({
             //     type: "success", message: "getContentTypes: " + response.data, timeout: 5000
             // })
@@ -128,8 +124,6 @@ export const Mapping = ({ indexId, mappingId }) => {
             setIsInProgress(false)
         })
 
-        console.log("PAGE getContentTypes response 222: ", work)
-
         setContentTypes(work)
         
     }
@@ -140,14 +134,12 @@ export const Mapping = ({ indexId, mappingId }) => {
         if (mapping) {
 
             let output = {...mapping}
-            
+
             if (indexId) {
                 output.indexes = [ indexId ]
             } else {
                 output.preset = true
             }
-
-            console.log("requestCreateMapping mapping is: ", output)
 
             // let workGetIndex = await axiosInstance.get(apiGetIndex(indexId))
             // .then( (response) => {
@@ -200,35 +192,31 @@ export const Mapping = ({ indexId, mappingId }) => {
     const requestUpdateMapping = () => {
         setIsInProgress(true)
 
-        console.log("requestUpdateMapping is: ", mapping)
-
-        let output = {...mapping}
-
+        let output = JSON.parse(JSON.stringify(mapping))
         output.mapping = JSON.stringify(output.mapping)
 
-        console.log("requestUpdateMapping Output is: ", output)
-
-        setMappingRaw(mapping)
-
-        return axiosInstance.post(apiUpdateMapping(mappingId), {
+        return axiosInstance.post(apiUpdateMapping(mapping.UUID), {
             data: mapping
         })
-            .then((response) => {
-                console.log("PAGE requestUpdateMapping response: ", response)
-
-                // showNotification({
-                //     type: "success", message: "Created the mapping: " + response, timeout: 5000
-                // })
+        .then((response) => {
+            // showNotification({
+            //     type: "success", message: "Created the mapping: " + response, timeout: 5000
+            // })
+            console.log("Update response is 111 ", response.data)
+            console.log("Update response is 222 mapping", mapping)
+            console.log("Update response is 333 mappingRaw", mappingRaw)
+            setMapping(response.data)
+            setMappingRaw(response.data)
+        })
+        .catch((error) => {
+            console.log("PAGE requestUpdateMapping ERROR: ", error)
+            showNotification({
+                type: "warning", message: "An error has encountered: " + error, timeout: 5000
             })
-            .catch((error) => {
-                console.log("PAGE requestUpdateMapping ERROR: ", error)
-                showNotification({
-                    type: "warning", message: "An error has encountered: " + error, timeout: 5000
-                })
-            })
-            .finally(() => {
-                setIsInProgress(false)
-            })
+        })
+        .finally(() => {
+            setIsInProgress(false)
+        })
     }
 
 
@@ -250,44 +238,44 @@ export const Mapping = ({ indexId, mappingId }) => {
 
         setMappingRaw(work)
         setMapping(work)
-
-        //setPosttypeFinal(posttype)
-
         setPosttypeFinal(posttype)
     }
 
     const updateFieldActive = async (key) => {
-        // let output = { ...mapping }
-        // if (output[key]) {
-        //     delete output[key]
-        // } else {
-        //     output = { ...output, [key]: { active: true } }
-        // }
-        // await setMapping(output)
-        console.log("updateFieldActive 111a777aa", mapping)
+
+        console.log("updateFieldActive 111 mappingRaw: ", mappingRaw)
+        console.log("updateFieldActive 222 mapping: ", mapping)
+        console.log("updateFieldActive 333 key: ", key)
         let output = {}
-        console.log("updateFieldActive 111bbb", output)
-
-
         if (mapping) {
-            output = { ...mapping }
+            console.log("updateFieldActive 444", mapping)
+
+            // TODO: This seems really stupid, but need to deep clone here otherwise strange reactivity occurs.
+            // e.g. without this deep clone, mappingRaw gets updated, even though we don't touch it in this func!
+            // Perhaps reactivity is being set earlier somewhere.
+            output = JSON.parse(JSON.stringify(mapping))
+
             if (output.mapping[key]) {
-                console.log("updateFieldActive 222aaa", output)
+                console.log("updateFieldActive 555", mapping)
                 delete output.mapping[key]
             } else {
-                console.log("updateFieldActive 222bbb", output)
-                //output = { ...output, [key]: { } }
+                console.log("updateFieldActive 666", mapping)
                 output.mapping[key] = {}
             }
         } else {
+            console.log("updateFieldActive 777", mapping)
+            output.mapping = {}
             output.mapping[key] = {}
         }
-        console.log("updateFieldActive 333", output)
+
+        console.log("updateFieldActive 888", output)
         setMapping(output)
     }
 
     const updateFieldIndex = async (key) => {
-        let output = { ...mapping }
+
+        let output = JSON.parse(JSON.stringify(mapping))
+
         if (output.mapping[key]) {
             output.mapping[key].index = !output.mapping[key].index
             setMapping(output)
@@ -297,8 +285,6 @@ export const Mapping = ({ indexId, mappingId }) => {
     const updateFieldDataType = async (key, type) => {
         let output = { ...mapping }
         if (output.mapping[key]) {
-            console.log("Hello? wer45435", type)
-            //let output = { ...mapping }
             output.mapping[key].type = type
             setMapping(output)
         }
@@ -542,11 +528,11 @@ export const Mapping = ({ indexId, mappingId }) => {
                                         </Typography>
                                     </Box>
                                     <Box padding={8} marginTop={4} background="secondary100">
-                                        { !mapping && (
+                                        { !mapping || (mapping && !mapping.mapping) && (
                                             <>(Please apply some mappings)</>
                                         )}
-                                        { mapping && (
-                                            <pre>{ JSON.stringify(mapping, null, 8) }</pre>
+                                        { mapping && mapping.mapping && (
+                                            <pre>{ JSON.stringify(mapping.mapping, null, 8) }</pre>
                                         )}
                                     </Box>
                                 </Box>
