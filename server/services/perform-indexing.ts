@@ -295,7 +295,7 @@ export default ({ strapi }) => ({
 
 
 
-    async indexRecordsNEW(indexId) {
+    async indexRecordsNEW(indexUUID) {
 
         // 1. Get index with mappings
 
@@ -309,7 +309,7 @@ export default ({ strapi }) => ({
         const helper = strapi.plugins['esplugin'].services.helper
 
 
-        let index = await indexesService.getIndex(indexId)
+        let index = await indexesService.getIndex(indexUUID)
         let entries:any = []
 
         //console.log("indexRecordsNEW 111", index)

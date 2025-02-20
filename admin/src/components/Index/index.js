@@ -13,7 +13,7 @@ import axiosInstance from '../../utils/axiosInstance'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 import { Pencil, Trash, ExclamationMarkCircle, Plus } from '@strapi/icons'
 
-export const Index = ({ indexId, closeEvent }) => {
+export const Index = ({ indexUUID, closeEvent }) => {
 
     // ===============================
     // GENERAL
@@ -33,11 +33,10 @@ export const Index = ({ indexId, closeEvent }) => {
 
     const requestGetIndex = async () => {
 
-        if (indexId) {
+        if (indexUUID) {
             setIsInProgress(true)
-            let work = await axiosInstance.get(apiGetIndex(indexId))
+            let work = await axiosInstance.get(apiGetIndex(indexUUID))
             .then( (response) => {
-                console.log("get requestGetIndex 111: ", response)
                 if (response.data) {
                     return response.data
                 }
@@ -67,7 +66,6 @@ export const Index = ({ indexId, closeEvent }) => {
 
     const requestUpdateIndex = async () => {
 
-        // Proceed only if unsaved changes exist
         if (changesExist) {
             setIsInProgress(true)
 
@@ -79,13 +77,10 @@ export const Index = ({ indexId, closeEvent }) => {
 
             payload = convertEmptyStringsToNulls(payload)
 
-            console.log("PAGE INDEX - requestUpdateIndex: payload", payload)
-
-            let work = await axiosInstance.post(apiUpdateIndex(indexId), {
+            let work = await axiosInstance.post(apiUpdateIndex(indexUUID), {
                 data: payload
             })
             .then( (response) => {
-                console.log("PAGE INDEX - requestUpdateIndex: response", response)
                 if (response.data) {
                     return response.data
                 }
@@ -107,9 +102,9 @@ export const Index = ({ indexId, closeEvent }) => {
     }
 
     const createOnES = async () => {
-        if (indexId) {
+        if (indexUUID) {
             setIsInProgress(true)
-            let work = await axiosInstance.get(apiCreateESindex(indexId))
+            let work = await axiosInstance.get(apiCreateESindex(indexUUID))
             .then( (response) => {
                 console.log("get createOnES 111: ", response)
                 if (response.data) {
@@ -130,7 +125,7 @@ export const Index = ({ indexId, closeEvent }) => {
 
     const indexRecords = async () => {
         setIsInProgress(true)
-        let work = await axiosInstance.get(apiIndexRecords(indexId))
+        let work = await axiosInstance.get(apiIndexRecords(indexUUID))
         .then( (response) => {
             console.log("get indexRecords 111: ", response)
             if (response.data) {
@@ -153,7 +148,7 @@ export const Index = ({ indexId, closeEvent }) => {
     // ===============================
 
     useEffect(() => {
-        if (indexId) {
+        if (indexUUID) {
             requestGetIndex()
         }
     }, [])
@@ -165,7 +160,7 @@ export const Index = ({ indexId, closeEvent }) => {
                 <>
                 <Flex width="100%" justifyContent="space-between">
                     <Box>
-                        <Typography variant="alpha">{ indexId ? 'Index ' + indexId : 'Create Index'}</Typography>
+                        <Typography variant="alpha">{ indexUUID ? 'Index ' + indexUUID : 'Create Index'}</Typography>
                     </Box>
 
                     <Flex gap={4}>
@@ -180,7 +175,7 @@ export const Index = ({ indexId, closeEvent }) => {
                             </>
                         )}
 
-                        { indexId && (
+                        { indexUUID && (
                             <Button onClick={() => requestUpdateIndex()} variant="tertiary" disabled={!changesExist}>
                                 Save
                             </Button>
@@ -216,9 +211,9 @@ export const Index = ({ indexId, closeEvent }) => {
                     </Box>
 
                     <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
-                        <Link to={`/plugins/${pluginId}/indexes/${indexId}/mappings`}>
+                        <Link to={`/plugins/${pluginId}/indexes/${index.uuid}/mappings`}>
                             <Button variant="secondary">
-                                Mappings for Index {indexId}
+                                Mappings for Index
                             </Button>
                         </Link>
                     </Box>

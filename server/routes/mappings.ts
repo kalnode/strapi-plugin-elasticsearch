@@ -9,7 +9,7 @@ export default {
         },
 
         // ----------------------------------------
-        // TODO: This is stupid, but we have to make a seperate route for the case of generic /get-mappings without :indexId specified.... WHY?
+        // TODO: This is stupid, but we have to make a seperate route for the case of generic /get-mappings without :indexUUID specified.... WHY?
         {
             method: 'GET',
             path: '/get-mappings',
@@ -19,7 +19,7 @@ export default {
         // IDEALLY we just use this route for all cases:
         {
             method: 'GET',
-            path: '/get-mappings',
+            path: '/get-mappings/:indexUUID',
             handler: 'mappings.getMappings',
             config: { policies: [] }
         },
@@ -48,6 +48,12 @@ export default {
             path: '/get-content-types',
             handler: 'mappings.getContentTypes',
             config: { policies: [] }
-        }
+        },
+        {
+            method: 'POST',
+            path: '/detach-mapping',
+            handler: 'mappings.detachMapping',
+            config: { policies: [] }
+        },
     ]    
 }

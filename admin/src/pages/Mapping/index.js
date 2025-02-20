@@ -16,12 +16,12 @@ const PageMapping = () => {
                     <Crumb>
                         <Link to={`./`}>Mappings</Link>
                     </Crumb>
-                    <Crumb>{ params.mappingId }</Crumb>
+                    <Crumb>{ params.mappingUUID }</Crumb>
                     {/* isCurrent */}
                 </Breadcrumbs>
 
-                { params.mappingId && (
-                    <Mapping mappingId={params.mappingId} />
+                { params.mappingUUID && (
+                    <Mapping mappingUUID={params.mappingUUID} />
                 )}                    
             </Box>
         </Flex>

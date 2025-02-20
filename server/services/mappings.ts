@@ -7,7 +7,6 @@ export default ({ strapi }) => ({
 
     async getMapping(mappingUUID:string) {
 
-        console.log("getMapping 111 mappingUUID: ", mappingUUID)
         // -------------------------------------------
         const helperGetPluginStore = () => {
             return strapi.store({
@@ -18,10 +17,8 @@ export default ({ strapi }) => ({
         }
         const pluginStore = helperGetPluginStore()         
         const mappings:Array<TMapping1> = await pluginStore.get({ key: 'mappings' })
-        console.log("getMapping 222 mappings: ", mappings)
         if (mappings && Array.isArray(mappings)) {
             let work = mappings.find( (x:TMapping1) => x.uuid === mappingUUID)
-            console.log("getMapping 333 work is: ", work)
             if (work) {
                 return work
             }
@@ -33,7 +30,7 @@ export default ({ strapi }) => ({
         //return await strapi.entityService.findOne('plugin::esplugin.mapping', mappingId, { populate: "indexes" })
     },
 
-    async getMappings() {
+    async getMappings(indexUUID:string) {
 
         // -------------------------------------------
         const helperGetPluginStore = () => {
@@ -43,14 +40,41 @@ export default ({ strapi }) => ({
                 name: 'esplugin'
             })
         }
-        const pluginStore = helperGetPluginStore()         
-        const mappings:string = await pluginStore.get({ key: 'mappings' })
-        console.log("getMappings 222", mappings)
+        const pluginStore = helperGetPluginStore()
+
+        // TODO: CHANGE TO PLUGINCACHE
+        const mappings:Array<any> = await pluginStore.get({ key: 'mappings' })
+
+
         if (mappings) {
-            return mappings //JSON.parse(mappings) //JSON.parse(JSON.stringify(mappings))
-        } else {
-            return "No mappings found"
+            if (indexUUID) {
+
+                // TODO: CHANGE TO PLUGINCACHE
+                const indexesService = strapi.plugins['esplugin'].services.indexes
+                const index = await indexesService.getIndex(indexUUID)
+
+                if (index && index.mappings) {
+                    const specificMappings = mappings.filter( (x:any) => index.mappings.includes(x.uuid))
+                    return specificMappings
+                }
+
+            } else {
+
+                // console.log("getMappings 333", indexUUID)
+                // if (indexUUID) {
+                //     let work = mappings.filter( (x:any) => x.indexes && x.indexes.includes(indexUUID) ) //JSON.parse(mappings) //JSON.parse(JSON.stringify(mappings))
+                //     console.log("getMappings 444 ", work)
+                //     return work
+                // }
+
+                return mappings
+
+            }
         }
+
+        console.log("getMappings 555")
+        return "No mappings found"
+        
         // -------------------------------------------
 
 
@@ -115,8 +139,11 @@ export default ({ strapi }) => ({
 
             mappings.push(finalPayload)
             
-            console.log("createMapping 555", mappings)
             await pluginStore.set({ key: 'mappings', value: mappings })
+
+            if (finalPayload.indexes) {
+                let work444 = await this.attachMapping({indexUUID: finalPayload.indexes[0], mappingUUID: finalPayload.uuid})
+            }
             // -------------------------------------------
 
             // const entry = await strapi.entityService.create('plugin::esplugin.mapping', {
@@ -133,8 +160,6 @@ export default ({ strapi }) => ({
     },
 
     async updateMapping(mapping:TMapping1) {
-
-        console.log("updateMapping 111: ", mapping)
 
         try {
 
@@ -156,17 +181,12 @@ export default ({ strapi }) => ({
             const pluginStore = helperGetPluginStore()         
             let mappings:any = await pluginStore.get({ key: 'mappings' })
 
-            console.log("updateMapping 333zzz: ", mappings)
             if (mappings && Array.isArray(mappings)) {
-                console.log("updateMapping 333aaa: yes array")
                 let foundIndex = mappings.findIndex( (x:any) => x.uuid === mapping.uuid)
-                console.log("foundIndex: ", foundIndex)
                 mappings[foundIndex].mapping = JSON.stringify(mapping.mapping)
             } else {
                 console.log("Cannot find mapping to update")
             }
-
-            console.log("updateMapping 444: ", mappings)
             await pluginStore.set({ key: 'mappings', value: mappings })
             // -------------------------------------------
 
@@ -198,12 +218,58 @@ export default ({ strapi }) => ({
 
     },
 
+
+    async attachMapping(payload) {
+
+        try {
+
+            const indexesService = strapi.plugins['esplugin'].services.indexes
+            const index = await indexesService.getIndex(payload.indexUUID)
+            const mappingIndexNumber = index.mappings.findIndex( (x:any) => x === payload.mappingUUID)
+            
+            if (mappingIndexNumber === -1) {
+                index.mappings.push(payload.mappingUUID)
+            }
+            const work = await indexesService.updateIndex(payload.indexUUID, index)
+
+            return "Attachment success"
+
+        } catch (err) {
+            console.log('SPE - attachMapping: An error was encountered')
+            console.log(err)
+            return err
+        }
+
+    },
+
+    async detachMapping({ indexUUID, mappingUUID }) {
+
+        try {
+
+            const indexesService = strapi.plugins['esplugin'].services.indexes
+            const index = await indexesService.getIndex(indexUUID)
+
+            const mappingIndexNumber = index.mappings.findIndex( (x:any) => x === mappingUUID)
+
+            //index.mappings = index.mappings.splice(mappingIndexNumber, 1)
+            index.mappings = index.mappings.filter( (x:any) => x !== mappingUUID)
+
+            const work = await indexesService.updateIndex(indexUUID, index)
+            return "Detachment success"
+
+        } catch (err) {
+            console.log('SPE - detachMapping: An error was encountered')
+            console.log(err)
+            return err
+        }
+
+    },
+
     async deleteMapping(mappingUUID) {
 
         try {
 
             // -------------------------------------------
-            // UPDATE THE PLUGIN STORE
             const helperGetPluginStore = () => {
                 return strapi.store({
                     environment: '',
@@ -213,8 +279,28 @@ export default ({ strapi }) => ({
             }
             const pluginStore = helperGetPluginStore()         
             let mappings:any = await pluginStore.get({ key: 'mappings' })
+
             if (mappings && Array.isArray(mappings)) {
-                let foundMappingIndex = mappings.findIndex( (x:any) => x.uuid === mappingUUID)
+
+                const foundMappingIndex = mappings.findIndex( (x:any) => x.uuid === mappingUUID)
+                const mapping = mappings[foundMappingIndex]
+
+                const indexesService = strapi.plugins['esplugin'].services.indexes
+                const indexes = await indexesService.getIndexes()
+
+                if (indexes) {
+
+                    const indexesWithMatchingMappings = indexes.filter( (x:any) => x.mappings && x.mappings.includes(mapping.uuid))
+
+                    if (indexesWithMatchingMappings) {
+                        for (let i = 0; i < indexesWithMatchingMappings.length; i++) {
+                            let work2 = await this.detachMapping({ indexUUID: indexesWithMatchingMappings[i].uuid, mappingUUID: mapping.uuid })
+                        }
+                        //let work1 = await this.detachMapping({ indexUUID: mapping.indexes[0], mappingUUID: mapping.uuid })
+                        //console.log("deleteMapping 333", work1)
+                    }
+                }
+
                 mappings.splice(foundMappingIndex, 1)
             }
             if (mappings.length === 0) {
@@ -225,7 +311,7 @@ export default ({ strapi }) => ({
             
             // DB paradigm
             //const entry = await strapi.entityService.delete('plugin::esplugin.mapping', mappingUUID)
-            return "success"
+            return "Delete mapping success"
 
         } catch (err) {
             console.log('SPE - deleteMapping: An error has encountered', err)

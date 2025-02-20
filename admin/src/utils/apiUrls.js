@@ -22,22 +22,20 @@ export const apiOrphansDelete = `/${pluginId}/orphans-delete`
 // INDEXES
 export const apiGetIndexes = `/${pluginId}/get-indexes`
 export const apiGetESIndexes = `/${pluginId}/get-es-indexes`
-export const apiGetIndex = (indexIDNumber) => `/${pluginId}/get-index/${indexIDNumber}`
+export const apiGetIndex = (indexUUID) => `/${pluginId}/get-index/${indexUUID}`
 export const apiCreateIndex = `/${pluginId}/create-index`
 export const apiDeleteIndex = `/${pluginId}/delete-index`
-export const apiUpdateIndex = (indexIDNumber) => `/${pluginId}/update-index/${indexIDNumber}`
-export const apiCreateESindex = (indexIDNumber) => `/${pluginId}/create-es-index/${indexIDNumber}`
-export const apiIndexRecords = (indexIDNumber) => `/${pluginId}/index-records/${indexIDNumber}`
-
+export const apiUpdateIndex = (indexUUID) => `/${pluginId}/update-index/${indexUUID}`
+export const apiCreateESindex = (indexUUID) => `/${pluginId}/create-es-index/${indexUUID}`
+export const apiIndexRecords = (indexUUID) => `/${pluginId}/index-records/${indexUUID}`
 
 // MAPPING
-export const apiGetMapping = (mappingIDNumber) => `/${pluginId}/get-mapping/${mappingIDNumber}`
-
-// 
-export const apiGetMappings = (indexId) => indexId ? `/${pluginId}/get-mappings/${indexId}` : `/${pluginId}/get-mappings`
+export const apiGetMapping = (mappingUUID) => `/${pluginId}/get-mapping/${mappingUUID}`
+export const apiGetMappings = (indexUUID) => indexUUID ? `/${pluginId}/get-mappings/${indexUUID}` : `/${pluginId}/get-mappings`
 export const apiCreateMapping = `/${pluginId}/create-mapping`
-export const apiUpdateMapping = (mappingIDNumber) => `/${pluginId}/update-mapping/${mappingIDNumber}`
-export const apiDeleteMapping = (mappingID) => `/${pluginId}/delete-mapping/${mappingID}`
+export const apiUpdateMapping = (mappingUUID) => `/${pluginId}/update-mapping/${mappingUUID}`
+export const apiDeleteMapping = (mappingUUID) => `/${pluginId}/delete-mapping/${mappingUUID}`
+export const apiDetachMappingFromIndex = `/${pluginId}/detach-mapping`
 
 export const apiGetContentTypes = `/${pluginId}/get-content-types`
 

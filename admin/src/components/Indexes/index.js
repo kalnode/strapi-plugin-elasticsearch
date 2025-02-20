@@ -23,11 +23,9 @@ export const ComponentIndexes = () => {
     const [useNamePrepend, setUseNamePrepend] = useState(false)
     const namePrepend = "strapi_es_plugin_"
     const [modalRegisterExistingIndexShow, setModalRegisterExistingIndexShow] = useState(false)
-
     const [modalDeleteIndexShow, setModalDeleteIndexShow] = useState(false)
-    const [indexIDToBeDeleted, setIndexIDToBeDeleted] = useState(null)
+    const [indexUUIDToBeDeleted, setIndexUUIDToBeDeleted] = useState(null)
     const [deleteFromElasticsearch, setDeleteFromElasticsearch] = useState(false)
-
     const history = useHistory()
     const showNotification = useNotification()
 
@@ -106,7 +104,6 @@ export const ComponentIndexes = () => {
         console.log("getESIndexes 111")
         await axiosInstance.get(apiGetESIndexes)
         .then((response) => {
-            console.log("PAGE INDEXES - getESIndexes response: ", response)
             if (response.data && Object.keys(response.data).length > 0) {
                 setESIndexes(Object.keys(response.data))
             } else {
@@ -128,7 +125,7 @@ export const ComponentIndexes = () => {
 
     const modalDeleteOpen = (e, recordIndexNumber) => {
         e.stopPropagation()
-        setIndexIDToBeDeleted(recordIndexNumber)
+        setIndexUUIDToBeDeleted(recordIndexNumber)
         setDeleteFromElasticsearch(false)
         setModalDeleteIndexShow(true)
     }
@@ -138,7 +135,7 @@ export const ComponentIndexes = () => {
         setIsInProgress(true)
         await axiosInstance.post(apiDeleteIndex, {
             data: {
-                indexId: indexIDToBeDeleted,
+                indexUUID: indexUUIDToBeDeleted,
                 deleteIndexInElasticsearch: deleteFromElasticsearch
             }
         })

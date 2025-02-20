@@ -11,18 +11,18 @@ const PageIndex = () => {
         <Grid gap={4} alignItems="stretch" style={{ gridTemplateColumns: 'auto 1fr' }}>
             <SubNavigation />
 
-            { params.indexId && (
+            { params.indexUUID && (
                 <Box padding={8} background="neutral100" overflow='hidden'>
 
                     <Breadcrumbs label="Extra navigation">
                         <Crumb>
                             <Link to={`./`}>Indexes</Link>
                         </Crumb>
-                        <Crumb>{params.indexId}</Crumb>
+                        <Crumb>{params.indexUUID}</Crumb>
                         {/* isCurrent */}
                     </Breadcrumbs>
 
-                    <Index indexId={params.indexId} />
+                    <Index indexUUID={params.indexUUID} />
 
                 </Box>
             )}

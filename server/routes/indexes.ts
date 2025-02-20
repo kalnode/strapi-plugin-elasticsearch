@@ -3,7 +3,7 @@ export default {
     routes: [
         {
             method: 'GET',
-            path: '/get-index/:indexId',
+            path: '/get-index/:indexUUID',
             handler: 'indexes.getIndex',
             config: { policies: [] }
         },
@@ -33,19 +33,19 @@ export default {
         },
         {
             method: 'POST',
-            path: '/update-index/:indexId',
+            path: '/update-index/:indexUUID',
             handler: 'indexes.updateIndex',
             config: { policies: [] }
         },
         {
             method: 'GET',
-            path: '/create-es-index/:indexId',
+            path: '/create-es-index/:indexUUID',
             handler: 'indexes.createESindex',
             config: { policies: [] }
         },
         {
             method: 'GET',
-            path: '/index-records/:indexId',
+            path: '/index-records/:indexUUID',
             handler: 'performIndexing.indexRecordsNEW',
             config: { policies: [] }
         }

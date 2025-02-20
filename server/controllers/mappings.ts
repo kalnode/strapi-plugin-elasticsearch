@@ -14,7 +14,7 @@ export default ({ strapi }) => {
 
     const getMappings = async (ctx) => {
         try {
-            return await mappings.getMappings()
+            return await mappings.getMappings(ctx.params.indexUUID)
         } catch (err) {
             ctx.throw(500, err)
         }
@@ -46,6 +46,15 @@ export default ({ strapi }) => {
         }
     }
 
+    const detachMapping = async (ctx) => {
+        const { body } = ctx.request
+        try {
+            return await mappings.detachMapping(body.data)
+        } catch (err) {
+            ctx.throw(500, err)
+        }
+    }
+
     const deleteMapping = async (ctx) => {
         try {
             return await mappings.deleteMapping(ctx.params.mappingUUID)
@@ -60,6 +69,7 @@ export default ({ strapi }) => {
         getContentTypes,
         createMapping,
         updateMapping,
-        deleteMapping
+        deleteMapping,
+        detachMapping
     }
 }

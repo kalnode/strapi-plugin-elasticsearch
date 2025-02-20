@@ -19,14 +19,10 @@ export default ({ strapi }) => {
         return await indexerService.indexPendingData()
     }
 
-
     const indexRecordsNEW = async (ctx) => {
-        const { body } = ctx.request
         try {
-            const work = await indexerService.indexRecordsNEW(ctx.params.indexId)
-            return work
+            return await indexerService.indexRecordsNEW(ctx.params.indexUUID)
         } catch (err) {
-            //return null ???
             ctx.throw(500, err)
         }
     }

@@ -2,26 +2,64 @@ import { v4 as uuidv4 } from 'uuid'
 
 export default ({ strapi }) => ({
 
-    async getIndexes(count = 50) {
-        const records = await strapi.entityService.findMany('plugin::esplugin.registered-index', {
-            sort: { createdAt: 'DESC' },
-            start: 0,
-            limit: count,
-            populate: "mappings"
-        })
-        return records
+    async getIndex(indexUUID) {
+        // -------------------------------------------
+        const helperGetPluginStore = () => {
+            return strapi.store({
+                environment: '',
+                type: 'plugin',
+                name: 'esplugin'
+            })
+        }
+        const pluginStore = helperGetPluginStore()         
+        const indexes:Array<any> = await pluginStore.get({ key: 'indexes' })
+        if (indexes && Array.isArray(indexes)) {
+            let work = indexes.find( (x:any) => x.uuid === indexUUID)
+            if (work) {
+                return work
+            }
+        }
+        return "No index found"
+        // -------------------------------------------
+
+        // DB PARADIGM
+        // return await strapi.entityService.findOne('plugin::esplugin.registered-index', indexUUID, {
+        //     populate: "mappings"
+        // })
+
     },
 
-    async getIndex(indexId) {
-        console.log('SPE - getIndex 111', indexId)
-        const record = await strapi.entityService.findOne('plugin::esplugin.registered-index', indexId, {
-            populate: "mappings"
-        })
-        return record
+    async getIndexes() {
+
+        // -------------------------------------------
+        const helperGetPluginStore = () => {
+            return strapi.store({
+                environment: '',
+                type: 'plugin',
+                name: 'esplugin'
+            })
+        }
+        const pluginStore = helperGetPluginStore()         
+        const indexes:string = await pluginStore.get({ key: 'indexes' })
+        if (indexes) {
+            return indexes
+        } else {
+            return "No indexes found"
+        }
+        // -------------------------------------------
+
+        // DB paradigm
+        // const records = await strapi.entityService.findMany('plugin::esplugin.registered-index', {
+        //     sort: { createdAt: 'DESC' },
+        //     start: 0,
+        //     limit: count,
+        //     populate: "mappings"
+        // })
+        // return records
     },
 
     async createIndex(indexName, addToExternalIndex) {
-        const helper = strapi.plugins['esplugin'].services.helper
+
         const esInterface = strapi.plugins['esplugin'].services.esInterface
 
         try {
@@ -30,26 +68,51 @@ export default ({ strapi }) => ({
             //const oldIndexName = await helper.getCurrentIndexName()
             //const newIndexName = await helper.getIncrementedIndexName()
 
-            // TODO: RECORD TO PLUGIN STORE
-            const entry = await strapi.entityService.create('plugin::esplugin.registered-index', {
-                data: {
-                    uuid: uuidv4(),
-                    index_name: indexName,
-                    active: true
-                    //index_alias: 'myAlias',
-                    //mapping: 'crazy mapping'
-                }
-            })
+            const finalPayload = {
+                uuid: uuidv4(),
+                index_name: indexName,
+                active: true
+            }
+
+            // ------------------------------------------
+            // ADD TO PLUGIN STORE
+            const helperGetPluginStore = () => {
+                return strapi.store({
+                    environment: '',
+                    type: 'plugin',
+                    name: 'esplugin'
+                })
+            }
+            const pluginStore = helperGetPluginStore()         
+            let indexes:any = await pluginStore.get({ key: 'indexes' })
+
+            if (!indexes) {
+                indexes = []
+            }
+
+            indexes.push(finalPayload)
+
+            await pluginStore.set({ key: 'indexes', value: indexes })
+            // -------------------------------------------
+
+            // DB paradigm
+            // const entry = await strapi.entityService.create('plugin::esplugin.registered-index', {
+            //     data: {
+            //         uuid: uuidv4(),
+            //         index_name: indexName,
+            //         active: true
+            //         //index_alias: 'myAlias',
+            //         //mapping: 'crazy mapping'
+            //     }
+            // })
 
 
             // ADD TO ELASTICSEARCH:
             if (addToExternalIndex) {
-                console.log("SPE - createIndex, addToExternalIndex", addToExternalIndex)
                 let work = await esInterface.createIndex(indexName)
-                console.log("SPE - createIndex, addToExternalIndex work: ", work)
             }
 
-            return entry
+            return finalPayload
 
         } catch(err) {
             console.log('SPE - createIndex: An error was encountered while creating the index.')
@@ -59,30 +122,38 @@ export default ({ strapi }) => ({
 
     },
 
-    async updateIndex(indexId, payload) {
-
-        const helper = strapi.plugins['esplugin'].services.helper
-        const esInterface = strapi.plugins['esplugin'].services.esInterface
+    async updateIndex(indexUUID, payload) {
 
         try {
 
-            //const oldIndexName = await helper.getCurrentIndexName()
-            //console.log('SPE - updateIndex 222 - Previous index name:', oldIndexName)
+            // -------------------------------------------
+            // UPDATE THE PLUGIN STORE
+            const helperGetPluginStore = () => {
+                return strapi.store({
+                    environment: '',
+                    type: 'plugin',
+                    name: 'esplugin'
+                })
+            }
+            const pluginStore = helperGetPluginStore()         
+            let indexes:any = await pluginStore.get({ key: 'indexes' })
 
-            // Step 1: Create a new index
-            //const newIndexName = await helper.getIncrementedIndexName()
+            if (indexes && Array.isArray(indexes)) {
+                let foundIndex = indexes.findIndex( (x:any) => x.uuid === indexUUID)
+                indexes[foundIndex] = { ...indexes[foundIndex], ...payload}
+            } else {
+                console.log("Cannot find index to update")
+            }
 
-            //let work = await esInterface.createIndex(newIndexName)
-            //JSON.stringify(body.data)
+            await pluginStore.set({ key: 'indexes', value: indexes })
+            // -------------------------------------------
 
-            let finalPayload = payload
-           //let finalPayload = JSON.parse(JSON.stringify(payload))
-            //finalPayload.mapping = JSON.stringify(finalPayload.payload)
-            const entry = await strapi.entityService.update('plugin::esplugin.registered-index', indexId, {
-                data: finalPayload
-            })
+            // DB paradigm
+            // const entry = await strapi.entityService.update('plugin::esplugin.registered-index', indexUUID, {
+            //     data: payload
+            // })
 
-            return entry
+            return payload
 
         } catch(err) {
             console.log('SPE - updateIndex: An error was encountered')
@@ -92,12 +163,10 @@ export default ({ strapi }) => ({
 
     },
 
-    async deleteIndex(recordIndexNumber, deleteIndexInElasticsearch) {
+    async deleteIndex(indexUUID, deleteIndexInElasticsearch) {
 
-        const helper = strapi.plugins['esplugin'].services.helper
         const esInterface = strapi.plugins['esplugin'].services.esInterface
-        const indexesService = strapi.plugins['esplugin'].services.indexes
-        console.log("SPE - deleteIndex, 111")
+
         try {
 
             //const oldIndexName = await helper.getCurrentIndexName()
@@ -107,35 +176,63 @@ export default ({ strapi }) => ({
             //const newIndexName = await helper.getIncrementedIndexName()
 
             //await esInterface.deleteIndex(index)
-            console.log("SPE - deleteIndex, 222", recordIndexNumber)
-            let work = await indexesService.getIndex(recordIndexNumber)
+
+            //let work = await indexesService.getIndex(indexUUID)
 
             // Delete mappings associated with this registered index
-            if (work.mappings) {
-                console.log("SPE - deleteIndex, 333")
-                for (let i = 0; i < work.mappings.length; i++) {
+            // if (work.mappings) {
+            //     console.log("SPE - deleteIndex, 333")
+            //     for (let i = 0; i < work.mappings.length; i++) {
 
-                    // Ignore if mapping is a "preset" mapping
-                    if (!work.mappings[i].preset) {
-                        await strapi.entityService.delete('plugin::esplugin.mapping', work.mappings[i].uuid) 
-                    }
+            //         // Ignore if mapping is a "preset" mapping
+            //         if (!work.mappings[i].preset) {
+            //             await strapi.entityService.delete('plugin::esplugin.mapping', work.mappings[i].uuid) 
+            //         }
+            //     }
+            // }
+
+
+            // -------------------------------------------
+            // UPDATE THE PLUGIN STORE
+            const helperGetPluginStore = () => {
+                return strapi.store({
+                    environment: '',
+                    type: 'plugin',
+                    name: 'esplugin'
+                })
+            }
+            const pluginStore = helperGetPluginStore()         
+            let indexes:any = await pluginStore.get({ key: 'indexes' })
+            if (indexes && Array.isArray(indexes)) {
+                let foundIndexNumber = indexes.findIndex( (x:any) => x.uuid === indexUUID)
+
+
+                // DELETE FROM ELASTICSEARCH:
+                if (indexes[foundIndexNumber] && deleteIndexInElasticsearch) {
+                    let work2 = await esInterface.deleteIndex(indexes[foundIndexNumber].index_name)
                 }
+
+                indexes.splice(foundIndexNumber, 1)
             }
-            console.log("SPE - deleteIndex, 444")
-
-            const entry = await strapi.entityService.delete('plugin::esplugin.registered-index', recordIndexNumber)
-            console.log("SPE - deleteIndex, 444bbb", entry)
-
-            // DELETE FROM ELASTICSEARCH:
-            if (work && deleteIndexInElasticsearch) {
-                console.log("SPE - deleteIndex, 555")
-                console.log("SPE - deleteIndex, deleteIndexInElasticsearch", deleteIndexInElasticsearch)
-                let work2 = await esInterface.deleteIndex(work.index_name)
-                console.log("SPE - deleteIndex, deleteIndexInElasticsearch work: ", work2)
+            if (indexes.length === 0) {
+                indexes = null
             }
-            console.log("SPE - deleteIndex, 666")
+            await pluginStore.set({ key: 'indexes', value: indexes })
+            // -------------------------------------------
 
-            return entry
+            // DB paradigm
+            // const entry = await strapi.entityService.delete('plugin::esplugin.registered-index', indexUUID)
+
+            
+            // if (work && deleteIndexInElasticsearch) {
+            //     console.log("SPE - deleteIndex, 555")
+            //     console.log("SPE - deleteIndex, deleteIndexInElasticsearch", deleteIndexInElasticsearch)
+            //     let work2 = await esInterface.deleteIndex(work.index_name)
+            //     console.log("SPE - deleteIndex, deleteIndexInElasticsearch work: ", work2)
+            // }
+            // console.log("SPE - deleteIndex, 666")
+
+            return "Done"
 
         } catch(err) {
             console.log('SPE - deleteIndex: An error has encountered', err)
@@ -146,8 +243,7 @@ export default ({ strapi }) => ({
     },
 
 
-    async createESindex(indexID) {
-        const helper = strapi.plugins['esplugin'].services.helper
+    async createESindex(indexUUID) {
         const esInterface = strapi.plugins['esplugin'].services.esInterface
         const indexesService = strapi.plugins['esplugin'].services.indexes
         try {
@@ -157,9 +253,7 @@ export default ({ strapi }) => ({
 
             // Step 1: Create a new index
             //const newIndexName = await helper.getIncrementedIndexName()
-            console.log('SPE - createESindex 111 - Created new index with name:', indexID)
-            let index = await indexesService.getIndex(indexID)
-            console.log('SPE - createESindex 222 - index:', index)
+            let index = await indexesService.getIndex(indexUUID)
             if (index) {
                 let workNewESIndex = await esInterface.createIndex(index.index_name)
                 return workNewESIndex

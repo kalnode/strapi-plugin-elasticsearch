@@ -30,12 +30,12 @@ const App = () => {
             <Route path={`/plugins/${pluginId}/home`} component={Homepage} exact />
 
             <Route path={`/plugins/${pluginId}/indexes`} component={Indexes} exact />
-            <Route path={`/plugins/${pluginId}/indexes/:indexId`} component={Index} exact />
-            <Route path={`/plugins/${pluginId}/indexes/:indexId/mappings`} component={IndexMappings} exact />
-            <Route path={`/plugins/${pluginId}/indexes/:indexId/mappings/:mappingId`} component={IndexMapping} exact />
+            <Route path={`/plugins/${pluginId}/indexes/:indexUUID`} component={Index} exact />
+            <Route path={`/plugins/${pluginId}/indexes/:indexUUID/mappings`} component={IndexMappings} exact />
+            <Route path={`/plugins/${pluginId}/indexes/:indexUUID/mappings/:mappingUUID`} component={IndexMapping} exact />
 
             <Route path={`/plugins/${pluginId}/mappings`} component={Mappings} exact />
-            <Route path={`/plugins/${pluginId}/mappings/:mappingId`} component={Mapping} exact />
+            <Route path={`/plugins/${pluginId}/mappings/:mappingUUID`} component={Mapping} exact />
 
             <Route path={`/plugins/${pluginId}/tools`} component={Tools} />
 

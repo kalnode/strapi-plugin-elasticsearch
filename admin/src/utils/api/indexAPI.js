@@ -1,7 +1,7 @@
 import { apiUpdateIndex } from '../apiUrls'
 import { convertEmptyStringsToNulls } from '../convertEmptyStringsToNulls'
 import axiosInstance from '../axiosInstance'
-export const requestUpdateIndex = async (indexId, payload) => {
+export const requestUpdateIndex = async (indexUUID, payload) => {
 
     let payloadFinal = payload
 
@@ -13,7 +13,7 @@ export const requestUpdateIndex = async (indexId, payload) => {
 
     console.log("requestUpdateIndex: payload", payloadFinal)
 
-    return await axiosInstance.post(apiUpdateIndex(indexId), {
+    return await axiosInstance.post(apiUpdateIndex(indexUUID), {
         data: payloadFinal
     })
     .then( (response) => {

@@ -39,7 +39,7 @@ import { Pencil, Trash, ExclamationMarkCircle, Plus } from '@strapi/icons'
 //     }
 // }
 
-export const Mapping = ({ indexId, mappingId }) => {
+export const Mapping = ({ indexUUID, mappingUUID }) => {
 
     // ===============================
     // GENERAL
@@ -50,7 +50,7 @@ export const Mapping = ({ indexId, mappingId }) => {
     const [posttypeFinal, setPosttypeFinal] = useState(null)
     const [mappingRaw, setMappingRaw] = useState(null)
     const [mapping, setMapping] = useState(null)
-    const mappingIdComputed = useRef((mappingId && mappingId === 'new') || !mappingId ? null : mappingId)
+    const mappingUUIDComputed = useRef((mappingUUID && mappingUUID === 'new') || !mappingUUID ? null : mappingUUID)
     const history = useHistory()
     const showNotification = useNotification()
 
@@ -67,10 +67,10 @@ export const Mapping = ({ indexId, mappingId }) => {
 
     const requestGetMapping = async () => {
 
-        if (mappingId) {
+        if (mappingUUID) {
 
             setIsInProgress(true)
-            let work = await axiosInstance.get(apiGetMapping(mappingId))
+            let work = await axiosInstance.get(apiGetMapping(mappingUUID))
             .then( (response) => {
                 if (response.data) {
                     return response.data
@@ -131,33 +131,15 @@ export const Mapping = ({ indexId, mappingId }) => {
     const requestCreateMapping = async () => {
         setIsInProgress(true)
 
-        if (mapping) {
+        if (mapping && !mapping.uuid) {
 
-            let output = {...mapping}
+            let output = mapping
 
-            if (indexId) {
-                output.indexes = [ indexId ]
+            if (indexUUID) {
+                output.indexes = [ indexUUID ]
             } else {
                 output.preset = true
             }
-
-            // let workGetIndex = await axiosInstance.get(apiGetIndex(indexId))
-            // .then( (response) => {
-            //     console.log("get requestGetIndex 111: ", response)
-            //     if (response.data) {
-            //         return response.data
-            //     }
-            // })
-            // .catch((error) => {
-            //     console.log("PAGE requestGetIndex ERROR: ", error)
-            //     showNotification({
-            //         type: "warning", message: "An error has encountered: " + error, timeout: 5000
-            //     })
-            // })
-
-            // console.log(workGetIndex)
-
-            //output.indexes = [workGetIndex]
 
             await axiosInstance.post(apiCreateMapping, {
                 data: output
@@ -169,8 +151,8 @@ export const Mapping = ({ indexId, mappingId }) => {
                 setMappingRaw(work)
                 setMapping(work)
 
-                if (indexId) {
-                    await history.replace(`/plugins/${pluginId}/indexes/${indexId}/mappings/${response.data.uuid}`)
+                if (indexUUID) {
+                    await history.replace(`/plugins/${pluginId}/indexes/${indexUUID}/mappings/${response.data.uuid}`)
 
                 } else {
                     await history.replace(`/plugins/${pluginId}/mappings/${response.data.uuid}`)
@@ -202,9 +184,6 @@ export const Mapping = ({ indexId, mappingId }) => {
             // showNotification({
             //     type: "success", message: "Created the mapping: " + response, timeout: 5000
             // })
-            console.log("Update response is 111 ", response.data)
-            console.log("Update response is 222 mapping", mapping)
-            console.log("Update response is 333 mappingRaw", mappingRaw)
             setMapping(response.data)
             setMappingRaw(response.data)
         })
@@ -228,7 +207,7 @@ export const Mapping = ({ indexId, mappingId }) => {
         let work = {
             "post_type": posttype,
             "mapping": {},
-            //"registered_index": indexId ? indexId : undefined
+            //"registered_index": indexUUID ? indexUUID : undefined
             //"preset": 'dfdf'
             //"nested_level": 2
             //"registered_index": 'someregindex'
@@ -243,12 +222,8 @@ export const Mapping = ({ indexId, mappingId }) => {
 
     const updateFieldActive = async (key) => {
 
-        console.log("updateFieldActive 111 mappingRaw: ", mappingRaw)
-        console.log("updateFieldActive 222 mapping: ", mapping)
-        console.log("updateFieldActive 333 key: ", key)
         let output = {}
         if (mapping) {
-            console.log("updateFieldActive 444", mapping)
 
             // TODO: This seems really stupid, but need to deep clone here otherwise strange reactivity occurs.
             // e.g. without this deep clone, mappingRaw gets updated, even though we don't touch it in this func!
@@ -256,19 +231,15 @@ export const Mapping = ({ indexId, mappingId }) => {
             output = JSON.parse(JSON.stringify(mapping))
 
             if (output.mapping[key]) {
-                console.log("updateFieldActive 555", mapping)
                 delete output.mapping[key]
             } else {
-                console.log("updateFieldActive 666", mapping)
                 output.mapping[key] = {}
             }
         } else {
-            console.log("updateFieldActive 777", mapping)
             output.mapping = {}
             output.mapping[key] = {}
         }
 
-        console.log("updateFieldActive 888", output)
         setMapping(output)
     }
 
@@ -308,7 +279,7 @@ export const Mapping = ({ indexId, mappingId }) => {
     // ===============================
 
     useEffect(() => {
-        if (mappingId && mappingId != 'new') {
+        if (mappingUUID && mappingUUID != 'new') {
             requestGetMapping()
         }
     }, [])
@@ -326,7 +297,7 @@ export const Mapping = ({ indexId, mappingId }) => {
                 <Flex width="100%" justifyContent="space-between">
                     <Box>
                         <Box>
-                            <Typography variant="alpha">{ mappingId && mappingId != 'new' ? 'Mapping ' + mappingId : indexId ? 'Create Mapping' : 'Create Preset Mapping'}</Typography>
+                            <Typography variant="alpha">{ mappingUUID && mappingUUID != 'new' ? 'Mapping ' + mappingUUID : indexUUID ? 'Create Mapping' : 'Create Preset Mapping'}</Typography>
                         </Box>
 
                         { posttypeFinal && (
@@ -337,7 +308,7 @@ export const Mapping = ({ indexId, mappingId }) => {
                         )}
                     </Box>
 
-                    { mappingId && mappingId != 'new' && (
+                    { mappingUUID && mappingUUID != 'new' && (
                         <Flex gap={4}>
                             
                             { changesExist && (
@@ -356,14 +327,14 @@ export const Mapping = ({ indexId, mappingId }) => {
                         </Flex>
                     )}
 
-                    { (!mappingId || mappingId === 'new') && posttypeFinal && (
+                    { (!mappingUUID || mappingUUID === 'new') && posttypeFinal && (
                         <Button onClick={() => requestCreateMapping()} variant="secondary">
-                            { indexId ? 'Save New Mapping' : 'Save New Preset Mapping' }
+                            { indexUUID ? 'Save New Mapping' : 'Save New Preset Mapping' }
                         </Button>
                     )}
                 </Flex>
 
-                { (!mappingId || mappingId === 'new') && !posttypeFinal && (
+                { (!mappingUUID || mappingUUID === 'new') && !posttypeFinal && (
                     <Box width="100%">
                         <Table colCount={2} rowCount={contentTypes.length} width="100%">
                         {/* footer={<TFooter icon={<Plus />}>Add another field to this collection type</TFooter>} */}
