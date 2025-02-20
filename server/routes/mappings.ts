@@ -54,6 +54,8 @@ export default {
             path: '/detach-mapping',
             handler: 'mappings.detachMapping',
             config: { policies: [] }
-        },
+        }
+
+        
     ]    
 }

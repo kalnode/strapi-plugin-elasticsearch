@@ -175,6 +175,27 @@ export default ({ strapi }) => ({
         }
     },
 
+    async getMapping(indexName) {
+
+        // NOTE: New new mappings can be added to an index.
+        // or some properties of existing mappings.
+        // However you cannot change the mapping itself for an existing index.
+
+        if (!client) {
+            return false
+        }
+
+        try {
+            console.log("ES getMapping 111", indexName)
+            let work = await client.indices.getMapping({ index: indexName })
+            console.log("ES getMapping 222", work)
+            return work
+        } catch (error) {
+            console.error('SPE - getMapping error', error)
+            return false
+        }
+    },
+
     async updateMapping({indexName, mapping}) {
 
         // NOTE: New new mappings can be added to an index.

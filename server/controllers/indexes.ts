@@ -57,9 +57,16 @@ export default ({ strapi }) => {
     }
 
     const createESindex = async (ctx) => {
-        const { body } = ctx.request
         try {
             return await indexes.createESindex(ctx.params.indexUUID)
+        } catch (err) {
+            ctx.throw(500, err)
+        }
+    }
+
+    const getESMapping = async (ctx) => {
+        try {
+            return await indexes.getESMapping(ctx.params.indexUUID)
         } catch (err) {
             ctx.throw(500, err)
         }
@@ -72,6 +79,7 @@ export default ({ strapi }) => {
         createIndex,
         deleteIndex,
         updateIndex,
-        createESindex
+        createESindex,
+        getESMapping
     }
 }

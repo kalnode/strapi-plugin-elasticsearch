@@ -48,6 +48,12 @@ export default {
             path: '/index-records/:indexUUID',
             handler: 'performIndexing.indexRecordsNEW',
             config: { policies: [] }
-        }
+        },
+        {
+            method: 'GET',
+            path: '/get-es-mapping/:indexUUID',
+            handler: 'indexes.getESMapping',
+            config: { policies: [] }
+        },
     ]    
 }

@@ -36,8 +36,11 @@ export const apiCreateMapping = `/${pluginId}/create-mapping`
 export const apiUpdateMapping = (mappingUUID) => `/${pluginId}/update-mapping/${mappingUUID}`
 export const apiDeleteMapping = (mappingUUID) => `/${pluginId}/delete-mapping/${mappingUUID}`
 export const apiDetachMappingFromIndex = `/${pluginId}/detach-mapping`
-
+export const apiGetESMapping = (indexUUID) => `/${pluginId}/get-es-mapping/${indexUUID}`
 export const apiGetContentTypes = `/${pluginId}/get-content-types`
+
+
+
 
 export const apiGetCollectionConfig = (collectionName) => `/${pluginId}/collection-config/${collectionName}`
 export const apiSaveCollectionConfig = (collectionName) => `/${pluginId}/collection-config/${collectionName}`

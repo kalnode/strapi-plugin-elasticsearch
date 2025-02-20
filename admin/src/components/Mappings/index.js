@@ -6,13 +6,16 @@
 
 import { useEffect, useRef, useState } from 'react'
 import pluginId from '../../pluginId'
-import { Box, Flex, Button, ModalLayout, ModalHeader, Link, ModalFooter, ModalBody, Table, Thead, Tbody, Tr, Td, Th, TFooter, EmptyStateLayout, Checkbox, TextInput, IconButton, CaretDown, Typography } from '@strapi/design-system'
+import { Box, Flex, Button, ModalLayout, ModalHeader, Link, ModalFooter, ModalBody, Table, Thead, Tbody, Tr, Td, Th, TFooter, EmptyStateLayout, Checkbox, TabGroup, Tabs, Tab, TabPanels, TabPanel, TextInput, IconButton, CaretDown, Typography } from '@strapi/design-system'
 import { Pencil, Trash, Refresh, Plus, Cross } from '@strapi/icons'
-import { apiGetMappings, apiDeleteMapping, apiDetachMappingFromIndex } from '../../utils/apiUrls'
+import { apiGetMappings, apiDeleteMapping, apiDetachMappingFromIndex, apiGetESMapping } from '../../utils/apiUrls'
 import axiosInstance  from '../../utils/axiosInstance'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 import { useParams, useHistory } from 'react-router-dom'
 import { requestUpdateIndex } from '../../utils/api/indexAPI'
+import { JSONTree } from 'react-json-tree'
+// import { JsonView, allExpanded, darkStyles, defaultStyles } from 'react-json-view-lite'
+// import 'react-json-view-lite/dist/index.css'
 
 export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappingHasBeenSelected }) => {
 
@@ -24,39 +27,41 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
     const [mappings, setMappings] = useState(null)
     const history = useHistory()
     const showNotification = useNotification()
+    const [ESMapping, setESMapping] = useState(null)
 
     useEffect(() => {
         requestGetMappings()
+        requestGetESMapping()
     }, [])
 
     const requestGetMappings = () => {
         setIsInProgress(true)
 
         axiosInstance.get(apiGetMappings(indexUUID))
-            .then((response) => {
-                if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+        .then((response) => {
+            if (response.data && Array.isArray(response.data) && response.data.length > 0) {
 
-                    // TODO: Legacy idea here of "preset", however if mappings are not binded to indexes, then they're _all_ presets, in theory.
-                    // Keeping for now.
-                    if (showOnlyPresets) {
-                        setMappings(response.data.filter( (x) => x.preset))
-                    } else {
-                        setMappings(response.data)
-                    }
-
+                // TODO: Legacy idea here of "preset", however if mappings are not binded to indexes, then they're _all_ presets, in theory.
+                // Keeping for now.
+                if (showOnlyPresets) {
+                    setMappings(response.data.filter( (x) => x.preset))
                 } else {
-                    setMappings(null)
+                    setMappings(response.data)
                 }
+
+            } else {
+                setMappings(null)
+            }
+        })
+        .catch((error) => {
+            console.log("PAGE MAPPINGS - requestGetMappings ERROR: ", error)
+            showNotification({
+                type: "warning", message: "An error has encountered: " + error, timeout: 5000
             })
-            .catch((error) => {
-                console.log("PAGE MAPPINGS - requestGetMappings ERROR: ", error)
-                showNotification({
-                    type: "warning", message: "An error has encountered: " + error, timeout: 5000
-                })
-            })
-            .finally(() => {
-                setIsInProgress(false)
-            })
+        })
+        .finally(() => {
+            setIsInProgress(false)
+        })
     }
 
     const requestDeleteMapping = (e, mapping) => {
@@ -73,15 +78,11 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
 
         // ONLY DETACH MAPPING FROM INDEX
         if (indexUUID && mapping.preset) {
-            console.log("Attempting to remove preset mapping from index")
-
-
-
             return axiosInstance.post(apiDetachMappingFromIndex, {
                 data: { mappingUUID: mapping.uuid, indexUUID: indexUUID }
             })
             .then((response) => {
-                console.log("Mapping detached from index: ", response)
+                // console.log("Mapping detached from index: ", response)
             })
             .catch((error) => {
                 console.log("PAGE MAPPINGS - apiDetachMappingFromIndex ERROR: ", error)
@@ -93,13 +94,11 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
                 requestGetMappings()
             })
 
-
-
         // HARD DELETE
         } else {
             return axiosInstance.get(apiDeleteMapping(mapping.uuid))
             .then((response) => {
-                console.log("Delete response is: ", response)
+                // console.log("Delete response is: ", response)
             })
             .catch((error) => {
                 console.log("PAGE MAPPINGS - requestDeleteMapping ERROR: ", error)
@@ -110,8 +109,7 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
             .finally(() => {
                 requestGetMappings()
             })
-        }
-        
+        }       
         
 
     }
@@ -144,8 +142,30 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
         }
     }
 
+    const requestGetESMapping = () => {
+        setIsInProgress(true)
+
+        axiosInstance.get(apiGetESMapping(indexUUID))
+        .then((response) => {
+            if (response.data) {
+                setESMapping(response.data)
+            } else {
+                setESMapping(null)
+            }
+        })
+        .catch((error) => {
+            console.log("PAGE MAPPINGS - requestGetMappings ERROR: ", error)
+            showNotification({
+                type: "warning", message: "An error has encountered: " + error, timeout: 5000
+            })
+        })
+        .finally(() => {
+            setIsInProgress(false)
+        })
+    }
+
     // ===============================
-    // SELECT MAPPING
+    // SELECT PRESET MAPPING
     // ===============================
     const [showSelectModal, setShowSelectModal] = useState(false)
 
@@ -156,21 +176,12 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
     const modalSelectPresetMappingClose = async (selectedPreset) => {
         setShowSelectModal(false)
         if (selectedPreset) {
-            console.log("modalSelectPresetMappingClose 111", indexUUID)
-            //index.mappings = [...index.mappings, selectedPreset]
-            console.log("modalSelectPresetMappingClose 222", selectedPreset)
-
             let payload = {}
-            console.log("modalSelectPresetMappingClose 333", mappings)
             if (mappings) {
-                console.log("modalSelectPresetMappingClose 444", mappings)
                 payload.mappings = [...mappings, selectedPreset]
             } else {
-                console.log("modalSelectPresetMappingClose 555", mappings)
                 payload.mappings = [selectedPreset]
             }
-            console.log("modalSelectPresetMappingClose 666", mappings)
-            console.log("modalSelectPresetMappingClose 777 is: ", payload)
             await requestUpdateIndex(indexUUID, payload)
             requestGetMappings()
         }
@@ -225,146 +236,240 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
 
             <Box width="100%" style={{ overflow: 'hidden' }}>
 
-                {/* EMPTY CONTENT */}
-                { (!mappings || (mappings && mappings.length === 0)) && (
-                    <EmptyStateLayout icon={<Cross />} content="You don't have any mappings yet..." action={
-                        <Flex gap={4}>
-                            { indexUUID && (
-                                <Link to={`/plugins/${pluginId}/indexes/${indexUUID}/mappings/new`}>
-                                    <Button variant="secondary" style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
-                                        Create Mapping
-                                    </Button>
-                                </Link>
-                            )}
-                            { !indexUUID && (
-                                <Link to={`/plugins/${pluginId}/mappings/new`}>
-                                    <Button variant="secondary" style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
-                                        Create Preset Mapping
-                                    </Button>
-                                </Link>
-                            )}
-                            { indexUUID && (
-                                <Button loading={isInProgress} variant="secondary"
-                                onClick={ () => modalSelectPresetMappingOpen() } style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
-                                    Add Preset Mapping
-                                </Button>
-                            )}
-                        </Flex>
-                    } />
-                ) }
-
                 {/* DISPLAY RECORDS  */}
-                { mappings && Array.isArray(mappings) && mappings.length > 0 && (
-                    <>
-                       <Table colCount={8} rowCount={mappings.length} width="100%">
-                        {/* footer={<TFooter icon={<Plus />}>Add another field to this collection type</TFooter>} */}
-                            <Thead>
-                                <Tr>
-                                    <Th>
-                                        <Checkbox aria-label="Select all entries" className="checkbox" />
-                                    </Th>
-                                    <Th>
-                                        <Typography variant="sigma">UUID</Typography>
-                                    </Th>
-                                    <Th>
-                                        <Typography variant="sigma">Post Type</Typography>
-                                    </Th>
-                                    <Th>
-                                        <Typography variant="sigma">Mapping</Typography>
-                                    </Th>
 
-                                    <Th>
-                                        <Typography variant="sigma">Preset</Typography>
-                                    </Th>
+                <TabGroup initialSelectedTabIndex={0}>
 
-                                    {/* <Th>
-                                        <Typography variant="sigma">Nested Level</Typography>
-                                    </Th> */}
+                    {/* -------- TABS ACTUAL ------------------*/}
+                    <Tabs>
+                        <Tab id="mappings">Mappings</Tab>
+                        <Tab id="raw">Raw Output</Tab>
+                        <Tab id="raw_es">Raw ES</Tab>
+                    </Tabs>
 
-                                    { !indexUUID && (
+                    <TabPanels>
+
+                        {/* -------- TAB: FIELDS ------------------*/}
+                        <TabPanel id="mappings">
+
+                            {/* EMPTY CONTENT */}
+                            { (!mappings || (mappings && mappings.length === 0)) && (
+                                <EmptyStateLayout icon={<Cross />} content="You don't have any mappings yet..." action={
+                                    <Flex gap={4}>
+                                        { indexUUID && (
+                                            <Link to={`/plugins/${pluginId}/indexes/${indexUUID}/mappings/new`}>
+                                                <Button variant="secondary" style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
+                                                    Create Mapping
+                                                </Button>
+                                            </Link>
+                                        )}
+                                        { !indexUUID && (
+                                            <Link to={`/plugins/${pluginId}/mappings/new`}>
+                                                <Button variant="secondary" style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
+                                                    Create Preset Mapping
+                                                </Button>
+                                            </Link>
+                                        )}
+                                        { indexUUID && (
+                                            <Button loading={isInProgress} variant="secondary"
+                                            onClick={ () => modalSelectPresetMappingOpen() } style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
+                                                Add Preset Mapping
+                                            </Button>
+                                        )}
+                                    </Flex>
+                                } />
+                            ) }
+
+                            { mappings && Array.isArray(mappings) && mappings.length > 0 && (
+                            <>
+
+                            <Table colCount={8} rowCount={mappings.length} width="100%">
+                                {/* footer={<TFooter icon={<Plus />}>Add another field to this collection type</TFooter>} */}
+                                <Thead>
+                                    <Tr>
                                         <Th>
-                                            <Typography variant="sigma">Preset Default</Typography>
+                                            <Checkbox aria-label="Select all entries" className="checkbox" />
                                         </Th>
-                                    )}
-
-                                    { !indexUUID && (
                                         <Th>
-                                            <Typography variant="sigma">Index(s)</Typography>
+                                            <Typography variant="sigma">UUID</Typography>
                                         </Th>
-                                    )}
-                                </Tr>
-                            </Thead>
-                            <Tbody>
-                            { mappings.map((mapping, index) => {
-                                return (
-                                    <Tr key={index} className="row" onClick={() => handleRowClick(mapping.uuid) }>
-                                        <Td>
-                                            <Checkbox aria-label={`Select ${mapping.uuid}`} className="checkbox" />
-                                        </Td>
-                                        <Td style={{ overflow: 'hidden' }}>
-                                            <Typography textColor="neutral600">{mapping.uuid}</Typography>
-                                        </Td>
-                                        <Td style={{ overflow: 'hidden' }}>
-                                            <Typography textColor="neutral600">{mapping.post_type}</Typography>
-                                        </Td>
-                                        <Td style={{ overflow: 'hidden', maxWidth: '200px' }}>
-                                            <Typography textColor="neutral600">{mapping.mapping}</Typography>
-                                        </Td>
-                                        <Td>
-                                            <Typography textColor="neutral600">{mapping.preset ? 'Yes' : '' }</Typography>
-                                        </Td>
-                                        {/* <Td>
-                                            <Typography textColor="neutral600">{data.nested_level}</Typography>
-                                        </Td> */}
+                                        <Th>
+                                            <Typography variant="sigma">Post Type</Typography>
+                                        </Th>
+                                        <Th>
+                                            <Typography variant="sigma">Mapping</Typography>
+                                        </Th>
+
+                                        <Th>
+                                            <Typography variant="sigma">Preset</Typography>
+                                        </Th>
+
+                                        {/* <Th>
+                                            <Typography variant="sigma">Nested Level</Typography>
+                                        </Th> */}
 
                                         { !indexUUID && (
-                                            <Td>
-                                                <Typography textColor="neutral600">{mapping.default_preset}</Typography>
-                                            </Td>
+                                            <Th>
+                                                <Typography variant="sigma">Preset Default</Typography>
+                                            </Th>
                                         )}
 
                                         { !indexUUID && (
-                                            <Td>
-                                                    {/* TODO: Re-introduce displaying what indexes the mapping belongs to */}
-                                                    {/* { data.indexes && data.indexes.length > 0 && (
-                                                        <>
-                                                        { data.indexes.map((item, indexItem) => {
-                                                                return (
-                                                                    <Box key={indexItem}>
-                                                                        <Link onClick={(e) => { requestGoToIndex(e, item.uuid) } } key={indexItem}>
-                                                                            { item.uuid }
-                                                                        </Link>                                                                    
-                                                                        { indexItem != data.indexes.length && (
-                                                                            <>&nbsp;</>
-                                                                        ) }
-                                                                    </Box>
-                                                                )
-                                                            })
-                                                        }
-                                                        </>
-                                                    )} */}
-                                            </Td>
+                                            <Th>
+                                                <Typography variant="sigma">Index(s)</Typography>
+                                            </Th>
                                         )}
-
-                                        <Td>
-                                            <Flex alignItems="end" gap={2}>
-                                                <IconButton label="Edit mapping" noBorder icon={<Pencil />} onClick={(e) => requestEditMapping(e, mapping.uuid) } />
-
-                                                { !modeOnlySelection && (
-                                                    <IconButton onClick={(e) => requestDeleteMapping(e, mapping)} label="Delete" borderWidth={0} icon={<Trash />} />
-                                                )}
-                                            </Flex>
-                                        </Td>
                                     </Tr>
-                                )
-                            }) }
-                            </Tbody>
-                        </Table>
-                        <Box paddingTop={2} paddingBottom={2}>
-                            <Typography textColor="neutral600">List of mappings</Typography>
-                        </Box> 
-                    </>
-                ) }
+                                </Thead>
+                                <Tbody>
+                                { mappings.map((mapping, index) => {
+                                    return (
+                                        <Tr key={index} className="row" onClick={() => handleRowClick(mapping.uuid) }>
+                                            <Td>
+                                                <Checkbox aria-label={`Select ${mapping.uuid}`} className="checkbox" />
+                                            </Td>
+                                            <Td style={{ overflow: 'hidden' }}>
+                                                <Typography textColor="neutral600">{mapping.uuid}</Typography>
+                                            </Td>
+                                            <Td style={{ overflow: 'hidden' }}>
+                                                <Typography textColor="neutral600">{mapping.post_type}</Typography>
+                                            </Td>
+                                            <Td style={{ overflow: 'hidden', maxWidth: '200px' }}>
+                                                <Typography textColor="neutral600">{mapping.mapping}</Typography>
+                                            </Td>
+                                            <Td>
+                                                <Typography textColor="neutral600">{mapping.preset ? 'Yes' : '' }</Typography>
+                                            </Td>
+                                            {/* <Td>
+                                                <Typography textColor="neutral600">{data.nested_level}</Typography>
+                                            </Td> */}
+
+                                            { !indexUUID && (
+                                                <Td>
+                                                    <Typography textColor="neutral600">{mapping.default_preset}</Typography>
+                                                </Td>
+                                            )}
+
+                                            { !indexUUID && (
+                                                <Td>
+                                                        {/* TODO: Re-introduce displaying what indexes the mapping belongs to */}
+                                                        {/* { data.indexes && data.indexes.length > 0 && (
+                                                            <>
+                                                            { data.indexes.map((item, indexItem) => {
+                                                                    return (
+                                                                        <Box key={indexItem}>
+                                                                            <Link onClick={(e) => { requestGoToIndex(e, item.uuid) } } key={indexItem}>
+                                                                                { item.uuid }
+                                                                            </Link>                                                                    
+                                                                            { indexItem != data.indexes.length && (
+                                                                                <>&nbsp;</>
+                                                                            ) }
+                                                                        </Box>
+                                                                    )
+                                                                })
+                                                            }
+                                                            </>
+                                                        )} */}
+                                                </Td>
+                                            )}
+
+                                            <Td>
+                                                <Flex alignItems="end" gap={2}>
+                                                    <IconButton label="Edit mapping" noBorder icon={<Pencil />} onClick={(e) => requestEditMapping(e, mapping.uuid) } />
+
+                                                    { !modeOnlySelection && (
+                                                        <IconButton onClick={(e) => requestDeleteMapping(e, mapping)} label="Delete" borderWidth={0} icon={<Trash />} />
+                                                    )}
+                                                </Flex>
+                                            </Td>
+                                        </Tr>
+                                    )
+                                }) }
+                                </Tbody>
+                            </Table>
+                            <Box paddingTop={2} paddingBottom={2}>
+                                <Typography textColor="neutral600">List of mappings</Typography>
+                            </Box>
+                       
+                            </>
+                            ) }
+
+                        </TabPanel>
+
+                        {/* -------- TAB: RAW OUTPUT ------------------*/}
+                        <TabPanel id="raw">
+                            { mappings && Array.isArray(mappings) && mappings.length > 0 && (
+                            <>
+                            <Box padding={4} background="neutral0" shadow="filterShadow">
+                                <Typography variant="beta">Preview raw output</Typography>
+                                <Box marginTop={2}>
+                                    <Typography variant="delta">
+                                        This is what the raw mapping output will look like when applied to an index Elasticsearch instance.
+                                        Keep in mind, in that ES index, you may see other fields if additional mappings have been applied to it.
+                                    </Typography>
+                                </Box>
+                                <Box padding={8} marginTop={4} background="secondary100">
+                                    raw mappings output
+                                    {/* { !mapping || (mapping && !mapping.mapping) && (
+                                        <>(Please apply some mappings)</>
+                                    )}
+                                    { mapping && mapping.mapping && (
+                                        <pre>{ JSON.stringify(mapping.mapping, null, 8) }</pre>
+                                    )} */}
+                                </Box>
+                            </Box>
+                            </>
+                            ) }
+                        </TabPanel>
+
+
+                        {/* -------- TAB: ES MAPPING ------------------*/}
+                        <TabPanel id="raw_es">
+                            <Box padding={4} background="neutral0" shadow="filterShadow">
+                                <Typography variant="beta">Mapping currently applied to ES Index</Typography>
+                                <Box marginTop={2}>
+                                    <Typography variant="delta">
+                                        The current mapping as it exists on the ES index.
+                                    </Typography>
+                                </Box>
+                                <Box marginTop={4} background="secondary100">
+                                    { !ESMapping && (
+                                        <>(No mapping found on ES index)</>
+                                    )}
+                                    { ESMapping && (
+                                        // <pre>{ JSON.stringify(Object.values(ESMapping)[0].mappings.properties, null, 8) }</pre>
+
+                                        <JSONTree data={Object.values(ESMapping)[0].mappings.properties} theme={{
+                                            scheme: 'default',
+                                            author: 'chris kempson (http://chriskempson.com)',
+                                            base00: '#181818',
+                                            base01: '#282828',
+                                            base02: '#383838',
+                                            base03: '#585858',
+                                            base04: '#b8b8b8',
+                                            base05: '#d8d8d8',
+                                            base06: '#e8e8e8',
+                                            base07: '#f8f8f8',
+                                            base08: '#ab4642',
+                                            base09: '#dc9656',
+                                            base0A: '#f7ca88',
+                                            base0B: '#a1b56c',
+                                            base0C: '#86c1b9',
+                                            base0D: '#7cafc2',
+                                            base0E: '#ba8baf',
+                                            base0F: '#a16946'
+                                          }} invertTheme={true} />
+                                        // <JsonView data={Object.values(ESMapping)[0].mappings.properties} />
+                                    )}
+                                </Box>
+                            </Box>
+                        </TabPanel>
+
+                    </TabPanels>
+                </TabGroup>
+
+
+
             </Box>
 
             { showSelectModal && (

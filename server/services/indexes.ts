@@ -267,6 +267,33 @@ export default ({ strapi }) => ({
             return err
         }
 
+    },
+
+
+    async getESMapping(indexUUID) {
+        const esInterface = strapi.plugins['esplugin'].services.esInterface
+        const indexesService = strapi.plugins['esplugin'].services.indexes
+        try {
+
+            //const oldIndexName = await helper.getCurrentIndexName()
+            //console.log('SPE - createIndex 222 - Previous index name:', oldIndexName)
+
+            // Step 1: Create a new index
+            //const newIndexName = await helper.getIncrementedIndexName()
+            let index = await indexesService.getIndex(indexUUID)
+            if (index) {
+                let work = await esInterface.getMapping(index.index_name)
+                return work
+            }
+
+            return
+
+        } catch(err) {
+            console.log('SPE - getESMapping: An error was encountered')
+            console.log(err)
+            return err
+        }
+
     }
 
 

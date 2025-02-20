@@ -27,8 +27,12 @@
     "@strapi/design-system": "^1.6.3",
     "@strapi/helper-plugin": "^4.6.0",
     "@strapi/icons": "^1.6.3",
+    "jjsontree.js": "^4.7.0",
+    "js-treeview": "^1.1.5",
     "markdown-to-txt": "^2.0.1",
-    "prop-types": "^15.7.2"
+    "prop-types": "^15.7.2",
+    "react-json-tree": "^0.19.0",
+    "react-json-view-lite": "^2.3.0"
   },
   "devDependencies": {
     "@strapi/typescript-utils": "^4.6.0",
