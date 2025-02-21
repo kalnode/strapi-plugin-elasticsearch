@@ -1,3 +1,10 @@
+/**
+ *
+ * PAGE: Index mappings
+ * View/edit mappings associated with a registered index
+ * 
+ */
+
 import { useParams } from 'react-router-dom'
 import { SubNavigation } from '../../components/SubNavigation'
 import { Grid, Box, Breadcrumbs, Crumb, Link } from '@strapi/design-system'
@@ -6,7 +13,7 @@ import pluginId from '../../pluginId'
 
 const PageIndexMappings = () => {
 
-    const params = useParams()
+    const params = useParams<{ indexUUID: string }>()
 
     return (
         <Grid gap={4} alignItems="stretch" style={{ gridTemplateColumns: 'auto 1fr' }}>
@@ -23,7 +30,7 @@ const PageIndexMappings = () => {
                     </Breadcrumbs>
 
                     <Box width='100%' overflow='hidden'>
-                        <Mappings indexUUID={params.indexUUID} />
+                        <Mappings indexUUID={params.indexUUID} showOnlyPresets={undefined} modeOnlySelection={undefined} mappingHasBeenSelected={undefined} />
                     </Box>
 
                 </Box>

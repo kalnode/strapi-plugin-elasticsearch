@@ -1,3 +1,10 @@
+/**
+ *
+ * PAGE: Misc plugin tools
+ * For now, holds orphan-checking tool
+ * 
+ */
+
 import { useState } from 'react'
 import  { SubNavigation } from '../../components/SubNavigation'
 import { Box, Flex, Button, Typography } from '@strapi/design-system'

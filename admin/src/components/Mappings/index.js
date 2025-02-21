@@ -14,8 +14,6 @@ import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 import { useParams, useHistory } from 'react-router-dom'
 import { requestUpdateIndex } from '../../utils/api/indexAPI'
 import { JSONTree } from 'react-json-tree'
-// import { JsonView, allExpanded, darkStyles, defaultStyles } from 'react-json-view-lite'
-// import 'react-json-view-lite/dist/index.css'
 
 export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappingHasBeenSelected }) => {
 

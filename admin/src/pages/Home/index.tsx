@@ -1,10 +1,14 @@
-import { useState, useEffect } from 'react'
+/**
+ *
+ * PAGE: Home
+ * 
+ */
 
+import { useState, useEffect } from 'react'
 import { SubNavigation } from '../../components/SubNavigation'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 import { Refresh } from '@strapi/icons'
 import { Box, Flex, Switch, ToggleInput, RadioGroup, Radio, Tab, TwoColsLayout, Button, IconButton, Table, Tr, Td, Grid, GridItem, Divider, Checkbox, ContentLayout, Container, ActionLayout, Layout, Link, Option, Select, Typography } from '@strapi/design-system';
-
 import axiosInstance  from '../../utils/axiosInstance'
 import { apiGetSystemInfo, apiForceRebuildIndex, apiTriggerIndexing, apiIndexingEnabled, apiToggleIndexingEnabled, apiToggleUseNewPluginParadigmEnabled, apiInstantIndexing, apiToggleInstantIndexing } from '../../utils/apiUrls'
 
@@ -29,7 +33,7 @@ const PageHome = () => {
     const [IndexingMode, setIndexingMode] = useState(false)
     const showNotification = useNotification()
 
-    const displayLabels = {
+    const displayLabels: { [key: string]: string } = {
         'connected': 'Connected',
         'elasticCertificate': 'Certificate',
         'elasticHost': 'Elasticsearch host',
@@ -43,7 +47,7 @@ const PageHome = () => {
     // FUNCTIONS
     // =========================
 
-    const reloadSystemInfo = (showNotificationAfter) => {
+    const reloadSystemInfo = (showNotificationAfter?: boolean) => {
         setIsInProgress(true)
         loadSystemInfo()
         .then(setSystemInfo)
@@ -281,10 +285,10 @@ const PageHome = () => {
                                             return (
                                                 <Flex key={idx} gap={2} justifyBetween>
                                                     <Box>
-                                                        <Typography textColor="neutral600">{displayLabels[k]} :</Typography>
+                                                        <Typography textColor="neutral600">{ displayLabels[k] }:</Typography>
                                                     </Box>
                                                     <Box>
-                                                        <Typography textColor="neutral600">{String(setupInfo[k])}</Typography>
+                                                        <Typography textColor="neutral600">{ String(setupInfo[k]) }</Typography>
                                                     </Box>                                            
                                                 </Flex>
                                             )

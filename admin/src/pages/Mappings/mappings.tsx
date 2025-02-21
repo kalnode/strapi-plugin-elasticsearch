@@ -1,24 +1,30 @@
+/**
+ *
+ * PAGE: Registered mappings
+ * View/edit registered mappings
+ * 
+ */
+
 import { SubNavigation } from '../../components/SubNavigation'
-import { ComponentIndexes } from '../../components/Indexes' // TODO: For some reason, "Indexes" as component name fails, but "ComponentIndexes" works.
+import { Mappings } from '../../components/Mappings'
 import { Grid, Box, Breadcrumbs, Crumb } from '@strapi/design-system'
 import '../../styles/styles.css'
 
-const PageIndexes = () => {
+const PageMappings = () => {
     return (
         <Grid gap={4} alignItems="stretch" style={{ gridTemplateColumns: 'auto 1fr' }}>
             <SubNavigation />
             <Box padding={8} background="neutral100" overflow='hidden'>
 
                 <Breadcrumbs label="Extra navigation">
-                    <Crumb>Indexes</Crumb>
+                    <Crumb>Mappings</Crumb>
                     {/* isCurrent */}
                 </Breadcrumbs>
 
-                <ComponentIndexes />
-
-            </Box>
+                <Mappings indexUUID={undefined} showOnlyPresets={undefined} modeOnlySelection={undefined} mappingHasBeenSelected={undefined} />
+            </Box>        
         </Grid>
     )
 }
 
-export default PageIndexes
+export default PageMappings

@@ -16,7 +16,7 @@ export default {
                 defaultMessage: 'ES Plugin'
             },
             Component: async () => {
-                const component = await import(/* webpackChunkName: "[request]" */ './pages/App')
+                const component = await import(/* webpackChunkName: "[request]" */ './pages')
                 return component
             },
             permissions: [
