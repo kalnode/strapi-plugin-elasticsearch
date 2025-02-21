@@ -15,6 +15,8 @@ import { getTypefromStrapiID } from '../../utils/getTypefromStrapiID'
 import { useHistory } from "react-router-dom"
 import { Pencil, Trash, ExclamationMarkCircle, Plus } from '@strapi/icons'
 
+import * as Types from "../../../../types"
+
 // LEGACY HARDCODED MAPPINGS, for reference.
 // TODO: Delete when ready to.
 // mappings: {
@@ -39,40 +41,51 @@ import { Pencil, Trash, ExclamationMarkCircle, Plus } from '@strapi/icons'
 //     }
 // }
 
-export const Mapping = ({ indexUUID, mappingUUID }) => {
+type Props = {
+    mappingUUID: string
+    indexUUID?: string
+}
+
+export const Mapping = ({ mappingUUID, indexUUID }:Props) => {
 
     // ===============================
     // GENERAL
     // ===============================
 
     const [isInProgress, setIsInProgress] = useState(false)
-    const [contentTypes, setContentTypes] = useState(null)
-    const [posttypeFinal, setPosttypeFinal] = useState(null)
-    const [mappingRaw, setMappingRaw] = useState(null)
-    const [mapping, setMapping] = useState(null)
+    const [contentTypes, setContentTypes] = useState<Types.StrapiContentTypes>()
+    const [posttypeFinal, setPosttypeFinal] = useState<string>()
+    const [mappingRaw, setMappingRaw] = useState<Types.Mapping>()
+    const [mapping, setMapping] = useState<Types.Mapping>()
     const mappingUUIDComputed = useRef((mappingUUID && mappingUUID === 'new') || !mappingUUID ? null : mappingUUID)
     const history = useHistory()
     const showNotification = useNotification()
 
-    const changesExist = useMemo(() => mapping != mappingRaw)
+    //useEffect(() => console.log('update finished'), [prop])
+    const changesExist = useMemo(() => mapping != mappingRaw, [mapping])
 
     const resetForm = () => {
         console.log("------------------------------------------------------------")
         console.log("Reset mapping form 111 mappingRaw: ", mappingRaw)
         console.log("Reset mapping form 222 mapping: ", mapping)
-        setMapping(null)
+        setMapping(undefined)
         console.log("Reset mapping form 333 mapping: ", mapping)
         setMapping(mappingRaw)
     }
 
     const requestGetMapping = async () => {
 
+        console.log("requestGetMapping 111")
+
         if (mappingUUID) {
+
+            console.log("requestGetMapping 222")
 
             setIsInProgress(true)
             let work = await axiosInstance.get(apiGetMapping(mappingUUID))
             .then( (response) => {
                 if (response.data) {
+                    console.log("requestGetMapping 333", response.data)
                     return response.data
                 }
             })
@@ -86,16 +99,18 @@ export const Mapping = ({ indexUUID, mappingUUID }) => {
                 setIsInProgress(false)
                 //getContentTypes()
             })
-
-            if (work && work.mapping) {
+            console.log("requestGetMapping 444", work)
+            if (work && work.mappingRaw) {
+                console.log("requestGetMapping 555", work)
 
                 let work2 = work
-                work2.mapping = JSON.parse(work2.mapping)
+                work2.mappingRaw = JSON.parse(work2.mappingRaw)
                 setMappingRaw(work2)
                 setMapping(work2)
                 setPosttypeFinal(work2.post_type)
 
             } else {
+                console.log("requestGetMapping 666", work)
                 // TODO: Maybe show an error view?
                 console.log("Problem getting the mapping")
             }
@@ -106,13 +121,14 @@ export const Mapping = ({ indexUUID, mappingUUID }) => {
 
     const getContentTypes = async () => {
         setIsInProgress(true)
-    
-        let work = await axiosInstance.get(apiGetContentTypes)
+        console.log("MAPPING COMPONENT - getContentTypes 111")
+        await axiosInstance.get(apiGetContentTypes)
         .then((response) => {
+            console.log("MAPPING COMPONENT - getContentTypes 222", response.data)
             // showNotification({
             //     type: "success", message: "getContentTypes: " + response.data, timeout: 5000
             // })
-            return response.data
+            setContentTypes(response.data)
         })
         .catch((error) => {
             console.log("PAGE getContentTypes ERROR: ", error)
@@ -121,11 +137,9 @@ export const Mapping = ({ indexUUID, mappingUUID }) => {
             })
         })
         .finally(() => {
+            console.log("MAPPING COMPONENT - getContentTypes 333")
             setIsInProgress(false)
         })
-
-        setContentTypes(work)
-        
     }
 
     const requestCreateMapping = async () => {
@@ -133,7 +147,7 @@ export const Mapping = ({ indexUUID, mappingUUID }) => {
 
         if (mapping && !mapping.uuid) {
 
-            let output = mapping
+            let output:Types.Mapping = mapping
 
             if (indexUUID) {
                 output.indexes = [ indexUUID ]
@@ -147,7 +161,7 @@ export const Mapping = ({ indexUUID, mappingUUID }) => {
             .then( async (response) => {
 
                 let work = response.data
-                work.mapping = JSON.parse(work.mapping)
+                work.mappingRaw = JSON.parse(work.mappingRaw)
                 setMappingRaw(work)
                 setMapping(work)
 
@@ -174,28 +188,30 @@ export const Mapping = ({ indexUUID, mappingUUID }) => {
     const requestUpdateMapping = () => {
         setIsInProgress(true)
 
-        let output = JSON.parse(JSON.stringify(mapping))
-        output.mapping = JSON.stringify(output.mapping)
+        if (mapping) {
+            //let output:Mapping = JSON.parse(JSON.stringify(mapping))
+            //output.mappingRaw = JSON.stringify(output.mappingRaw)
 
-        return axiosInstance.post(apiUpdateMapping(mapping.UUID), {
-            data: mapping
-        })
-        .then((response) => {
-            // showNotification({
-            //     type: "success", message: "Created the mapping: " + response, timeout: 5000
-            // })
-            setMapping(response.data)
-            setMappingRaw(response.data)
-        })
-        .catch((error) => {
-            console.log("PAGE requestUpdateMapping ERROR: ", error)
-            showNotification({
-                type: "warning", message: "An error has encountered: " + error, timeout: 5000
+            return axiosInstance.post(apiUpdateMapping(mapping.uuid), {
+                data: mapping
             })
-        })
-        .finally(() => {
-            setIsInProgress(false)
-        })
+            .then((response) => {
+                // showNotification({
+                //     type: "success", message: "Created the mapping: " + response, timeout: 5000
+                // })
+                setMapping(response.data)
+                setMappingRaw(response.data)
+            })
+            .catch((error) => {
+                console.log("PAGE requestUpdateMapping ERROR: ", error)
+                showNotification({
+                    type: "warning", message: "An error has encountered: " + error, timeout: 5000
+                })
+            })
+            .finally(() => {
+                setIsInProgress(false)
+            })
+        }
     }
 
 
@@ -203,10 +219,10 @@ export const Mapping = ({ indexUUID, mappingUUID }) => {
     // FORM STUFF
     // ===============================
 
-    const typeSelected = (posttype) => {
-        let work = {
-            "post_type": posttype,
-            "mapping": {},
+    const typeSelected = (posttype:string) => {
+        let newMapping:Types.Mapping = {
+            post_type: posttype,
+            mappingRaw: {},
             //"registered_index": indexUUID ? indexUUID : undefined
             //"preset": 'dfdf'
             //"nested_level": 2
@@ -215,48 +231,56 @@ export const Mapping = ({ indexUUID, mappingUUID }) => {
             //"default_preset": true
         }
 
-        setMappingRaw(work)
-        setMapping(work)
+        setMappingRaw(newMapping)
+        setMapping(newMapping)
         setPosttypeFinal(posttype)
     }
 
-    const updateFieldActive = async (key) => {
+    const updateFieldActive = async (key:string) => {
 
-        let output = {}
         if (mapping) {
+
+            let output:Types.Mapping
 
             // TODO: This seems really stupid, but need to deep clone here otherwise strange reactivity occurs.
             // e.g. without this deep clone, mappingRaw gets updated, even though we don't touch it in this func!
             // Perhaps reactivity is being set earlier somewhere.
             output = JSON.parse(JSON.stringify(mapping))
 
-            if (output.mapping[key]) {
-                delete output.mapping[key]
+            if (output.mappingRaw && output.mappingRaw[key]) {
+                delete output.mappingRaw[key]
             } else {
-                output.mapping[key] = {}
+                output.mappingRaw[key] = {
+                    type: 'text', // TODO: We need to autodetect here; for now just resorting to default "text"
+                    index: false
+                }
             }
-        } else {
-            output.mapping = {}
-            output.mapping[key] = {}
-        }
 
-        setMapping(output)
+            
+            setMapping(output)
+        }
+        
+        // else {
+        //     output.mappingRaw = {}
+        //     output.mappingRaw[key] = {}
+        // }
+
     }
 
-    const updateFieldIndex = async (key) => {
+    const updateFieldIndex = async (key: string) => {
 
         let output = JSON.parse(JSON.stringify(mapping))
 
-        if (output.mapping[key]) {
-            output.mapping[key].index = !output.mapping[key].index
+        if (output.mappingRaw[key]) {
+            output.mappingRaw[key].index = !output.mappingRaw[key].index
             setMapping(output)
         }
     }
 
-    const updateFieldDataType = async (key, type) => {
-        let output = { ...mapping }
-        if (output.mapping[key]) {
-            output.mapping[key].type = type
+    const updateFieldDataType = async (key: string, type: string) => {
+        if (mapping && mapping.mappingRaw && mapping.mappingRaw[key]) {
+            let output:Types.Mapping = mapping
+            output.mappingRaw[key].type = type
             setMapping(output)
         }
     }
@@ -310,7 +334,7 @@ export const Mapping = ({ indexUUID, mappingUUID }) => {
 
                     { mappingUUID && mappingUUID != 'new' && (
                         <Flex gap={4}>
-                            
+
                             { changesExist && (
                                 <>
                                     <Icon as={ExclamationMarkCircle} />
@@ -334,8 +358,9 @@ export const Mapping = ({ indexUUID, mappingUUID }) => {
                     )}
                 </Flex>
 
-                { (!mappingUUID || mappingUUID === 'new') && !posttypeFinal && (
+                { (!mappingUUID || mappingUUID === 'new') && !posttypeFinal && contentTypes && (
                     <Box width="100%">
+
                         <Table colCount={2} rowCount={contentTypes.length} width="100%">
                         {/* footer={<TFooter icon={<Plus />}>Add another field to this collection type</TFooter>} */}
                             <Thead>
@@ -385,7 +410,8 @@ export const Mapping = ({ indexUUID, mappingUUID }) => {
                             {/* -------- TAB: FIELDS ------------------*/}
                             <TabPanel id="fields">
                                 {
-                                    
+                                    // TODO: Remove this ts-ignore and fix this properly.
+                                    // @ts-ignore
                                     Object.entries(contentTypes[posttypeFinal]).map(([key,val]) => {
                                     //Object.keys(fields).map((key,index) => {
                                         
@@ -414,8 +440,8 @@ export const Mapping = ({ indexUUID, mappingUUID }) => {
                                                         )} */}
 
                                                             <Switch
-                                                                selected={mapping && mapping.mapping[key] && Object.hasOwn(mapping.mapping, key)}
-                                                                onChange={(e) => updateFieldActive(key)}
+                                                                selected={mapping && mapping.mappingRaw[key] && Object.hasOwn(mapping.mappingRaw, key)}
+                                                                onChange={() => updateFieldActive(key)}
                                                                 label='Active'
                                                                 onLabel='Enabled'
                                                                 offLabel='Disabled' />
@@ -429,9 +455,9 @@ export const Mapping = ({ indexUUID, mappingUUID }) => {
                                                         </div>
                                                         <div style={{height: '100%', alignContent: 'center'}}>
                                                             <Switch
-                                                                selected={mapping && mapping.mapping[key] && mapping.mapping[key].index}
-                                                                onChange={(e) => updateFieldIndex(key)}
-                                                                disabled={mapping && !mapping.mapping[key]}                                            
+                                                                selected={mapping && mapping.mappingRaw[key] && mapping.mappingRaw[key].index}
+                                                                onChange={() => updateFieldIndex(key)}
+                                                                disabled={mapping && !mapping.mappingRaw[key]}                                            
                                                                 label='Index'
                                                                 onLabel='Enabled'
                                                                 offLabel='Disabled' />
@@ -449,9 +475,9 @@ export const Mapping = ({ indexUUID, mappingUUID }) => {
                                                     <Box style={{flex: '1'}}>
                                                         <SingleSelect
                                                             label="Data Type"
-                                                            value={mapping && mapping.mapping[key] && mapping.mapping[key].type}
-                                                            onChange={ (value) => updateFieldDataType(key, value)}
-                                                            disabled={mapping && !mapping.mapping[key]}>
+                                                            value={mapping && mapping.mappingRaw[key] && mapping.mappingRaw[key].type}
+                                                            onChange={ (value:string) => updateFieldDataType(key, value)}
+                                                            disabled={mapping && !mapping.mappingRaw[key]}>
                                                             <SingleSelectOption value="dynamic">(autodetect)</SingleSelectOption>
                                                             <SingleSelectOption value="binary">Binary</SingleSelectOption>
                                                             <SingleSelectOption value="boolean">Boolean</SingleSelectOption>
@@ -470,7 +496,7 @@ export const Mapping = ({ indexUUID, mappingUUID }) => {
                                                         <TextInput
                                                         label="Custom field name (in ES)"
                                                         placeholder="Enter custom field name" name="Custom field name"
-                                                        disabled={mapping && !mapping.mapping[key]} />
+                                                        disabled={mapping && !mapping.mappingRaw[key]} />
                                                         {/* onChange={e => updateMappedFieldName(e.target.value)} value={config.searchFieldName || ""} */}
                                                     </Box>
 
@@ -499,11 +525,11 @@ export const Mapping = ({ indexUUID, mappingUUID }) => {
                                         </Typography>
                                     </Box>
                                     <Box padding={8} marginTop={4} background="secondary100">
-                                        { !mapping || (mapping && !mapping.mapping) && (
+                                        { !mapping || (mapping && !mapping.mappingRaw) && (
                                             <>(Please apply some mappings)</>
                                         )}
-                                        { mapping && mapping.mapping && (
-                                            <pre>{ JSON.stringify(mapping.mapping, null, 8) }</pre>
+                                        { mapping && mapping.mappingRaw && (
+                                            <pre>{ JSON.stringify(mapping.mappingRaw, null, 8) }</pre>
                                         )}
                                     </Box>
                                 </Box>

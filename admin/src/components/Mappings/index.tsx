@@ -1,6 +1,6 @@
 /**
  *
- * Mappings component
+ * COMPONENT: Mappings
  *
  */
 
@@ -14,15 +14,27 @@ import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 import { useParams, useHistory } from 'react-router-dom'
 import { requestUpdateIndex } from '../../utils/api/indexAPI'
 import { JSONTree } from 'react-json-tree'
+import { Mapping } from "../../../../types"
 
-export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappingHasBeenSelected }) => {
+type Props = {
+    indexUUID?: string
+    showOnlyPresets?: boolean
+    modeOnlySelection?: boolean
+    mappingHasBeenSelected?: any // TODO: Should this be an.. object? Function? What? We're passing a function through this.
+}
+
+// export default ({ indexUUID, showOnlyPresets, modeOnlySelection, mappingHasBeenSelected }:Props) => {
+//     Mappings({ indexUUID, showOnlyPresets, modeOnlySelection, mappingHasBeenSelected })
+// }
+export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappingHasBeenSelected }:Props) => {
 
     // ===============================
     // GENERAL
     // ===============================
 
     const [isInProgress, setIsInProgress] = useState(false)
-    const [mappings, setMappings] = useState(null)
+
+    const [mappings, setMappings] = useState<Array<Mapping>>([])
     const history = useHistory()
     const showNotification = useNotification()
     const [ESMapping, setESMapping] = useState(null)
@@ -48,7 +60,7 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
                 }
 
             } else {
-                setMappings(null)
+                setMappings([])
             }
         })
         .catch((error) => {
@@ -62,7 +74,7 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
         })
     }
 
-    const requestDeleteMapping = (e, mapping) => {
+    const requestDeleteMapping = (e:Event, mapping:Mapping) => {
         e.stopPropagation()
         setIsInProgress(true)
 
@@ -112,7 +124,7 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
 
     }
 
-    const requestEditMapping = (e, mappingUUID) => {
+    const requestEditMapping = (e:Event, mappingUUID:string) => {
         e.stopPropagation()
         if (indexUUID) {
             history.push(`/plugins/${pluginId}/${indexUUID}/mappings/${mappingUUID}`)
@@ -121,14 +133,14 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
         }
     }
 
-    const requestGoToIndex = (e, indexUUID) => {
+    const requestGoToIndex = (e:Event, indexUUID:string) => {
         e.stopPropagation()
         if (indexUUID) {
             history.push(`/plugins/${pluginId}/indexes/${indexUUID}`)
         }
     }
 
-    const handleRowClick = (mappingUUID) => {
+    const handleRowClick = (mappingUUID:string) => {
         if (modeOnlySelection) {
             mappingHasBeenSelected(mappingUUID)
         } else {
@@ -162,6 +174,13 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
         })
     }
 
+    const rawMappingsCombined = useRef(() => {
+        if (mappings) {
+            return mappings.map( (x:Mapping) => x.mappingRaw)
+        }
+        return null
+    })
+
     // ===============================
     // SELECT PRESET MAPPING
     // ===============================
@@ -171,16 +190,16 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
         setShowSelectModal(true)
     }
 
-    const modalSelectPresetMappingClose = async (selectedPreset) => {
+    const modalSelectPresetMappingClose = async (selectedPreset:Mapping) => {
         setShowSelectModal(false)
         if (selectedPreset) {
-            let payload = {}
+            let mappings:Array<Mapping> = []
             if (mappings) {
-                payload.mappings = [...mappings, selectedPreset]
+                mappings = [...mappings, selectedPreset]
             } else {
-                payload.mappings = [selectedPreset]
+                mappings = [selectedPreset]
             }
-            await requestUpdateIndex(indexUUID, payload)
+            await requestUpdateIndex(indexUUID, { mappings: mappings })
             requestGetMappings()
         }
     }
@@ -322,7 +341,7 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
                                 <Tbody>
                                 { mappings.map((mapping, index) => {
                                     return (
-                                        <Tr key={index} className="row" onClick={() => handleRowClick(mapping.uuid) }>
+                                        <Tr key={index} className="row" onClick={() => handleRowClick(mapping.uuid!) }>
                                             <Td>
                                                 <Checkbox aria-label={`Select ${mapping.uuid}`} className="checkbox" />
                                             </Td>
@@ -333,7 +352,7 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
                                                 <Typography textColor="neutral600">{mapping.post_type}</Typography>
                                             </Td>
                                             <Td style={{ overflow: 'hidden', maxWidth: '200px' }}>
-                                                <Typography textColor="neutral600">{mapping.mapping}</Typography>
+                                                <Typography textColor="neutral600">{mapping.mappingRaw}</Typography>
                                             </Td>
                                             <Td>
                                                 <Typography textColor="neutral600">{mapping.preset ? 'Yes' : '' }</Typography>
@@ -373,10 +392,10 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
 
                                             <Td>
                                                 <Flex alignItems="end" gap={2}>
-                                                    <IconButton label="Edit mapping" noBorder icon={<Pencil />} onClick={(e) => requestEditMapping(e, mapping.uuid) } />
+                                                    <IconButton label="Edit mapping" noBorder icon={<Pencil />} onClick={ (e:Event) => requestEditMapping(e, mapping.uuid!) } />
 
                                                     { !modeOnlySelection && (
-                                                        <IconButton onClick={(e) => requestDeleteMapping(e, mapping)} label="Delete" borderWidth={0} icon={<Trash />} />
+                                                        <IconButton onClick={ (e:Event) => requestDeleteMapping(e, mapping) } label="Delete" borderWidth={0} icon={<Trash />} />
                                                     )}
                                                 </Flex>
                                             </Td>
@@ -407,13 +426,12 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
                                     </Typography>
                                 </Box>
                                 <Box padding={8} marginTop={4} background="secondary100">
-                                    raw mappings output
-                                    {/* { !mapping || (mapping && !mapping.mapping) && (
+                                    { !rawMappingsCombined && (
                                         <>(Please apply some mappings)</>
                                     )}
-                                    { mapping && mapping.mapping && (
-                                        <pre>{ JSON.stringify(mapping.mapping, null, 8) }</pre>
-                                    )} */}
+                                    { rawMappingsCombined && (
+                                        <pre>{ JSON.stringify(rawMappingsCombined, null, 8) }</pre>
+                                    )}
                                 </Box>
                             </Box>
                             </>
@@ -435,9 +453,13 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
                                         <>(No mapping found on ES index)</>
                                     )}
                                     { ESMapping && (
+
+                                        // KEEP FOR NOW; old way showing static <pre>
                                         // <pre>{ JSON.stringify(Object.values(ESMapping)[0].mappings.properties, null, 8) }</pre>
 
-                                        <JSONTree data={Object.values(ESMapping)[0].mappings.properties} theme={{
+                                        // TODO: In below data= prop we're inline casting type as any to satisfy TS warnings. Is there a better way? How to do this properly?
+                                        // TODO: Below we simply want the 'light' default theme but so far we have to pass a full theme object to allow for invertTheme to work. It's stupid and messy.
+                                        <JSONTree data={ (Object.values(ESMapping)[0] as unknown as any).mappings.properties } theme={{
                                             scheme: 'default',
                                             author: 'chris kempson (http://chriskempson.com)',
                                             base00: '#181818',
@@ -457,7 +479,6 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
                                             base0E: '#ba8baf',
                                             base0F: '#a16946'
                                           }} invertTheme={true} />
-                                        // <JsonView data={Object.values(ESMapping)[0].mappings.properties} />
                                     )}
                                 </Box>
                             </Box>
@@ -480,7 +501,7 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
                     </ModalHeader>
                     <ModalBody>
                         <Box width="100%">
-                            <Mappings showOnlyPresets="true" modeOnlySelection="true" mappingHasBeenSelected={(e) => modalSelectPresetMappingClose(e)} />
+                            <Mappings showOnlyPresets={true} modeOnlySelection={true} mappingHasBeenSelected={ (mapping:Mapping) => modalSelectPresetMappingClose(mapping) } />
                             {/* closeEvent={(e) => modalSelectPresetMappingClose(e)} */}
                         </Box>                        
                     </ModalBody>

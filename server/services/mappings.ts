@@ -118,7 +118,7 @@ export default ({ strapi }) => ({
         try {
 
             let finalPayload:TMapping1 = mapping
-            finalPayload.mapping = JSON.stringify(finalPayload.mapping)
+            finalPayload.mappingRaw = JSON.stringify(finalPayload.mappingRaw)
             finalPayload.uuid = uuidv4()
 
             // ------------------------------------------
@@ -165,7 +165,7 @@ export default ({ strapi }) => ({
 
             // TODO: Is this extra variable necessary?
             //let finalPayload:TMapping1 = mapping
-            //finalPayload.mapping = JSON.stringify(finalPayload.mapping)
+            //finalPayload.mappingRaw = JSON.stringify(finalPayload.mappingRaw)
 
             // console.log("updateMapping 222: ", finalPayload)
 
@@ -183,7 +183,7 @@ export default ({ strapi }) => ({
 
             if (mappings && Array.isArray(mappings)) {
                 let foundIndex = mappings.findIndex( (x:any) => x.uuid === mapping.uuid)
-                mappings[foundIndex].mapping = JSON.stringify(mapping.mapping)
+                mappings[foundIndex].mappingRaw = JSON.stringify(mapping.mappingRaw)
             } else {
                 console.log("Cannot find mapping to update")
             }

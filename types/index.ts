@@ -1,6 +1,50 @@
 import type { Attribute } from "@strapi/strapi"
-
 import { PluginEspluginMapping } from '../../../../types/generated/contentTypes'
+
+
+export type Mapping = {
+    uuid?: string
+    post_type: string
+    mappingRaw: MappingRaw
+    preset?: boolean
+    default_preset?: boolean
+    nested_level?: number // TODO: early dev work; unknown if we keep this
+    indexes?: Array<any> // TODO: put index type here
+}
+
+export interface MappingRaw {
+    [key: string]: {
+        type: string
+        index: boolean
+    }
+}
+
+export interface StrapiContentTypes {
+    [key: string]: {
+        [key: string]: {
+            raw_type: string
+            field_type: string
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Here, for better DX, we create explicit typings using 
 
