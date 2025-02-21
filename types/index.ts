@@ -29,7 +29,13 @@ export interface StrapiContentTypes {
 }
 
 
-
+export type RegisteredIndex = {
+    uuid: string
+    mappings?: Array<Mapping>
+    index_name: string
+    index_alias: string
+    active: boolean
+}
 
 
 

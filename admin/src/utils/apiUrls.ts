@@ -22,31 +22,31 @@ export const apiOrphansDelete = `/${pluginId}/orphans-delete`
 // INDEXES
 export const apiGetIndexes = `/${pluginId}/get-indexes`
 export const apiGetESIndexes = `/${pluginId}/get-es-indexes`
-export const apiGetIndex = (indexUUID) => `/${pluginId}/get-index/${indexUUID}`
+export const apiGetIndex = (indexUUID:string) => `/${pluginId}/get-index/${indexUUID}`
 export const apiCreateIndex = `/${pluginId}/create-index`
 export const apiDeleteIndex = `/${pluginId}/delete-index`
-export const apiUpdateIndex = (indexUUID) => `/${pluginId}/update-index/${indexUUID}`
-export const apiCreateESindex = (indexUUID) => `/${pluginId}/create-es-index/${indexUUID}`
-export const apiIndexRecords = (indexUUID) => `/${pluginId}/index-records/${indexUUID}`
+export const apiUpdateIndex = (indexUUID:string) => `/${pluginId}/update-index/${indexUUID}`
+export const apiCreateESindex = (indexUUID:string) => `/${pluginId}/create-es-index/${indexUUID}`
+export const apiIndexRecords = (indexUUID:string) => `/${pluginId}/index-records/${indexUUID}`
 
 // MAPPING
-export const apiGetMapping = (mappingUUID) => `/${pluginId}/get-mapping/${mappingUUID}`
-export const apiGetMappings = (indexUUID) => indexUUID ? `/${pluginId}/get-mappings/${indexUUID}` : `/${pluginId}/get-mappings`
+export const apiGetMapping = (mappingUUID:string) => `/${pluginId}/get-mapping/${mappingUUID}`
+export const apiGetMappings = (indexUUID?:string) => indexUUID ? `/${pluginId}/get-mappings/${indexUUID}` : `/${pluginId}/get-mappings`
 export const apiCreateMapping = `/${pluginId}/create-mapping`
-export const apiUpdateMapping = (mappingUUID) => `/${pluginId}/update-mapping/${mappingUUID}`
-export const apiDeleteMapping = (mappingUUID) => `/${pluginId}/delete-mapping/${mappingUUID}`
+export const apiUpdateMapping = (mappingUUID:string) => `/${pluginId}/update-mapping/${mappingUUID}`
+export const apiDeleteMapping = (mappingUUID:string) => `/${pluginId}/delete-mapping/${mappingUUID}`
 export const apiDetachMappingFromIndex = `/${pluginId}/detach-mapping`
-export const apiGetESMapping = (indexUUID) => `/${pluginId}/get-es-mapping/${indexUUID}`
+export const apiGetESMapping = (indexUUID:string) => `/${pluginId}/get-es-mapping/${indexUUID}`
 export const apiGetContentTypes = `/${pluginId}/get-content-types`
 
 
 
 
-export const apiGetCollectionConfig = (collectionName) => `/${pluginId}/collection-config/${collectionName}`
-export const apiSaveCollectionConfig = (collectionName) => `/${pluginId}/collection-config/${collectionName}`
+export const apiGetCollectionConfig = (collectionName:string) => `/${pluginId}/collection-config/${collectionName}`
+export const apiSaveCollectionConfig = (collectionName:string) => `/${pluginId}/collection-config/${collectionName}`
 
 // INDEXING
-export const apiRequestCollectionIndexing = (collectionName) => `/${pluginId}/collection-reindex/${collectionName}`
+export const apiRequestCollectionIndexing = (collectionName:string) => `/${pluginId}/collection-reindex/${collectionName}`
 export const apiForceRebuildIndex = `/${pluginId}/reindex`
 export const apiTriggerIndexing = `/${pluginId}/trigger-indexing`
 

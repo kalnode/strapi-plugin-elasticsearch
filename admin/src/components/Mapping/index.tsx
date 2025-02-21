@@ -188,7 +188,7 @@ export const Mapping = ({ mappingUUID, indexUUID }:Props) => {
     const requestUpdateMapping = () => {
         setIsInProgress(true)
 
-        if (mapping) {
+        if (mapping && mapping.uuid) {
             //let output:Mapping = JSON.parse(JSON.stringify(mapping))
             //output.mappingRaw = JSON.stringify(output.mappingRaw)
 
@@ -573,9 +573,3 @@ export const Mapping = ({ mappingUUID, indexUUID }:Props) => {
         </Box>
     )
 }
-
-// Initializer.propTypes = {
-//     setPlugin: PropTypes.func.isRequired
-// }
-
-//export default Mapping

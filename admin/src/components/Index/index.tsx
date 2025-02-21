@@ -13,19 +13,27 @@ import axiosInstance from '../../utils/axiosInstance'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 import { Pencil, Trash, ExclamationMarkCircle, Plus } from '@strapi/icons'
 
-export const Index = ({ indexUUID, closeEvent }) => {
+import { RegisteredIndex } from "../../../../types"
+
+type Props = {
+    indexUUID: string
+    closeEvent?: any // TODO: Need to type this properly for passed event callback
+}
+
+export const Index = ({ indexUUID, closeEvent }:Props) => {
 
     // ===============================
     // GENERAL
     // ===============================
 
     const [isInProgress, setIsInProgress] = useState(false)
-    const [indexRaw,setIndexRaw] = useState(null)
-    const [index,setIndex] = useState(null)
+    const [indexRaw,setIndexRaw] = useState<RegisteredIndex>()
+    const [index,setIndex] = useState<RegisteredIndex>()
 
     const showNotification = useNotification()
 
-    const changesExist = useMemo(() => index != indexRaw)
+    //const changesExist = useMemo(() => index != indexRaw)
+    const changesExist = useMemo(() => index != indexRaw, [index])
 
     const resetForm = () => {
         setIndex(indexRaw)
@@ -57,8 +65,11 @@ export const Index = ({ indexUUID, closeEvent }) => {
         
     }
 
-    const convertEmptyStringsToNulls = (object) => {
+    const convertEmptyStringsToNulls = (object:object) => {
         return Object.keys(object).reduce((acc, key) => {
+
+            // TODO: Type this correctly... or... maybe we don't need this func at all, so blow it away.
+            // @ts-ignore
             acc[key] = object[key] === '' ? null : object[key]
             return acc
         }, {})
@@ -66,37 +77,42 @@ export const Index = ({ indexUUID, closeEvent }) => {
 
     const requestUpdateIndex = async () => {
 
-        if (changesExist) {
+        if (index && changesExist) {
             setIsInProgress(true)
 
-            let payload = index
+            let payload:RegisteredIndex = index
 
-            delete payload.mappings
-            delete payload.createdAt
-            delete payload.updatedAt
+            if (payload) {
 
-            payload = convertEmptyStringsToNulls(payload)
+                // TODO: Need comment; why are we doing this?
+                delete payload.mappings
+                // TODO: Legacy from db paradigm; keep for now
+                //delete payload.createdAt
+                //delete payload.updatedAt
 
-            let work = await axiosInstance.post(apiUpdateIndex(indexUUID), {
-                data: payload
-            })
-            .then( (response) => {
-                if (response.data) {
-                    return response.data
-                }
-            })
-            .catch((error) => {
-                console.log("PAGE INDEX - requestUpdateIndex ERROR: ", error)
-                showNotification({
-                    type: "warning", message: "An error has encountered: " + error, timeout: 5000
+                // TODO: Do we need this? Were we only using it for createdAt and updatedAt ?
+                //payload = convertEmptyStringsToNulls(payload)
+
+                await axiosInstance.post(apiUpdateIndex(indexUUID), {
+                    data: payload
                 })
-            })
-            .finally(() => {
-                setIsInProgress(false)
-            })
-
-            setIndexRaw(work)
-            setIndex(work)
+                .then( (response) => {
+                    if (response.data) {
+                        setIndexRaw(response.data)
+                        setIndex(response.data)
+                    }
+                })
+                .catch((error) => {
+                    console.log("PAGE INDEX - requestUpdateIndex ERROR: ", error)
+                    showNotification({
+                        type: "warning", message: "An error has encountered: " + error, timeout: 5000
+                    })
+                })
+                .finally(() => {
+                    setIsInProgress(false)
+                })
+                
+            }
 
         }
     }
@@ -186,11 +202,11 @@ export const Index = ({ indexUUID, closeEvent }) => {
                 <Flex width="100%" direction="column" alignItems="start" gap={4}>
 
                     <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
-                        <TextInput value={ index.index_name ? index.index_name : '' } onChange={(event) => setIndex({...index,index_name: event.target.value}) } label="Index name" placeholder="Enter index name" name="Index name field" />
+                        <TextInput value={ index.index_name ? index.index_name : '' } onChange={(e:Event) => setIndex({ ...index, index_name: (e.target as HTMLInputElement).value }) } label="Index name" placeholder="Enter index name" name="Index name field" />
                     </Box>
 
                     <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
-                        <TextInput value={ index.index_alias ? index.index_alias : '' } onChange={(event) => setIndex({...index,index_alias: event.target.value}) } label="Alias name" placeholder="Enter alias name" name="Index alias field" />
+                        <TextInput value={ index.index_alias ? index.index_alias : '' } onChange={(e:Event) => setIndex({ ...index, index_alias: (e.target as HTMLInputElement).value }) } label="Alias name" placeholder="Enter alias name" name="Index alias field" />
                     </Box>
 
                     <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
@@ -198,7 +214,7 @@ export const Index = ({ indexUUID, closeEvent }) => {
                             <Flex direction="column" alignItems="start" gap={4}>
                                 <Typography variant="delta">State</Typography>
                                 <Switch
-                                    onClick={ () => setIndex({...index,active: index.active ? null : true })}
+                                    onClick={ () => setIndex({...index, active: index.active ? false : true })}
                                     selected={ index.active ? true : null }
                                     visibleLabels
                                     onLabel = 'Enabled'

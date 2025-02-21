@@ -72,6 +72,7 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
         .finally(() => {
             setIsInProgress(false)
         })
+
     }
 
     const requestDeleteMapping = (e:Event, mapping:Mapping) => {
@@ -105,7 +106,8 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
             })
 
         // HARD DELETE
-        } else {
+        } else if (mapping.uuid) {
+
             return axiosInstance.get(apiDeleteMapping(mapping.uuid))
             .then((response) => {
                 // console.log("Delete response is: ", response)
@@ -155,23 +157,25 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
     const requestGetESMapping = () => {
         setIsInProgress(true)
 
-        axiosInstance.get(apiGetESMapping(indexUUID))
-        .then((response) => {
-            if (response.data) {
-                setESMapping(response.data)
-            } else {
-                setESMapping(null)
-            }
-        })
-        .catch((error) => {
-            console.log("PAGE MAPPINGS - requestGetMappings ERROR: ", error)
-            showNotification({
-                type: "warning", message: "An error has encountered: " + error, timeout: 5000
+        if (indexUUID) {
+            axiosInstance.get(apiGetESMapping(indexUUID))
+            .then((response) => {
+                if (response.data) {
+                    setESMapping(response.data)
+                } else {
+                    setESMapping(null)
+                }
             })
-        })
-        .finally(() => {
-            setIsInProgress(false)
-        })
+            .catch((error) => {
+                console.log("PAGE MAPPINGS - requestGetMappings ERROR: ", error)
+                showNotification({
+                    type: "warning", message: "An error has encountered: " + error, timeout: 5000
+                })
+            })
+            .finally(() => {
+                setIsInProgress(false)
+            })
+        }
     }
 
     const rawMappingsCombined = useRef(() => {
@@ -192,7 +196,7 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
 
     const modalSelectPresetMappingClose = async (selectedPreset:Mapping) => {
         setShowSelectModal(false)
-        if (selectedPreset) {
+        if (selectedPreset && indexUUID) {
             let mappings:Array<Mapping> = []
             if (mappings) {
                 mappings = [...mappings, selectedPreset]

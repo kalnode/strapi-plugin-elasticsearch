@@ -10,22 +10,25 @@ import axiosInstance  from '../../utils/axiosInstance'
 import { apiGetIndexes, apiCreateIndex, apiDeleteIndex, apiGetESIndexes } from '../../utils/apiUrls'
 import { useHistory } from "react-router-dom"
 
+import { RegisteredIndex } from "../../../../types"
+
+
 // NOTE: The "Indexes" component exists simply for file consistency, even though it will only ever have one instance (the main Indexes page).
 
 export const ComponentIndexes = () => {
 
-    const [isInProgress, setIsInProgress] = useState(false)
-    const [indexes, setIndexes] = useState(null)
-    const [ESIndexes, setESIndexes] = useState(null)
-    const [modalCreateIndexShow, setModalCreateIndexShow] = useState(false)
-    const [newIndexName, setNewIndexName] = useState('')
-    const [addToElasticsearch, setAddToElasticsearch] = useState(true)
-    const [useNamePrepend, setUseNamePrepend] = useState(false)
+    const [isInProgress, setIsInProgress] = useState<boolean>(false)
+    const [indexes, setIndexes] = useState<Array<RegisteredIndex>>()
+    const [ESIndexes, setESIndexes] = useState<Array<string>>()
+    const [modalCreateIndexShow, setModalCreateIndexShow] = useState<boolean>(false)
+    const [newIndexName, setNewIndexName] = useState<string>('')
+    const [addToElasticsearch, setAddToElasticsearch] = useState<boolean>(true)
+    const [useNamePrepend, setUseNamePrepend] = useState<boolean>(false)
     const namePrepend = "strapi_es_plugin_"
-    const [modalRegisterExistingIndexShow, setModalRegisterExistingIndexShow] = useState(false)
-    const [modalDeleteIndexShow, setModalDeleteIndexShow] = useState(false)
-    const [indexUUIDToBeDeleted, setIndexUUIDToBeDeleted] = useState(null)
-    const [deleteFromElasticsearch, setDeleteFromElasticsearch] = useState(false)
+    const [modalRegisterExistingIndexShow, setModalRegisterExistingIndexShow] = useState<boolean>(false)
+    const [modalDeleteIndexShow, setModalDeleteIndexShow] = useState<boolean>(false)
+    const [indexUUIDToBeDeleted, setIndexUUIDToBeDeleted] = useState<string>()
+    const [deleteFromElasticsearch, setDeleteFromElasticsearch] = useState<boolean>(false)
     const history = useHistory()
     const showNotification = useNotification()
 
@@ -40,7 +43,7 @@ export const ComponentIndexes = () => {
             if (response.data && Array.isArray(response.data) && response.data.length > 0) {
                 setIndexes(response.data)
             } else {
-                setIndexes(null)
+                setIndexes(undefined)
             }
         })
         .catch((error) => {
@@ -54,9 +57,8 @@ export const ComponentIndexes = () => {
         })
     } 
 
-    const requestCreateIndex = (indexName, addToExternalIndex) => {
-        setIsInProgress(true)
-        
+    const requestCreateIndex = (indexName:string, addToExternalIndex?:boolean) => {
+        setIsInProgress(true)        
         return axiosInstance.post(apiCreateIndex, {
             data: {
                 indexName: indexName,
@@ -107,7 +109,7 @@ export const ComponentIndexes = () => {
             if (response.data && Object.keys(response.data).length > 0) {
                 setESIndexes(Object.keys(response.data))
             } else {
-                setESIndexes(null)
+                setESIndexes(undefined)
             }
         })
         .catch((error) => {
@@ -123,9 +125,9 @@ export const ComponentIndexes = () => {
     }
 
 
-    const modalDeleteOpen = (e, recordIndexNumber) => {
+    const modalDeleteOpen = (e:Event, indexUUID:string) => {
         e.stopPropagation()
-        setIndexUUIDToBeDeleted(recordIndexNumber)
+        setIndexUUIDToBeDeleted(indexUUID)
         setDeleteFromElasticsearch(false)
         setModalDeleteIndexShow(true)
     }
@@ -244,7 +246,7 @@ export const ComponentIndexes = () => {
                                         <Td>
                                             <Flex alignItems="end" gap={2}>
                                                 <IconButton label="Edit" borderWidth={0} icon={<Pencil />} />                                                  
-                                                <IconButton onClick={(e) => modalDeleteOpen(e, data.uuid)} label="Delete" borderWidth={0} icon={<Trash />} />                                                
+                                                <IconButton onClick={(e:Event) => modalDeleteOpen(e, data.uuid)} label="Delete" borderWidth={0} icon={<Trash />} />                                                
                                             </Flex>
                                         </Td>
                                     </Tr>
@@ -277,7 +279,7 @@ export const ComponentIndexes = () => {
                                 <Flex gap={4} alignItems="end" width="100%">
                                     {/* {useNamePrepend && (<>strapi_es_plugin_</>) } */}
                                     <Box width="100%">
-                                        <TextInput value={newIndexName} onChange={(event) => setNewIndexName(event.target.value) } label="New index name" placeholder="Enter a new index name, e.g. 'myWebsite_testIndex'" name="newIndexName" />
+                                        <TextInput value={newIndexName} onChange={(e:Event) => setNewIndexName((e.target as HTMLInputElement).value) } label="New index name" placeholder="Enter a new index name, e.g. 'myWebsite_testIndex'" name="newIndexName" />
                                     </Box>
                                 </Flex>
                                 <Flex gap={4}>
@@ -363,7 +365,7 @@ export const ComponentIndexes = () => {
                                             </Box>
                                             <Box width="100%">
                                                 <TextInput value={newIndexName}
-                                                onChange={(event) => { setNewIndexName(event.target.value) }}
+                                                onChange={(e:Event) => { setNewIndexName((e.target as HTMLInputElement).value) }}
                                                 label="Index name" placeholder="Enter index name" name="Index name field" />
                                             </Box>
                                         </Flex>
