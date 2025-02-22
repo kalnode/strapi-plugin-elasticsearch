@@ -9,7 +9,7 @@ export type Mapping = {
     preset?: boolean
     default_preset?: boolean
     nested_level?: number // TODO: early dev work; unknown if we keep this
-    indexes?: Array<any> // TODO: put index type here
+    indexes?: Array<string> // TODO: put index type here
 }
 
 export interface MappingRaw {
@@ -31,10 +31,10 @@ export interface StrapiContentTypes {
 
 export type RegisteredIndex = {
     uuid: string
-    mappings?: Array<Mapping>
+    mappings?: Array<string>
     index_name: string
-    index_alias: string
-    active: boolean
+    index_alias?: string
+    active?: boolean
 }
 
 

@@ -28,7 +28,7 @@ const PageMapping = () => {
                 </Breadcrumbs>
 
                 { params.mappingUUID && (
-                    <Mapping mappingUUID={params.mappingUUID} indexUUID={undefined} />
+                    <Mapping mappingUUID={params.mappingUUID} />
                 )}                    
             </Box>
         </Flex>

@@ -21,7 +21,7 @@ const PageMappings = () => {
                     {/* isCurrent */}
                 </Breadcrumbs>
 
-                <Mappings indexUUID={undefined} showOnlyPresets={undefined} modeOnlySelection={undefined} mappingHasBeenSelected={undefined} />
+                <Mappings />
             </Box>        
         </Grid>
     )

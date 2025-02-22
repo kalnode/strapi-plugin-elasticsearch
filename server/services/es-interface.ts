@@ -1,4 +1,5 @@
 import { Client } from "@elastic/elasticsearch"
+import { estypes } from '@elastic/elasticsearch'
 import fs from "fs"
 import path from "path"
 
@@ -14,8 +15,6 @@ export default ({ strapi }) => ({
 
     async initializeSearchEngine({ hostfull, host, uname, password, cert }) {
         try {
-            console.log("ES initializeSearchEngine 111")
-
             if (hostfull) {
                 client = await new Client({
                     node: hostfull,
@@ -42,7 +41,6 @@ export default ({ strapi }) => ({
                     }
                 })
             }
-            console.log("ES initializeSearchEngine 222")
 
         } catch (err) {
             if (err.message.includes('ECONNREFUSED')) {
@@ -56,19 +54,15 @@ export default ({ strapi }) => ({
         }
     },
 
-    async createIndex(indexName) {
+    async createIndex(indexName:estypes.IndexName) {
         try {
             const exists = await client.indices.exists({ index: indexName })
 
             if (!exists) {
-                console.log('SPE - createIndex: ', indexName, ' does not exist. Creating index & mapping.')
 
-                                
                 let work = await client.indices.create({
                     index: indexName
                 })
-
-                console.log("ES interface create index work is:", work)
                 return work
             }
         } catch (err) {
@@ -105,12 +99,9 @@ export default ({ strapi }) => ({
         }
     },
 
-    async deleteIndex(indexName) {
+    async deleteIndex(indexName:estypes.IndexName) {
         try {
-            console.log("Try deleteIndex 111", indexName)
             const exists = await client.indices.exists({ index: indexName })
-
-            console.log("Try deleteIndex 222", exists)
             if (exists) {
                 await client.indices.delete({
                     index: indexName
@@ -128,7 +119,7 @@ export default ({ strapi }) => ({
         }
     },
 
-    async attachAliasToIndex(indexName) {
+    async attachAliasToIndex(indexName:estypes.IndexName) {
         try {
             const pluginConfig = await strapi.config.get('plugin.esplugin')
             const aliasName = pluginConfig.indexAliasName
@@ -136,7 +127,6 @@ export default ({ strapi }) => ({
             const esInterface = strapi.plugins['esplugin'].services.esInterface
 
             if (aliasExists) {
-                //console.log('SPE - attachAliasToIndex: Alias with this name already exists, removing it.')
                 await client.indices.deleteAlias({ index: '*', name: aliasName })
             }
 
@@ -145,8 +135,6 @@ export default ({ strapi }) => ({
             if (!indexExists) {
                 await esInterface.createIndex(indexName)
             }
-
-            //console.log('SPE - attachAliasToIndex: ', aliasName, ' to index: ', indexName)
             await client.indices.putAlias({ index: indexName, name: aliasName })
 
         } catch(err) {
@@ -175,25 +163,30 @@ export default ({ strapi }) => ({
         }
     },
 
-    async getMapping(indexName) {
+    async getMapping(indexName:estypes.IndexName) {
 
-        // NOTE: New new mappings can be added to an index.
+        // NOTE: New mappings can be added to an index.
         // or some properties of existing mappings.
         // However you cannot change the mapping itself for an existing index.
 
         if (!client) {
-            return false
+            return "ES connection problem"
         }
 
-        try {
-            console.log("ES getMapping 111", indexName)
-            let work = await client.indices.getMapping({ index: indexName })
-            console.log("ES getMapping 222", work)
-            return work
-        } catch (error) {
-            console.error('SPE - getMapping error', error)
-            return false
+        let workCheck = await client.indices.exists({ index: indexName })
+
+        if (workCheck) {
+            return await client.indices.getMapping({ index: indexName })
+            .catch((error) => {
+                console.error('SPE - getMapping error', error)
+                return error
+            })
         }
+         else {
+            return "No index found"
+        }
+        //return
+
     },
 
     async updateMapping({indexName, mapping}) {
@@ -233,8 +226,6 @@ export default ({ strapi }) => ({
                 }
             }
 
-        console.log("updateMapping 111", indexName)
-        console.log("updateMapping 222", mappingsFinal)
         try {
             await client.indices.putMapping({
                 index: indexName,
@@ -248,9 +239,7 @@ export default ({ strapi }) => ({
         }
     },
 
-    async indexRecordToSpecificIndex({ itemId, itemData }, indexName) {
-
-       // console.log("indexRecordToSpecificIndex 333:") //, itemData)
+    async indexRecordToSpecificIndex({ itemId, itemData }, indexName:estypes.IndexName) {
         try {
             let work = await client.index({
                 index: indexName,
@@ -266,26 +255,20 @@ export default ({ strapi }) => ({
     },
 
     async indexData({itemId, itemData}) {
-        //console.log("ES plugin indexData", itemId)
         const pluginConfig = await strapi.config.get('plugin.esplugin')
         return await this.indexRecordToSpecificIndex({ itemId, itemData }, pluginConfig.indexAliasName)
     },
 
     async removeItemFromIndex({itemId}) {
-        console.log("removeItemFromIndex itemId is: ", itemId)
         const pluginConfig = await strapi.config.get('plugin.esplugin')
         const helper = strapi.plugins['esplugin'].services.helper
         const idxName = await helper.getCurrentIndexName()
-
-        console.log("getCurrentIndexName is: ", idxName)
         try {
             let work = await client.delete({
                 index: idxName,
                 id: itemId
             })
-            console.log("Delete work is: ", work)
             let work2 = await client.indices.refresh({ index: idxName })
-            console.log("Refresh work is: ", work2)
             return 'Delete success'
         } catch(err) {
             if (err.meta.statusCode === 404) {
@@ -311,8 +294,6 @@ export default ({ strapi }) => ({
         try {
             const pluginConfig = await strapi.config.get('plugin.esplugin')
 
-            console.log("Helllo 111", searchQuery)
-
             // DOCS FOR PAGING ES:
             // https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html
 
@@ -322,9 +303,6 @@ export default ({ strapi }) => ({
                 size: 9999, // Note: Without this, size will default to ES default (e.g. 10). Also, shard default max is like 10000.
                 ...searchQuery
             })
-
-            console.log("Helllo 222")
-
             
             return result
         } catch(err) {

@@ -55,37 +55,27 @@ export const Mapping = ({ mappingUUID, indexUUID }:Props) => {
     const [isInProgress, setIsInProgress] = useState(false)
     const [contentTypes, setContentTypes] = useState<Types.StrapiContentTypes>()
     const [posttypeFinal, setPosttypeFinal] = useState<string>()
-    const [mappingRaw, setMappingRaw] = useState<Types.Mapping>()
+    const [mappingOriginal, setMappingOriginal] = useState<Types.Mapping>()
     const [mapping, setMapping] = useState<Types.Mapping>()
     const mappingUUIDComputed = useRef((mappingUUID && mappingUUID === 'new') || !mappingUUID ? null : mappingUUID)
     const history = useHistory()
     const showNotification = useNotification()
 
-    //useEffect(() => console.log('update finished'), [prop])
-    const changesExist = useMemo(() => mapping != mappingRaw, [mapping])
+    const changesExist = useMemo(() => mapping != mappingOriginal, [mapping])
 
     const resetForm = () => {
-        console.log("------------------------------------------------------------")
-        console.log("Reset mapping form 111 mappingRaw: ", mappingRaw)
-        console.log("Reset mapping form 222 mapping: ", mapping)
         setMapping(undefined)
-        console.log("Reset mapping form 333 mapping: ", mapping)
-        setMapping(mappingRaw)
+        setMapping(mappingOriginal)
     }
 
     const requestGetMapping = async () => {
 
-        console.log("requestGetMapping 111")
-
         if (mappingUUID) {
-
-            console.log("requestGetMapping 222")
 
             setIsInProgress(true)
             let work = await axiosInstance.get(apiGetMapping(mappingUUID))
             .then( (response) => {
                 if (response.data) {
-                    console.log("requestGetMapping 333", response.data)
                     return response.data
                 }
             })
@@ -97,15 +87,11 @@ export const Mapping = ({ mappingUUID, indexUUID }:Props) => {
             })
             .finally(() => {
                 setIsInProgress(false)
-                //getContentTypes()
             })
-            console.log("requestGetMapping 444", work)
             if (work && work.mappingRaw) {
-                console.log("requestGetMapping 555", work)
-
                 let work2 = work
                 work2.mappingRaw = JSON.parse(work2.mappingRaw)
-                setMappingRaw(work2)
+                setMappingOriginal(work2)
                 setMapping(work2)
                 setPosttypeFinal(work2.post_type)
 
@@ -121,10 +107,8 @@ export const Mapping = ({ mappingUUID, indexUUID }:Props) => {
 
     const getContentTypes = async () => {
         setIsInProgress(true)
-        console.log("MAPPING COMPONENT - getContentTypes 111")
         await axiosInstance.get(apiGetContentTypes)
         .then((response) => {
-            console.log("MAPPING COMPONENT - getContentTypes 222", response.data)
             // showNotification({
             //     type: "success", message: "getContentTypes: " + response.data, timeout: 5000
             // })
@@ -137,7 +121,6 @@ export const Mapping = ({ mappingUUID, indexUUID }:Props) => {
             })
         })
         .finally(() => {
-            console.log("MAPPING COMPONENT - getContentTypes 333")
             setIsInProgress(false)
         })
     }
@@ -159,10 +142,9 @@ export const Mapping = ({ mappingUUID, indexUUID }:Props) => {
                 data: output
             })
             .then( async (response) => {
-
                 let work = response.data
                 work.mappingRaw = JSON.parse(work.mappingRaw)
-                setMappingRaw(work)
+                setMappingOriginal(work)
                 setMapping(work)
 
                 if (indexUUID) {
@@ -189,8 +171,6 @@ export const Mapping = ({ mappingUUID, indexUUID }:Props) => {
         setIsInProgress(true)
 
         if (mapping && mapping.uuid) {
-            //let output:Mapping = JSON.parse(JSON.stringify(mapping))
-            //output.mappingRaw = JSON.stringify(output.mappingRaw)
 
             return axiosInstance.post(apiUpdateMapping(mapping.uuid), {
                 data: mapping
@@ -200,7 +180,7 @@ export const Mapping = ({ mappingUUID, indexUUID }:Props) => {
                 //     type: "success", message: "Created the mapping: " + response, timeout: 5000
                 // })
                 setMapping(response.data)
-                setMappingRaw(response.data)
+                setMappingOriginal(response.data)
             })
             .catch((error) => {
                 console.log("PAGE requestUpdateMapping ERROR: ", error)
@@ -231,7 +211,7 @@ export const Mapping = ({ mappingUUID, indexUUID }:Props) => {
             //"default_preset": true
         }
 
-        setMappingRaw(newMapping)
+        setMappingOriginal(newMapping)
         setMapping(newMapping)
         setPosttypeFinal(posttype)
     }

@@ -30,7 +30,7 @@ const PageIndexMappings = () => {
                     </Breadcrumbs>
 
                     <Box width='100%' overflow='hidden'>
-                        <Mappings indexUUID={params.indexUUID} showOnlyPresets={undefined} modeOnlySelection={undefined} mappingHasBeenSelected={undefined} />
+                        <Mappings indexUUID={params.indexUUID} />
                     </Box>
 
                 </Box>

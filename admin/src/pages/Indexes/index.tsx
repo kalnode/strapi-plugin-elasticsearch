@@ -29,7 +29,7 @@ const PageIndex = () => {
                         {/* isCurrent */}
                     </Breadcrumbs>
 
-                    <Index indexUUID={params.indexUUID} closeEvent={undefined} />
+                    <Index indexUUID={params.indexUUID} />
 
                 </Box>
             )}

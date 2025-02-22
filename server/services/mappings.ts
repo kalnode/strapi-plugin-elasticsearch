@@ -1,7 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-
-// TODO: Is there a better way to import these types? Maybe no import (set them globally), or if importing here, then a better path than using a bunch of "..\"'s ?
-import { TMapping1, MappingExperimental } from "../../types"
+import { Mapping, RegisteredIndex } from "../../types"
 
 export default ({ strapi }) => ({
 
@@ -16,9 +14,9 @@ export default ({ strapi }) => ({
             })
         }
         const pluginStore = helperGetPluginStore()         
-        const mappings:Array<TMapping1> = await pluginStore.get({ key: 'mappings' })
+        const mappings:Array<Mapping> = await pluginStore.get({ key: 'mappings' })
         if (mappings && Array.isArray(mappings)) {
-            let work = mappings.find( (x:TMapping1) => x.uuid === mappingUUID)
+            let work = mappings.find( (x:Mapping) => x.uuid === mappingUUID)
             if (work) {
                 return work
             }
@@ -45,7 +43,6 @@ export default ({ strapi }) => ({
         // TODO: CHANGE TO PLUGINCACHE
         const mappings:Array<any> = await pluginStore.get({ key: 'mappings' })
 
-
         if (mappings) {
             if (indexUUID) {
 
@@ -55,6 +52,7 @@ export default ({ strapi }) => ({
 
                 if (index && index.mappings) {
                     const specificMappings = mappings.filter( (x:any) => index.mappings.includes(x.uuid))
+
                     return specificMappings
                 }
 
@@ -111,15 +109,17 @@ export default ({ strapi }) => ({
 
     },
 
-    async createMapping(mapping:TMapping1) {
+    async createMapping(mapping:Mapping) {
         // TODO: This type doesn't seem to do anything; it accepts anything.
         // For example, below, change .uuid to .uuidFoo and there's no warning.
 
         try {
 
-            let finalPayload:TMapping1 = mapping
-            finalPayload.mappingRaw = JSON.stringify(finalPayload.mappingRaw)
-            finalPayload.uuid = uuidv4()
+            let finalPayload = {
+                ...mapping,
+                uuid: uuidv4(),
+                mappingRaw: JSON.stringify(mapping.mappingRaw)
+            }
 
             // ------------------------------------------
             // ADD TO PLUGIN STORE
@@ -131,18 +131,17 @@ export default ({ strapi }) => ({
                 })
             }
             const pluginStore = helperGetPluginStore()         
-            let mappings:any = await pluginStore.get({ key: 'mappings' })
+            let mappings:Array<Mapping> = await pluginStore.get({ key: 'mappings' })
 
             if (!mappings) {
                 mappings = []
             }
 
-            mappings.push(finalPayload)
-            
+            mappings.push(finalPayload as unknown as Mapping)
             await pluginStore.set({ key: 'mappings', value: mappings })
 
-            if (finalPayload.indexes) {
-                let work444 = await this.attachMapping({indexUUID: finalPayload.indexes[0], mappingUUID: finalPayload.uuid})
+            if (finalPayload.indexes && finalPayload.uuid) {
+                await this.attachMapping(finalPayload.indexes[0], finalPayload.uuid)
             }
             // -------------------------------------------
 
@@ -159,7 +158,7 @@ export default ({ strapi }) => ({
 
     },
 
-    async updateMapping(mapping:TMapping1) {
+    async updateMapping(mapping:Mapping) {
 
         try {
 
@@ -219,20 +218,28 @@ export default ({ strapi }) => ({
     },
 
 
-    async attachMapping(payload) {
+    async attachMapping(indexUUID:string, mappingUUID:string) {
 
         try {
 
-            const indexesService = strapi.plugins['esplugin'].services.indexes
-            const index = await indexesService.getIndex(payload.indexUUID)
-            const mappingIndexNumber = index.mappings.findIndex( (x:any) => x === payload.mappingUUID)
-            
-            if (mappingIndexNumber === -1) {
-                index.mappings.push(payload.mappingUUID)
-            }
-            const work = await indexesService.updateIndex(payload.indexUUID, index)
+            if (indexUUID && mappingUUID) {
 
-            return "Attachment success"
+                const indexesService = strapi.plugins['esplugin'].services.indexes
+                let index = await indexesService.getIndex(indexUUID)
+
+                if (index.mappings) {
+                    if (index.mappings.includes(mappingUUID)) {
+                        return "Mapping already attached"
+                    }
+                } else {
+                    index.mappings = []
+                }
+                  
+                index.mappings.push(mappingUUID)
+                await indexesService.updateIndex(indexUUID, index)
+
+                return "Attachment success"
+            }
 
         } catch (err) {
             console.log('SPE - attachMapping: An error was encountered')
@@ -242,19 +249,16 @@ export default ({ strapi }) => ({
 
     },
 
-    async detachMapping({ indexUUID, mappingUUID }) {
+    async detachMapping(indexUUID:string, mappingUUID:string) {
 
         try {
 
             const indexesService = strapi.plugins['esplugin'].services.indexes
             const index = await indexesService.getIndex(indexUUID)
 
-            const mappingIndexNumber = index.mappings.findIndex( (x:any) => x === mappingUUID)
+            index.mappings = index.mappings.filter( (x:string) => x !== mappingUUID)
 
-            //index.mappings = index.mappings.splice(mappingIndexNumber, 1)
-            index.mappings = index.mappings.filter( (x:any) => x !== mappingUUID)
-
-            const work = await indexesService.updateIndex(indexUUID, index)
+            await indexesService.updateIndex(indexUUID, index)
             return "Detachment success"
 
         } catch (err) {
@@ -265,7 +269,7 @@ export default ({ strapi }) => ({
 
     },
 
-    async deleteMapping(mappingUUID) {
+    async deleteMapping(mappingUUID:string) {
 
         try {
 
@@ -278,11 +282,11 @@ export default ({ strapi }) => ({
                 })
             }
             const pluginStore = helperGetPluginStore()         
-            let mappings:any = await pluginStore.get({ key: 'mappings' })
+            let mappings:Array<Mapping> = await pluginStore.get({ key: 'mappings' })
 
             if (mappings && Array.isArray(mappings)) {
 
-                const foundMappingIndex = mappings.findIndex( (x:any) => x.uuid === mappingUUID)
+                const foundMappingIndex = mappings.findIndex( (x:Mapping) => x.uuid === mappingUUID)
                 const mapping = mappings[foundMappingIndex]
 
                 const indexesService = strapi.plugins['esplugin'].services.indexes
@@ -290,23 +294,19 @@ export default ({ strapi }) => ({
 
                 if (indexes) {
 
-                    const indexesWithMatchingMappings = indexes.filter( (x:any) => x.mappings && x.mappings.includes(mapping.uuid))
+                    const indexesWithMatchingMappings = indexes.filter( (x:RegisteredIndex) => x.mappings && mapping.uuid && x.mappings.includes(mapping.uuid))
 
                     if (indexesWithMatchingMappings) {
                         for (let i = 0; i < indexesWithMatchingMappings.length; i++) {
-                            let work2 = await this.detachMapping({ indexUUID: indexesWithMatchingMappings[i].uuid, mappingUUID: mapping.uuid })
+                            await this.detachMapping(indexesWithMatchingMappings[i].uuid, mapping.uuid)
                         }
-                        //let work1 = await this.detachMapping({ indexUUID: mapping.indexes[0], mappingUUID: mapping.uuid })
-                        //console.log("deleteMapping 333", work1)
                     }
                 }
 
                 mappings.splice(foundMappingIndex, 1)
             }
-            if (mappings.length === 0) {
-                mappings = null
-            }
-            await pluginStore.set({ key: 'mappings', value: mappings })
+
+            await pluginStore.set({ key: 'mappings', value: mappings.length ? mappings : null })
             // -------------------------------------------
             
             // DB paradigm

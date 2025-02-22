@@ -189,7 +189,7 @@ export default ({ strapi }) => ({
         }
     },
 
-    isCollectionDraftPublish({collectionName}) {
+    isCollectionDraftPublish({collectionName}):boolean {
         const model = strapi.getModel(collectionName)
         return model.attributes.publishedAt ? true : false
     },
@@ -200,11 +200,11 @@ export default ({ strapi }) => ({
         return getFullPopulateObject(collectionName, 4, [])
     },
 
-    getIndexItemId({collectionName, itemId}) {
+    getIndexItemId({collectionName, itemId}):string {
         return collectionName+'::' + itemId
     },
 
-    async getCurrentIndexName () {
+    async getCurrentIndexName():Promise<string> {
         const pluginStore = this.getPluginStore()
         const settings:any = await pluginStore.get({ key: 'configsettings' })
         let indexName = 'strapi-plugin-elasticsearch-index_000048'
@@ -218,13 +218,13 @@ export default ({ strapi }) => ({
         return indexName
     },
 
-    async getIncrementedIndexName () {
+    async getIncrementedIndexName():Promise<string> {
         const currentIndexName = await this.getCurrentIndexName()
         const number = parseInt(currentIndexName.split('index_')[1])
         return 'strapi-plugin-elasticsearch-index_' + String(number+1).padStart(6,'0')
     },
 
-    async storeCurrentIndexName (indexName) {
+    async storeCurrentIndexName(indexName) {
         const pluginStore = this.getPluginStore()
         const settings:any = JSON.parse(await pluginStore.get({ key: 'configsettings' }) as unknown as string)
         if (settings) {
@@ -236,7 +236,7 @@ export default ({ strapi }) => ({
         }
     },
 
-    async storeToggleSettingInstantIndex () {
+    async storeToggleSettingInstantIndex():Promise<boolean> {
         const pluginStore = this.getPluginStore()
         const settings:any = JSON.parse(await pluginStore.get({ key: 'configsettings' }) as unknown as string)
         if (settings) {
@@ -250,7 +250,7 @@ export default ({ strapi }) => ({
         }
     },
 
-    async storeSettingInstantIndex () {
+    async storeSettingInstantIndex():Promise<string> {
         const pluginStore = this.getPluginStore()
         const settings:any = JSON.parse(await pluginStore.get({ key: 'configsettings' }) as unknown as string)
         if (settings) {
@@ -265,7 +265,7 @@ export default ({ strapi }) => ({
         }
     },
 
-    async storeSettingToggleInstantIndexing() {
+    async storeSettingToggleInstantIndexing():Promise<boolean> {
 
         //console.log("ES helper II 111")
         const pluginStore = this.getPluginStore()
@@ -281,7 +281,7 @@ export default ({ strapi }) => ({
         }
     },
 
-    async storeSettingToggleUseNewPluginParadigm() {
+    async storeSettingToggleUseNewPluginParadigm():Promise<boolean> {
         const pluginStore = this.getPluginStore()
         const settings:any = JSON.parse(await pluginStore.get({ key: 'configsettings' }) as unknown as string)
         if (settings) {
@@ -295,7 +295,7 @@ export default ({ strapi }) => ({
         }
     },
 
-    async storeSettingIndexingEnabled() {
+    async storeSettingIndexingEnabled():Promise<string> {
         const pluginStore = this.getPluginStore()
         const settings:any = JSON.parse(await pluginStore.get({ key: 'configsettings' }) as unknown as string)
         if (settings) {
@@ -309,7 +309,7 @@ export default ({ strapi }) => ({
         }
     },
 
-    modifySubfieldsConfigForExtractor(collectionConfig) {
+    modifySubfieldsConfigForExtractor(collectionConfig):object {
         const collectionName = Object.keys(collectionConfig)[0]
         const attributes = Object.keys(collectionConfig[collectionName])
         for (let r=0; r< attributes.length; r++) {
@@ -361,7 +361,7 @@ export default ({ strapi }) => ({
         return document
     },
 
-    async orphansFind() {
+    async orphansFind():Promise<string> {
 
         const esInterface = strapi.plugins['esplugin'].services.esInterface
 
@@ -397,7 +397,7 @@ export default ({ strapi }) => ({
         
     },
 
-    async orphansDelete() {
+    async orphansDelete():Promise<string> {
 
         const esInterface = strapi.plugins['esplugin'].services.esInterface
 
@@ -449,14 +449,14 @@ export default ({ strapi }) => ({
 
 })
 
-const getTypefromStrapiID = (strapiID) => {
+const getTypefromStrapiID = (strapiID:string):string => {
     // TODO: This seems really stupid, but we're doing it.
     // Gets numbers after second '::'
     return strapiID.split('::').slice(-1)[0]
 }
 
 
-const checkIfDBRecordExists = async (type, id) => {
+const checkIfDBRecordExists = async (type:string, id:string):Promise<boolean> => {
 
     let typeFinal
 

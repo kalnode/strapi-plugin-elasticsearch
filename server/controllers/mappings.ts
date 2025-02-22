@@ -49,7 +49,7 @@ export default ({ strapi }) => {
     const detachMapping = async (ctx) => {
         const { body } = ctx.request
         try {
-            return await mappings.detachMapping(body.data)
+            return await mappings.detachMapping(body.data.indexUUID, body.data.mappingUUID)
         } catch (err) {
             ctx.throw(500, err)
         }

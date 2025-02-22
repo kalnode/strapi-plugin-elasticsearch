@@ -345,6 +345,12 @@ export const ComponentIndexes = () => {
                                 overflow: 'hidden',
                                 display: 'flex',
                                 flexDirection: 'column',
+
+                                // TODO: Fix this.
+                                // We want proper overflow scrolling on a nested list.
+                                // After tons of wrestling, still do not have a good situation.
+                                // For now applying "50vh" and the correct regions seem to over flow,
+                                // however the list is cut-off at the bottom.
                                 height: '50vh'
                             }}>
 
