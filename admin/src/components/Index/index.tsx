@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
 import PropTypes from 'prop-types'
 import pluginId from '../../pluginId'
-import { Link, Box, Button, Icon, Typography, ToggleInput, TextButton, TextInput, Flex, Textarea, Switch, SingleSelect, SingleSelectOption, TabGroup, Tabs, Tab, TabPanels, TabPanel, Grid, Field } from '@strapi/design-system'
+import { Link, Box, Button, Icon, Typography, ModalLayout, ModalHeader, ModalFooter, ModalBody, ToggleInput, TextButton, TextInput, Flex, Textarea, Switch, SingleSelect, SingleSelectOption, TabGroup, Tabs, Tab, TabPanels, TabPanel, Grid, Field } from '@strapi/design-system'
 import { apiUpdateIndex, apiGetIndex, apiCreateESindex, apiIndexRecords } from '../../utils/apiUrls'
 import axiosInstance from '../../utils/axiosInstance'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
@@ -26,9 +26,10 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
     // GENERAL
     // ===============================
 
-    const [isInProgress, setIsInProgress] = useState(false)
+    const [isInProgress, setIsInProgress] = useState<boolean>(false)
     const [indexRaw,setIndexRaw] = useState<RegisteredIndex>()
     const [index,setIndex] = useState<RegisteredIndex>()
+    const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
 
     const showNotification = useNotification()
 
@@ -201,13 +202,27 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
 
                 <Flex width="100%" direction="column" alignItems="start" gap={4}>
 
-                    <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
-                        <TextInput value={ index.index_name ? index.index_name : '' } onChange={(e:Event) => setIndex({ ...index, index_name: (e.target as HTMLInputElement).value }) } label="Index name" placeholder="Enter index name" name="Index name field" />
-                    </Box>
+                    <Flex width="100%" background="neutral0" padding={8} shadow="filterShadow" justifyContent="space-apart">
+                        <Flex direction="column" alignItems="start" gap={4}>
+                            <Box><Typography variant="delta" fontWeight="bold">Index name:</Typography> { index.index_name }</Box>
+                            <Box>
+                                <Typography variant="delta" fontWeight="bold">Index alias:</Typography>&nbsp;
+                                { index.index_alias && (
+                                    <>{ index.index_alias }</>
+                                )}
+                                { !index.index_alias && (
+                                    <Typography textColor="neutral300">not defined</Typography>
+                                )}
+                            </Box>
+                        </Flex>
 
-                    <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
-                        <TextInput value={ index.index_alias ? index.index_alias : '' } onChange={(e:Event) => setIndex({ ...index, index_alias: (e.target as HTMLInputElement).value }) } label="Alias name" placeholder="Enter alias name" name="Index alias field" />
-                    </Box>
+                        {/* TODO: justifyItems="end" doesn't seem to work as a Strapi attribute. For now: using it in style=. */}
+                        <Box flex="1" style={{ justifyItems: 'flex-end' }}>
+                            <Button variant="secondary" onClick={ () => setShowSettingsModal(true)}>
+                                Change
+                            </Button>
+                        </Box>
+                    </Flex>
 
                     <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
                         <Box>
@@ -257,6 +272,32 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
                 </Flex>
                 </>
             )}
+
+
+
+            { showSettingsModal && (
+                <ModalLayout onClose={() => setShowSettingsModal(false) }>
+                    {/* labelledBy="title" */}
+                    <ModalHeader>
+                        <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
+                            Select preset mapping
+                        </Typography>
+                    </ModalHeader>
+                    <ModalBody>
+                        { index && (
+                            <Box width="100%" padding={8}>
+                                <TextInput value={ index.index_name ? index.index_name : '' } onChange={(e:Event) => setIndex({ ...index, index_name: (e.target as HTMLInputElement).value }) } label="Index name" placeholder="Enter index name" name="Index name field" />
+                                <TextInput value={ index.index_alias ? index.index_alias : '' } onChange={(e:Event) => setIndex({ ...index, index_alias: (e.target as HTMLInputElement).value }) } label="Alias name" placeholder="Enter alias name" name="Index alias field" />
+                            </Box>
+                        )}
+                    </ModalBody>
+                    {/* <ModalFooter
+                        startActions={<></>}
+                        endActions={<></>}
+                    /> */}
+                </ModalLayout>
+
+            ) }
 
         </Flex>
     )

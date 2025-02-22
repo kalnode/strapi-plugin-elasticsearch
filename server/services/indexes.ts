@@ -111,7 +111,7 @@ export default ({ strapi }) => ({
 
             // ADD TO ELASTICSEARCH:
             if (addToExternalIndex) {
-                let work = await esInterface.createIndex(indexName)
+                await esInterface.createIndex(indexName)
             }
 
             return finalPayload

@@ -61,7 +61,10 @@ export default ({ strapi }) => ({
             if (!exists) {
 
                 let work = await client.indices.create({
-                    index: indexName
+                    index: indexName,
+                    mappings: {
+                        dynamic: false
+                    }
                 })
                 return work
             }
