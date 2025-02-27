@@ -1,6 +1,6 @@
 /**
  *
- * COMPONENT: Mappings
+ * COMPONENT: IndexMappings
  *
  */
 
@@ -57,7 +57,7 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
             setAccordionStates(Object.keys(response.data).map( (x:string) => { return { post_type: x, open: false }}) )
         })
         .catch((error) => {
-            console.log("PAGE TriggerMappings requestContentTypes ERROR: ", error)
+            console.log("COMPONENT IndexMappings requestContentTypes error", error)
             showNotification({
                 type: "warning", message: "An error has encountered: " + error, timeout: 5000
             })
@@ -72,29 +72,17 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
         await axiosInstance.get(apiGetMappings(indexUUID))
         .then((response) => {
             if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-                // TODO: Could use better typing below
-                let mappings = response.data
-                if (mappings) {
-                    for (let k = 0; k < mappings.length; k++) {
 
-                        if (mappings[k].mappingRaw) {
-                            mappings[k].mappingRaw = JSON.parse(mappings[k].mappingRaw)
-                        }
-
-                        if (mappings[k].fields) {
-                            mappings[k].fields = JSON.parse(mappings[k].fields)
-                        }
-                    }
-                    setMappings(mappings)
-                    setMappingsOriginal(mappings)
-                } else {
-                    setMappings([])
-                    setMappingsOriginal([])
-                }               
-            }
+                setMappings(response.data)
+                setMappingsOriginal(response.data)
+            } else {
+                setMappings([])
+                setMappingsOriginal([])
+            }               
+            
         })
         .catch((error) => {
-            console.log("PAGE INDEXMAPPINGS - requestGetMappings ERROR: ", error)
+            console.log("COMPONENT IndexMappings - requestGetMappings error", error)
             showNotification({
                 type: "warning", message: "An error has encountered: " + error, timeout: 5000
             })
@@ -118,7 +106,7 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
                 }
             })
             .catch((error) => {
-                console.log("PAGE INDEXMAPPINGS - requestGetMappings ERROR: ", error)
+                console.log("COMPONENT IndexMappings - requestGetESMapping error", error)
                 showNotification({
                     type: "warning", message: "An error has encountered: " + error, timeout: 5000
                 })
@@ -137,8 +125,6 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
             let output:Partial<Mapping> = {
                 post_type: type,
                 indexes: [ indexUUID ],
-                //mappingRaw: {},
-                //fields: {}
             }
 
             await axiosInstance.post(apiCreateMapping, {
@@ -148,7 +134,7 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
                 requestGetMappings()
             })
             .catch((error) => {
-                console.log("PAGE MAPPING - requestCreateMapping ERROR: ", error)
+                console.log("COMPONENT IndexMappings - requestCreateMapping error", error)
                 showNotification({
                     type: "warning", message: "An error has encountered: " + error, timeout: 5000
                 })
@@ -160,16 +146,11 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
     }
 
     const requestUpdateMappings = async () => {
-        console.log("requestUpdateMappings 11223344aabb")
 
         setIsInProgress(true)
 
         let mappingsClone = JSON.parse(JSON.stringify(mappings))
 
-        mappingsClone.forEach( (x:any) => {
-            x.mappingRaw = JSON.stringify(x.mappingRaw)
-            x.fields = JSON.stringify(x.fields)
-        })
         await axiosInstance.post(apiUpdateMappings, {
             data: mappingsClone
         })
@@ -177,7 +158,7 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
             requestGetMappings()
         })
         .catch((error) => {
-            console.log("PAGE MAPPING - requestCreateMapping ERROR: ", error)
+            console.log("COMPONENT IndexMappings - requestUpdateMappings error", error)
             showNotification({
                 type: "warning", message: "An error has encountered: " + error, timeout: 5000
             })
@@ -200,7 +181,7 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
 
                 await requestAPI_DeleteMapping(mapping, indexUUID)
                 .catch((error) => {
-                    console.log("PAGE TRIGGERMAPPINGS - requestDeleteMapping ERROR: ", error)
+                    console.log("COMPONENT IndexMappings - requestDeleteMapping error", error)
                     showNotification({
                         type: "warning", message: "An error has encountered: " + error, timeout: 5000
                     })
@@ -224,7 +205,7 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
                 x.fields
                 // {
                 //     return {
-                //         [x.post_type]: x.mappingRaw
+                //         [x.post_type]: x.fields
                 //     }
                 // }
             )
@@ -269,7 +250,6 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
     const toggleMappingActive = (key:string) => {
         if (mappings) {
             let work = JSON.parse(JSON.stringify(mappings))
-
             let mappingIndex = work.findIndex((x:Mapping) => x.post_type && x.post_type === key)
             if (mappingIndex >= 0){
                 work[mappingIndex].disabled = !work[mappingIndex].disabled
@@ -280,12 +260,12 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
 
     const mappingUpdated = (key:string, updatedMapping:Mapping) => {
         if (mappings) {
-            let mappingsClone = JSON.parse(JSON.stringify(mappings))
-            const mappingIndex = mappingsClone.findIndex((x:Mapping) => x.post_type && x.post_type === key)
+            let work = JSON.parse(JSON.stringify(mappings))
+            const mappingIndex = work.findIndex((x:Mapping) => x.post_type && x.post_type === key)
             if (mappingIndex >= 0){
-                mappingsClone[mappingIndex] = updatedMapping
+                work[mappingIndex] = updatedMapping
             }
-            setMappings(mappingsClone)            
+            setMappings(work)            
         }
     }
 

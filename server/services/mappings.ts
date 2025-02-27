@@ -13,7 +13,9 @@ export default ({ strapi }) => ({
                 name: 'esplugin'
             })
         }
-        const pluginStore = helperGetPluginStore()         
+        const pluginStore = helperGetPluginStore()
+        
+        // TODO: CHANGE TO PLUGINCACHE?
         const mappings:Array<Mapping> = await pluginStore.get({ key: 'mappings' })
         if (mappings && Array.isArray(mappings)) {
             let work = mappings.find( (x:Mapping) => x.uuid === mappingUUID)
@@ -40,34 +42,23 @@ export default ({ strapi }) => ({
         }
         const pluginStore = helperGetPluginStore()
 
-        // TODO: CHANGE TO PLUGINCACHE
-        const mappings:Array<any> = await pluginStore.get({ key: 'mappings' })
+        // TODO: CHANGE TO PLUGINCACHE?
+        let mappings:Array<Mapping> = await pluginStore.get({ key: 'mappings' })
 
         if (mappings) {
             if (indexUUID) {
 
-                // TODO: CHANGE TO PLUGINCACHE
+                // TODO: CHANGE TO PLUGINCACHE?
                 const indexesService = strapi.plugins['esplugin'].services.indexes
                 const index = await indexesService.getIndex(indexUUID)
 
                 if (index && index.mappings) {
-                    const specificMappings = mappings.filter( (x:any) => index.mappings.includes(x.uuid))
-
-                    return specificMappings
+                    mappings = mappings.filter( (x:any) => index.mappings.includes(x.uuid))
                 }
 
-            } else {
-
-                // console.log("getMappings 333", indexUUID)
-                // if (indexUUID) {
-                //     let work = mappings.filter( (x:any) => x.indexes && x.indexes.includes(indexUUID) ) //JSON.parse(mappings) //JSON.parse(JSON.stringify(mappings))
-                //     console.log("getMappings 444 ", work)
-                //     return work
-                // }
-
-                return mappings
-
             }
+
+            return mappings
         }
 
         console.log("getMappings 555")
@@ -117,8 +108,7 @@ export default ({ strapi }) => ({
 
             let finalPayload = {
                 ...mapping,
-                uuid: uuidv4(),
-                mappingRaw: JSON.stringify(mapping.mappingRaw)
+                uuid: uuidv4()
             }
 
             // ------------------------------------------
@@ -164,7 +154,6 @@ export default ({ strapi }) => ({
 
             // TODO: Is this extra variable necessary?
             //let finalPayload:TMapping1 = mapping
-            //finalPayload.mappingRaw = JSON.stringify(finalPayload.mappingRaw)
 
             // console.log("updateMapping 222: ", finalPayload)
 
@@ -183,12 +172,7 @@ export default ({ strapi }) => ({
             if (mappings && Array.isArray(mappings)) {
                 let foundIndex = mappings.findIndex( (x:any) => x.uuid === mapping.uuid)
                 if (foundIndex >= 0) {
-                    if (mappings[foundIndex].mappingRaw) {
-                        mappings[foundIndex].mappingRaw = JSON.stringify(mapping.mappingRaw)
-                    }
-                    if (mappings[foundIndex].fields) {
-                        mappings[foundIndex].fields = JSON.stringify(mapping.fields)
-                    }
+                    mappings[foundIndex] = mapping
                 }
             } else {
                 console.log("Cannot find mapping to update")
@@ -230,7 +214,7 @@ export default ({ strapi }) => ({
 
             // TODO: Is this extra variable necessary?
             //let finalPayload:TMapping1 = mapping
-            //finalPayload.mappingRaw = JSON.stringify(finalPayload.mappingRaw)
+            //finalPayload.fields = JSON.stringify(finalPayload.fields)
 
             // console.log("updateMapping 222: ", finalPayload)
 
@@ -253,11 +237,7 @@ export default ({ strapi }) => ({
                     let mapping = mappings[i]
                     let foundIndex = existingMappings.findIndex( (x:Mapping) => x.uuid === mapping.uuid)
                     if (foundIndex >= 0) {
-                        //const processedMapping = mapping
-                        //processedMapping.mappingRaw = JSON.stringify(processedMapping.mappingRaw)
-
                         existingMappings[foundIndex] = mapping
-                       // existingMappings[foundIndex].mappingRaw = JSON.stringify(mapping.mappingRaw)
                     }
                 }
             } else {
@@ -370,7 +350,7 @@ export default ({ strapi }) => ({
                     const indexesService = strapi.plugins['esplugin'].services.indexes
                     const indexes = await indexesService.getIndexes()
 
-                    if (indexes) {
+                    if (indexes && Array.isArray(indexes) && indexes.length > 0) {
 
                         const indexesWithMatchingMappings = indexes.filter( (x:RegisteredIndex) => x.mappings && mapping.uuid && x.mappings.includes(mapping.uuid))
 

@@ -82,7 +82,7 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
                 }
             })
             .catch((error) => {
-                console.log("PAGE requestGetMapping ERROR: ", error)
+                console.log("COMPONENT MAPPING - requestGetMapping error", error)
                 showNotification({
                     type: "warning", message: "An error has encountered: " + error, timeout: 5000
                 })
@@ -92,20 +92,12 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
             })
             if (work) {
                 let work2 = work
-                if (work2.mappingRaw) {
-                    work2.mappingRaw = JSON.parse(work2.mappingRaw)
-                }
-
-                if (work2.fields) {
-                    work2.fields = JSON.parse(work2.fields)
-                }
 
                 setMappingOriginal(work2)
                 setMapping(work2)
                 setPosttypeFinal(work2.post_type)
 
             } else {
-                console.log("requestGetMapping 666", work)
                 // TODO: Maybe show an error view?
                 console.log("Problem getting the mapping")
             }
@@ -124,7 +116,7 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
             setContentTypes(response.data)
         })
         .catch((error) => {
-            console.log("PAGE getContentTypes ERROR: ", error)
+            console.log("COMPONENT MAPPING - getContentTypes error", error)
             showNotification({
                 type: "warning", message: "An error has encountered: " + error, timeout: 5000
             })
@@ -152,7 +144,6 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
             })
             .then( async (response) => {
                 let work = response.data
-                work.mappingRaw = JSON.parse(work.mappingRaw)
                 setMappingOriginal(work)
                 setMapping(work)
 
@@ -165,7 +156,7 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
 
             })
             .catch((error) => {
-                console.log("PAGE MAPPING - requestCreateMapping ERROR: ", error)
+                console.log("COMPONENT MAPPING - requestCreateMapping error", error)
                 showNotification({
                     type: "warning", message: "An error has encountered: " + error, timeout: 5000
                 })
@@ -185,14 +176,11 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
                 data: mapping
             })
             .then((response) => {
-                // showNotification({
-                //     type: "success", message: "Created the mapping: " + response, timeout: 5000
-                // })
                 setMapping(response.data)
                 setMappingOriginal(response.data)
             })
             .catch((error) => {
-                console.log("PAGE requestUpdateMapping ERROR: ", error)
+                console.log("COMPONENT MAPPING - requestUpdateMapping error", error)
                 showNotification({
                     type: "warning", message: "An error has encountered: " + error, timeout: 5000
                 })
@@ -211,14 +199,6 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
     const typeSelected = (posttype:string) => {
         let newMapping:Types.Mapping = {
             post_type: posttype,
-            mappingRaw: {},
-            fields: {}
-            //"registered_index": indexUUID ? indexUUID : undefined
-            //"preset": 'dfdf'
-            //"nested_level": 2
-            //"registered_index": 'someregindex'
-            //"mapping_type": 'custom',
-            //"default_preset": true
         }
 
         setMappingOriginal(newMapping)
@@ -233,44 +213,41 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
             let output:Types.Mapping
 
             // TODO: This seems really stupid, but need to deep clone here otherwise strange reactivity occurs.
-            // e.g. without this deep clone, mappingRaw gets updated, even though we don't touch it in this func!
+            // e.g. without this deep clone, fields gets updated, even though we don't touch it in this func!
             // Perhaps reactivity is being set earlier somewhere.
             output = JSON.parse(JSON.stringify(mapping))
 
-            if (output.mappingRaw && output.mappingRaw[key]) {
-                delete output.mappingRaw[key]
+            if (output.fields && output.fields[key]) {
+                delete output.fields[key]
             } else {
-                output.mappingRaw[key] = {
+                output.fields = {}
+                output.fields[key] = {
                     type: 'text', // TODO: We need to autodetect here; for now just resorting to default "text"
                     index: false
                 }
             }
-
             
             setMapping(output)
         }
         
-        // else {
-        //     output.mappingRaw = {}
-        //     output.mappingRaw[key] = {}
-        // }
-
     }
 
     const updateFieldIndex = async (key: string) => {
 
         let output = JSON.parse(JSON.stringify(mapping))
 
-        if (output.mappingRaw[key]) {
-            output.mappingRaw[key].index = !output.mappingRaw[key].index
+        if (output.fields[key]) {
+            output.fields[key].index = !output.fields[key].index
             setMapping(output)
         }
     }
 
     const updateFieldDataType = async (key: string, type: string) => {
-        if (mapping && mapping.mappingRaw && mapping.mappingRaw[key]) {
+        if (mapping && mapping.fields && mapping.fields[key]) {
             let output:Types.Mapping = mapping
-            output.mappingRaw[key].type = type
+            if (output.fields && output.fields[key]) {
+                output.fields[key].type = type
+            }
             setMapping(output)
         }
     }
@@ -428,11 +405,11 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
                                         </Typography>
                                     </Box>
                                     <Box padding={8} marginTop={4} background="secondary100">
-                                        { !mapping || (mapping && !mapping.mappingRaw) && (
+                                        { !mapping || (mapping && !mapping.fields) && (
                                             <>(Please apply some mappings)</>
                                         )}
-                                        { mapping && mapping.mappingRaw && (
-                                            <pre>{ JSON.stringify(mapping.mappingRaw, null, 8) }</pre>
+                                        { mapping && mapping.fields && (
+                                            <pre>{ JSON.stringify(mapping.fields, null, 8) }</pre>
                                         )}
                                     </Box>
                                 </Box>

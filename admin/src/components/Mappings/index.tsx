@@ -14,9 +14,8 @@ import { requestAPI_DeleteMapping } from '../../utils/api/mappings'
 
 import axiosInstance  from '../../utils/axiosInstance'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
-import { useParams, useHistory } from 'react-router-dom'
+import { useHistory } from 'react-router-dom'
 import { requestUpdateIndex } from '../../utils/api/indexes'
-import { JSONTree } from 'react-json-tree'
 
 import { Mapping } from "../../../../types"
 import { estypes } from '@elastic/elasticsearch'
@@ -35,7 +34,6 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
     // ===============================
 
     const [isInProgress, setIsInProgress] = useState(false)
-
     const [mappings, setMappings] = useState<Array<Mapping>>()
     const history = useHistory()
     const showNotification = useNotification()
@@ -50,26 +48,20 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
 
     const requestGetMappings = () => {
         setIsInProgress(true)
-
         axiosInstance.get(apiGetMappings(indexUUID))
         .then((response) => {
-
             if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-
-                // TODO: Legacy idea here of "preset", however if mappings are not binded to indexes, then they're _all_ presets, in theory.
-                // Keeping for now.
                 if (showOnlyPresets) {
                     setMappings(response.data.filter( (x) => x.preset))
                 } else {
                     setMappings(response.data)
                 }
-
             } else {
                 setMappings(undefined)
             }
         })
         .catch((error) => {
-            console.log("PAGE MAPPINGS - requestGetMappings ERROR: ", error)
+            console.log("COMPONENT MAPPINGS - requestGetMappings error", error)
             showNotification({
                 type: "warning", message: "An error has encountered: " + error, timeout: 5000
             })
@@ -89,7 +81,7 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
 
         await requestAPI_DeleteMapping(mapping, indexUUID)
         .catch((error) => {
-            console.log("PAGE MAPPINGS - apiDetachMappingFromIndex ERROR: ", error)
+            console.log("COMPONENT MAPPINGS - requestDeleteMapping error", error)
             showNotification({
                 type: "warning", message: "An error has encountered: " + error, timeout: 5000
             })
@@ -143,7 +135,7 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
                 }
             })
             .catch((error) => {
-                console.log("PAGE MAPPINGS - requestGetMappings ERROR: ", error)
+                console.log("COMPONENT MAPPINGS - requestGetMappings error", error)
                 showNotification({
                     type: "warning", message: "An error has encountered: " + error, timeout: 5000
                 })
@@ -156,7 +148,7 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
 
     const rawMappingsCombined = useRef(() => {
         if (mappings) {
-            return mappings.map( (x:Mapping) => x.mappingRaw)
+            return mappings.map( (x:Mapping) => x.fields)
         }
         return null
     })
@@ -315,7 +307,7 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
                                     <Typography textColor="neutral600">{mapping.post_type}</Typography>
                                 </Td>
                                 <Td style={{ overflow: 'hidden', maxWidth: '200px' }}>
-                                    <Typography textColor="neutral600">{mapping.mappingRaw}</Typography>
+                                    <Typography textColor="neutral600">{JSON.stringify(mapping.fields)}</Typography>
                                 </Td>
                                 <Td>
                                     <Typography textColor="neutral600">{mapping.preset ? 'Yes' : '' }</Typography>
@@ -333,23 +325,22 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
                                 { !indexUUID && (
                                     <Td>
                                             {/* TODO: Re-introduce displaying what indexes the mapping belongs to */}
-                                            {/* { data.indexes && data.indexes.length > 0 && (
+                                            { mapping.indexes && mapping.indexes.length > 0 && (
                                                 <>
-                                                { data.indexes.map((item, indexItem) => {
-                                                        return (
-                                                            <Box key={indexItem}>
-                                                                <Link onClick={(e) => { requestGoToIndex(e, item.uuid) } } key={indexItem}>
-                                                                    { item.uuid }
-                                                                </Link>                                                                    
-                                                                { indexItem != data.indexes.length && (
-                                                                    <>&nbsp;</>
-                                                                ) }
-                                                            </Box>
-                                                        )
-                                                    })
-                                                }
+                                                { mapping.indexes.map((indexUUID, indexNumber) => {
+                                                    return (
+                                                        <Box key={indexNumber}>
+                                                            <Link onClick={(e:Event) => { requestGoToIndex(e, indexUUID) } } key={indexNumber}>
+                                                                { indexNumber }
+                                                            </Link>                                                                    
+                                                            { indexNumber != mapping.indexes?.length && (
+                                                                <>&nbsp;</>
+                                                            ) }
+                                                        </Box>
+                                                    )
+                                                }) }
                                                 </>
-                                            )} */}
+                                            )}
                                     </Td>
                                 )}
 
@@ -373,7 +364,6 @@ export const Mappings = ({ indexUUID, showOnlyPresets, modeOnlySelection, mappin
             
                 </>
                 )}
-
 
             </Box>
 

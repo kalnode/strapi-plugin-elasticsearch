@@ -1,26 +1,16 @@
 import type { Attribute } from "@strapi/strapi"
 import { PluginEspluginMapping } from '../../../../types/generated/contentTypes'
 
-
 export type Mapping = {
     uuid?: string
-    disabled?: boolean
     post_type: string
-    mappingRaw: MappingRaw
+    disabled?: boolean
     fields?: MappingField
     preset?: boolean
     default_preset?: boolean
     nested_level?: number // TODO: early dev work; unknown if we keep this
     indexes?: Array<string> // TODO: put index type here
 }
-
-export interface MappingRaw {
-    [key: string]: {
-        type: string // TODO: change this to "dataType" to better match the language of ES and minimize any possible conflation that this has any relation to typescript
-        index: boolean // ES-side attribute, whether to index the field (in the context of ES)
-    }
-}
-
 
 export interface MappingField {
     [key: string]: {
@@ -30,8 +20,6 @@ export interface MappingField {
         externalName?: string // Apply a different field name ES-side
     }
 }
-
-
 
 export interface StrapiContentTypes {
     [key: string]: {
