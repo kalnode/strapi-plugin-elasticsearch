@@ -182,7 +182,14 @@ export default ({ strapi }) => ({
 
             if (mappings && Array.isArray(mappings)) {
                 let foundIndex = mappings.findIndex( (x:any) => x.uuid === mapping.uuid)
-                mappings[foundIndex].mappingRaw = JSON.stringify(mapping.mappingRaw)
+                if (foundIndex >= 0) {
+                    if (mappings[foundIndex].mappingRaw) {
+                        mappings[foundIndex].mappingRaw = JSON.stringify(mapping.mappingRaw)
+                    }
+                    if (mappings[foundIndex].fields) {
+                        mappings[foundIndex].fields = JSON.stringify(mapping.fields)
+                    }
+                }
             } else {
                 console.log("Cannot find mapping to update")
             }
@@ -211,6 +218,76 @@ export default ({ strapi }) => ({
 
         } catch (err) {
             console.log('SPE - updateMapping: An error was encountered')
+            console.log(err)
+            return err
+        }
+
+    },
+
+    async updateMappings(mappings:Array<Mapping>) {
+
+        try {
+
+            // TODO: Is this extra variable necessary?
+            //let finalPayload:TMapping1 = mapping
+            //finalPayload.mappingRaw = JSON.stringify(finalPayload.mappingRaw)
+
+            // console.log("updateMapping 222: ", finalPayload)
+
+            // -------------------------------------------
+            // UPDATE THE PLUGIN STORE
+            const helperGetPluginStore = () => {
+                return strapi.store({
+                    environment: '',
+                    type: 'plugin',
+                    name: 'esplugin'
+                })
+            }
+            const pluginStore = helperGetPluginStore()         
+            let existingMappings:any = await pluginStore.get({ key: 'mappings' })
+
+            if (existingMappings && Array.isArray(existingMappings)) {
+
+                // Loop through updateMappings
+                for (let i = 0; i < mappings.length; i++) {
+                    let mapping = mappings[i]
+                    let foundIndex = existingMappings.findIndex( (x:Mapping) => x.uuid === mapping.uuid)
+                    if (foundIndex >= 0) {
+                        //const processedMapping = mapping
+                        //processedMapping.mappingRaw = JSON.stringify(processedMapping.mappingRaw)
+
+                        existingMappings[foundIndex] = mapping
+                       // existingMappings[foundIndex].mappingRaw = JSON.stringify(mapping.mappingRaw)
+                    }
+                }
+            } else {
+                console.log("Cannot find mapping to update")
+            }
+            await pluginStore.set({ key: 'mappings', value: existingMappings })
+            // -------------------------------------------
+
+            // UPDATE DB
+            // const entry = await strapi.entityService.update('plugin::esplugin.mapping', mappingId, {
+            //     data: finalPayload,
+            //     populate: 'indexes'
+            // })
+            return "Success"
+
+            // EXPERIMENTAL
+            // TODO: PROBABLY REMOVE... ES basically cannot accept updates to mappings
+            // Updating mappings on existing index; basically not possible however you can 1. add new mappings to an existing index, or 2. change the secondary properties (?) of an existing mapping.
+            // if (entry.indexes) {
+            //     // 1 - Loop through indexes, updateMapping for each
+            //     for (i = 0; i < entry.indexes.length; i++) {
+            //         let index = entry.indexes[i]
+            //         console.log("ESwork index is:", index)
+            //         let ESwork = await esInterface.updateMapping({indexName: index.index_name, mapping: finalPayload2})
+            //         console.log("ESwork after work is: ", ESwork)
+            //     }
+            // }
+
+        } catch (err) {
+            console.log('SPE - updateMappings: An error was encountered')
             console.log(err)
             return err
         }
@@ -286,24 +363,26 @@ export default ({ strapi }) => ({
 
             if (mappings && Array.isArray(mappings)) {
 
-                const foundMappingIndex = mappings.findIndex( (x:Mapping) => x.uuid === mappingUUID)
-                const mapping = mappings[foundMappingIndex]
+                const foundIndex = mappings.findIndex( (x:Mapping) => x.uuid === mappingUUID)
+                if (foundIndex >= 0) {
+                    const mapping = mappings[foundIndex]
 
-                const indexesService = strapi.plugins['esplugin'].services.indexes
-                const indexes = await indexesService.getIndexes()
+                    const indexesService = strapi.plugins['esplugin'].services.indexes
+                    const indexes = await indexesService.getIndexes()
 
-                if (indexes) {
+                    if (indexes) {
 
-                    const indexesWithMatchingMappings = indexes.filter( (x:RegisteredIndex) => x.mappings && mapping.uuid && x.mappings.includes(mapping.uuid))
+                        const indexesWithMatchingMappings = indexes.filter( (x:RegisteredIndex) => x.mappings && mapping.uuid && x.mappings.includes(mapping.uuid))
 
-                    if (indexesWithMatchingMappings) {
-                        for (let i = 0; i < indexesWithMatchingMappings.length; i++) {
-                            await this.detachMapping(indexesWithMatchingMappings[i].uuid, mapping.uuid)
+                        if (indexesWithMatchingMappings) {
+                            for (let i = 0; i < indexesWithMatchingMappings.length; i++) {
+                                await this.detachMapping(indexesWithMatchingMappings[i].uuid, mapping.uuid)
+                            }
                         }
                     }
-                }
 
-                mappings.splice(foundMappingIndex, 1)
+                    mappings.splice(foundIndex, 1)
+                }
             }
 
             await pluginStore.set({ key: 'mappings', value: mappings.length ? mappings : null })

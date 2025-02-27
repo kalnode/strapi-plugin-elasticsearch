@@ -7,13 +7,13 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
 import PropTypes from 'prop-types'
 import pluginId from '../../pluginId'
-import { Link, Box, Button, Icon, Typography, ModalLayout, ModalHeader, ModalFooter, ModalBody, ToggleInput, TextButton, TextInput, Flex, Textarea, Switch, SingleSelect, SingleSelectOption, TabGroup, Tabs, Tab, TabPanels, TabPanel, Grid, Field } from '@strapi/design-system'
+import { Link, Box, Button, Tooltip, Icon, Typography, ModalLayout, ModalHeader, ModalFooter, ModalBody, ToggleInput, TextButton, TextInput, Flex, Textarea, Switch, SingleSelect, SingleSelectOption, TabGroup, Tabs, Tab, TabPanels, TabPanel, Grid, Field } from '@strapi/design-system'
 import { apiUpdateIndex, apiGetIndex, apiCreateESindex, apiIndexRecords } from '../../utils/apiUrls'
 import axiosInstance from '../../utils/axiosInstance'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 import { Pencil, Trash, ExclamationMarkCircle, Plus } from '@strapi/icons'
-
 import { RegisteredIndex } from "../../../../types"
+import { Information } from '@strapi/icons'
 
 type Props = {
     indexUUID: string
@@ -27,17 +27,15 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
     // ===============================
 
     const [isInProgress, setIsInProgress] = useState<boolean>(false)
-    const [indexRaw,setIndexRaw] = useState<RegisteredIndex>()
+    const [indexOriginal,setIndexOriginal] = useState<RegisteredIndex>()
     const [index,setIndex] = useState<RegisteredIndex>()
     const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
-
     const showNotification = useNotification()
 
-    //const changesExist = useMemo(() => index != indexRaw)
-    const changesExist = useMemo(() => index != indexRaw, [index])
+    const changesExist = useMemo(() => JSON.stringify(index) != JSON.stringify(indexOriginal), [index])
 
     const resetForm = () => {
-        setIndex(indexRaw)
+        setIndex(indexOriginal)
     }
 
     const requestGetIndex = async () => {
@@ -60,7 +58,7 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
                 setIsInProgress(false)
             })
 
-            setIndexRaw(work)
+            setIndexOriginal(work)
             setIndex(work)
         }
         
@@ -99,7 +97,7 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
                 })
                 .then( (response) => {
                     if (response.data) {
-                        setIndexRaw(response.data)
+                        setIndexOriginal(response.data)
                         setIndex(response.data)
                     }
                 })
@@ -176,9 +174,12 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
             { index && (
                 <>
                 <Flex width="100%" justifyContent="space-between">
-                    <Box>
-                        <Typography variant="alpha">{ indexUUID ? 'Index ' + indexUUID : 'Create Index'}</Typography>
-                    </Box>
+                    <Flex direction="column" alignItems="start">
+                        <Typography variant="alpha">{ indexUUID ? index.index_name : 'Create Index'}</Typography>
+                        { indexUUID && (
+                            <Typography variant="delta">UUID: { indexUUID }</Typography>
+                        )}
+                    </Flex>
 
                     <Flex gap={4}>
 
@@ -193,10 +194,31 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
                         )}
 
                         { indexUUID && (
+                            <Flex gap={4}>
+                                <Switch
+                                onClick={ () => setIndex({...index, active: index.active ? false : true })}
+                                selected={ index.active ? true : null }
+                                visibleLabels
+                                onLabel = 'On'
+                                offLabel = 'Off'
+                                />
+                                <Tooltip label="On = Triggers activated for specified post types">
+                                    <button aria-label="delete">
+                                        {/* <Trash aria-hidden focusable={false} /> */}
+                                        <Icon as={Information} color="neutral300" variant="primary" />
+                                        {/* aria-hidden focusable={false} */}
+                                    </button>
+                                </Tooltip>
+                                {/* <Icon as={Information} color="neutral300" variant="primary" /> */}
+                               
+                            </Flex>
+                        )}
+
+                        {/* { indexUUID && (
                             <Button onClick={() => requestUpdateIndex()} variant="tertiary" disabled={!changesExist}>
                                 Save
                             </Button>
-                        )}
+                        )} */}
                     </Flex>
                 </Flex>
 
@@ -224,7 +246,7 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
                         </Box>
                     </Flex>
 
-                    <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
+                    {/* <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
                         <Box>
                             <Flex direction="column" alignItems="start" gap={4}>
                                 <Typography variant="delta">State</Typography>
@@ -235,16 +257,19 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
                                     onLabel = 'Enabled'
                                     offLabel = 'Disabled'
                                 />
-                                {/* onClick={toggleIndexingEnabled}
-                                    selected={indexingEnabled} */}
                             </Flex>
                         </Box>
-                    </Box>
+                    </Box> */}
 
                     <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
                         <Link to={`/plugins/${pluginId}/indexes/${index.uuid}/mappings`}>
                             <Button variant="secondary">
                                 Mappings for Index
+                            </Button>
+                        </Link>
+                        <Link to={`/plugins/${pluginId}/indexes/${index.uuid}/mappingsnew`}>
+                            <Button variant="secondary">
+                                Mappings New for Index
                             </Button>
                         </Link>
                     </Box>

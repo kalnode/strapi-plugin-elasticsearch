@@ -29,6 +29,7 @@ const PageIndex = () => {
                         {/* isCurrent */}
                     </Breadcrumbs>
 
+                    {/* TODO: When Index mounted, send index.index_name back here to replace UUID in the breadcrumb */}
                     <Index indexUUID={params.indexUUID} />
 
                 </Box>

@@ -246,7 +246,7 @@ export const ComponentIndexes = () => {
                                         <Td>
                                             <Flex alignItems="end" gap={2}>
                                                 <IconButton label="Edit" borderWidth={0} icon={<Pencil />} />                                                  
-                                                <IconButton onClick={(e:Event) => modalDeleteOpen(e, data.uuid)} label="Delete" borderWidth={0} icon={<Trash />} />                                                
+                                                <IconButton onClick={(e:Event) => modalDeleteOpen(e, data.uuid)} label="Delete" borderWidth={0} icon={<Trash />} />
                                             </Flex>
                                         </Td>
                                     </Tr>

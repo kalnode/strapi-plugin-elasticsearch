@@ -46,6 +46,15 @@ export default ({ strapi }) => {
         }
     }
 
+    const updateMappings = async (ctx) => {
+        const { body } = ctx.request
+        try {
+            return await mappings.updateMappings(body.data)
+        } catch (err) {
+            ctx.throw(500, err)
+        }
+    }
+
     const detachMapping = async (ctx) => {
         const { body } = ctx.request
         try {
@@ -69,6 +78,7 @@ export default ({ strapi }) => {
         getContentTypes,
         createMapping,
         updateMapping,
+        updateMappings,
         deleteMapping,
         detachMapping
     }

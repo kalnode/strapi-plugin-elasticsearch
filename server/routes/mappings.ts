@@ -38,6 +38,12 @@ export default {
             config: { policies: [] }
         },
         {
+            method: 'POST',
+            path: '/update-mappings',
+            handler: 'mappings.updateMappings',
+            config: { policies: [] }
+        },
+        {
             method: 'GET',
             path: '/delete-mapping/:mappingUUID',
             handler: 'mappings.deleteMapping',

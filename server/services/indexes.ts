@@ -142,7 +142,9 @@ export default ({ strapi }) => ({
 
             if (indexes && Array.isArray(indexes)) {
                 let foundIndex = indexes.findIndex( (x:RegisteredIndex) => x.uuid === indexUUID)
-                indexes[foundIndex] = { ...indexes[foundIndex], ...payload}
+                if (foundIndex >= 0) {
+                    indexes[foundIndex] = { ...indexes[foundIndex], ...payload}
+                }
             } else {
                 console.log("Cannot find index to update")
             }
@@ -208,12 +210,14 @@ export default ({ strapi }) => ({
             if (indexes && Array.isArray(indexes)) {
                 let foundIndexNumber = indexes.findIndex( (x:RegisteredIndex) => x.uuid === indexUUID)
 
-                // DELETE FROM ELASTICSEARCH:
-                if (indexes[foundIndexNumber] && deleteIndexInElasticsearch) {
-                    await esInterface.deleteIndex(indexes[foundIndexNumber].index_name)
-                }
+                if (foundIndexNumber >= 0) {
+                    // DELETE FROM ELASTICSEARCH:
+                    if (indexes[foundIndexNumber] && deleteIndexInElasticsearch) {
+                        await esInterface.deleteIndex(indexes[foundIndexNumber].index_name)
+                    }
 
-                indexes.splice(foundIndexNumber, 1)
+                    indexes.splice(foundIndexNumber, 1)
+                }
             }
             if (indexes.length === 0) {
                 indexes = []

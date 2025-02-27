@@ -13,7 +13,7 @@ import pluginId from '../../pluginId'
 
 const PageIndexMapping = () => {
 
-    const params = useParams<{ indexUUID: string, mappingUUID: string }>()
+    const params = useParams<{ indexUUID: string, mappingUUID: string, type: string }>()
 
     return (
         <Flex alignItems="stretch" gap={4}>
@@ -23,12 +23,12 @@ const PageIndexMapping = () => {
                 <Breadcrumbs label="Extra navigation">
                     <Crumb><Link to={`/plugins/${pluginId}/indexes`}>Indexes</Link></Crumb>
                     <Crumb><Link to={`/plugins/${pluginId}/indexes/${params.indexUUID}`}>{params.indexUUID}</Link></Crumb>
-                    <Crumb><Link to={`/plugins/${pluginId}/indexes/${params.indexUUID}/mappings`}>Mappings</Link></Crumb>
+                    <Crumb><Link to={`/plugins/${pluginId}/indexes/${params.indexUUID}/mappingsnew`}>Mappings</Link></Crumb>
                     <Crumb>{ params.mappingUUID }</Crumb>
                     {/* isCurrent */}
                 </Breadcrumbs>
 
-                <Mapping mappingUUID={params.mappingUUID} indexUUID={params.indexUUID} />
+                <Mapping mappingUUID={params.mappingUUID} indexUUID={params.indexUUID} type={params.type} />
 
             </Box>
         </Flex>

@@ -4,8 +4,10 @@ import { PluginEspluginMapping } from '../../../../types/generated/contentTypes'
 
 export type Mapping = {
     uuid?: string
+    disabled?: boolean
     post_type: string
     mappingRaw: MappingRaw
+    fields?: MappingField
     preset?: boolean
     default_preset?: boolean
     nested_level?: number // TODO: early dev work; unknown if we keep this
@@ -14,10 +16,22 @@ export type Mapping = {
 
 export interface MappingRaw {
     [key: string]: {
-        type: string
-        index: boolean
+        type: string // TODO: change this to "dataType" to better match the language of ES and minimize any possible conflation that this has any relation to typescript
+        index: boolean // ES-side attribute, whether to index the field (in the context of ES)
     }
 }
+
+
+export interface MappingField {
+    [key: string]: {
+        active?: boolean
+        type?: string // TODO: change this to "dataType" to better match the language of ES and minimize any possible conflation that this has any relation to typescript
+        index?: boolean // ES-side attribute, whether to index the field (in the context of ES)
+        externalName?: string // Apply a different field name ES-side
+    }
+}
+
+
 
 export interface StrapiContentTypes {
     [key: string]: {
@@ -38,7 +52,29 @@ export type RegisteredIndex = {
 }
 
 
-
+// LEGACY HARDCODED MAPPINGS, for reference.
+// TODO: Delete when ready to.
+// mappings: {
+//     properties: {
+//         "pin": {
+//             type: "geo_point",
+//             index: true
+//         },
+//         "Participants": {
+//             type: "nested"
+//         },
+//         "Organizers": {
+//             type: "nested"
+//         },
+//         "child_terms": {
+//             type: "nested"
+//         },        
+//         // "uuid": {
+//         //     type: "string",
+//         //     index: "not_analyzed"
+//         // }
+//     }
+// }
 
 
 

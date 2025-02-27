@@ -13,6 +13,7 @@ import Homepage from './Home'
 import Indexes from './Indexes/indexes'
 import Index from './Indexes'
 import IndexMappings from './Indexes/indexMappings'
+import IndexMappingsNew from './Indexes/indexMappingsNew'
 import IndexMapping from './Indexes/indexMapping'
 import Mappings from './Mappings/mappings'
 import Mapping from './Mappings/mapping'
@@ -31,7 +32,9 @@ const App = () => {
             <Route path={`/plugins/${pluginId}/indexes`} component={Indexes} exact />
             <Route path={`/plugins/${pluginId}/indexes/:indexUUID`} component={Index} exact />
             <Route path={`/plugins/${pluginId}/indexes/:indexUUID/mappings`} component={IndexMappings} exact />
+            <Route path={`/plugins/${pluginId}/indexes/:indexUUID/mappingsnew`} component={IndexMappingsNew} exact />
             <Route path={`/plugins/${pluginId}/indexes/:indexUUID/mappings/:mappingUUID`} component={IndexMapping} exact />
+            <Route path={`/plugins/${pluginId}/indexes/:indexUUID/mappings/:mappingUUID/:type`} component={IndexMapping} exact />
 
             <Route path={`/plugins/${pluginId}/mappings`} component={Mappings} exact />
             <Route path={`/plugins/${pluginId}/mappings/:mappingUUID`} component={Mapping} exact />

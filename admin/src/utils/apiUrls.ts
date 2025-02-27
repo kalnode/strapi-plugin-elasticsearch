@@ -34,6 +34,7 @@ export const apiGetMapping = (mappingUUID:string) => `/${pluginId}/get-mapping/$
 export const apiGetMappings = (indexUUID?:string) => indexUUID ? `/${pluginId}/get-mappings/${indexUUID}` : `/${pluginId}/get-mappings`
 export const apiCreateMapping = `/${pluginId}/create-mapping`
 export const apiUpdateMapping = (mappingUUID:string) => `/${pluginId}/update-mapping/${mappingUUID}`
+export const apiUpdateMappings = `/${pluginId}/update-mappings/`
 export const apiDeleteMapping = (mappingUUID:string) => `/${pluginId}/delete-mapping/${mappingUUID}`
 export const apiDetachMappingFromIndex = `/${pluginId}/detach-mapping`
 export const apiGetESMapping = (indexUUID:string) => `/${pluginId}/get-es-mapping/${indexUUID}`
