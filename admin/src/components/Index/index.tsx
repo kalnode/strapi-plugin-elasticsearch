@@ -318,10 +318,20 @@ export const Index = ({ indexUUID }:Props) => {
 
                         ( user journey will be invoked on re-building the entire index)
                     </ModalBody>
-                    {/* <ModalFooter
-                        startActions={<></>}
-                        endActions={<></>}
-                    /> */}
+                    <ModalFooter
+                        startActions={<>
+                            <Button onClick={ () => setShowNameAliasModal(false) } variant="secondary">
+                                Cancel
+                            </Button>
+                        </>}
+                        endActions={<>
+                            <Flex width="100%" justifyContent="end" gap={4}>
+                            <Button onClick={ () => setShowNameAliasModal(false) } variant="primary">
+                                Cancel
+                            </Button>
+                            </Flex>
+                        </>}
+                    />
                 </ModalLayout>
 
             ) }

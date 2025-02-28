@@ -327,7 +327,6 @@ export const ComponentIndexes = () => {
                                     <Box onClick={ () => setUseNamePrepend(!useNamePrepend) } cursor="pointer">Prepend with "{namePrepend}"</Box>
                                 </Flex>
                             </Flex>
-
                             <Flex direction="column" alignItems="start" gap={4}>
                                 <Typography as="h2" variant="beta">Optional: Create index in Elasticsearch instance</Typography>
                                 <Typography variant="delta">
@@ -344,9 +343,7 @@ export const ComponentIndexes = () => {
                                         offLabel = 'No'
                                     />
                                 </Flex>
-                            </Flex>
-
-                            
+                            </Flex>                            
                         </Flex>
                     </ModalBody>
                     <ModalFooter
@@ -422,7 +419,6 @@ export const ComponentIndexes = () => {
                                             </Box>
                                         </Flex>
                                     </TabPanel>
-
                                     
                                     {/* -------- TAB: SELECT FROM LIST ------------------*/}
                                     <TabPanel id="chooseFromList" style={{ overflow: 'hidden', height: "100%" }}>
@@ -438,8 +434,7 @@ export const ComponentIndexes = () => {
                                                 )
                                             }) }
                                         </Flex>
-                                    </TabPanel>                              
-
+                                    </TabPanel>
                                 </TabPanels>
                             </TabGroup>
                         </Box>
@@ -503,16 +498,16 @@ export const ComponentIndexes = () => {
                                 </Flex>
                             )}
 
-
                         </Flex>
                     </ModalBody>
                     <ModalFooter
-                        startActions={<></>}
+                        startActions={<>
+                            <Button onClick={ () => setModalDeleteIndexShow(false)} variant="secondary">
+                                Cancel
+                            </Button>
+                        </>}
                         endActions={<>
                             <Flex width="100%" justifyContent="end" gap={4}>
-                                <Button onClick={ () => setModalDeleteIndexShow(false)} variant="secondary">
-                                    Cancel
-                                </Button>
                                 <Button onClick={ () => requestDeleteIndex() } variant="primary">
                                     Delete the registered index
                                 </Button>

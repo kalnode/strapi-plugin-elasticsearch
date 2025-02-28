@@ -249,20 +249,16 @@ const PageConfigure = () => {
                                         {importJson}
                                     </Textarea>
                                 </ModalBody>
-                                <ModalFooter
-                                
+                                <ModalFooter                                
                                     startActions={
                                         <Button onClick={ () => setDisplayImportModal(false) } variant="tertiary">
                                             Cancel
                                         </Button>
-                                    }
-                                    
+                                    }                                    
                                     endActions={
-                                        <>
-                                            <Button loading={isInProgress} onClick={ () => performImport() } disabled={!isEnteredJsonValid && !importJson.length>0}>
-                                                Import
-                                            </Button>
-                                        </>
+                                        <Button loading={isInProgress} onClick={ () => performImport() } disabled={!isEnteredJsonValid && !importJson.length>0}>
+                                            Import
+                                        </Button>
                                     }
                                 />
                             </ModalLayout>
