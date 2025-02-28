@@ -76,7 +76,6 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
         await axiosInstance.get(apiGetMappings(indexUUID))
         .then((response) => {
             if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-                console.log("Mappings pull is dfdwsf", response.data)
                 setMappings(response.data)
                 setMappingsOriginal(response.data)
             } else {
