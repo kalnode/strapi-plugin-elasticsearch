@@ -21,7 +21,7 @@ const PageIndexMapping = () => {
             <Box width="100%" padding={8} background="neutral100" overflow='hidden'>
 
                 <Breadcrumbs label="Extra navigation">
-                    <Crumb><Link to={`/plugins/${pluginId}/indexes`}>Indexes</Link></Crumb>
+                    <Crumb><Link to={`/plugins/${pluginId}/indexes`}>Indexes Home</Link></Crumb>
                     <Crumb><Link to={`/plugins/${pluginId}/indexes/${params.indexUUID}`}>{params.indexUUID}</Link></Crumb>
                     <Crumb><Link to={`/plugins/${pluginId}/indexes/${params.indexUUID}/mappingsnew`}>Mappings</Link></Crumb>
                     <Crumb>{ params.mappingUUID }</Crumb>

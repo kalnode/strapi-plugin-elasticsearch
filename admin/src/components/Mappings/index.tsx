@@ -4,17 +4,17 @@
  *
  */
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useHistory } from 'react-router-dom'
 import pluginId from '../../pluginId'
-import { Box, Flex, Button, ModalLayout, ModalHeader, Link, ModalFooter, ModalBody, Table, Thead, Tbody, Tr, Td, Th, TFooter, EmptyStateLayout, Checkbox, TabGroup, Tabs, Tab, TabPanels, TabPanel, TextInput, IconButton, CaretDown, Typography } from '@strapi/design-system'
-import { Pencil, Trash, Refresh, Plus, Cross } from '@strapi/icons'
+import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 
-import { apiGetMappings, apiDeleteMapping, apiDetachMappingFromIndex, apiGetESMapping } from '../../utils/apiUrls'
-import { requestAPI_DeleteMapping } from '../../utils/api/mappings'
+import { Box, Flex, Button, ModalLayout, ModalHeader, Link, ModalFooter, ModalBody, Loader, Table, Thead, Tbody, Tr, Td, Th, TFooter, EmptyStateLayout, Checkbox, TabGroup, Tabs, Tab, TabPanels, TabPanel, TextInput, IconButton, CaretDown, Typography } from '@strapi/design-system'
+import { Pencil, Trash, Plus, Cross } from '@strapi/icons'
 
 import axiosInstance  from '../../utils/axiosInstance'
-import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
-import { useHistory } from 'react-router-dom'
+import { apiGetMappings, apiGetESMapping } from '../../utils/apiUrls'
+import { requestAPI_DeleteMapping } from '../../utils/api/mappings'
 import { requestUpdateIndex } from '../../utils/api/indexes'
 
 import { Mapping } from "../../../../types"
@@ -34,7 +34,8 @@ export const Mappings = ({ indexUUID, showOnlyPresets, type, modeOnlySelection, 
     // GENERAL
     // ===============================
 
-    const [isInProgress, setIsInProgress] = useState(false)
+    const [isInProgress, setIsInProgress] = useState<boolean>(false)
+    const [pageHasLoaded, setPageHasLoaded] = useState<boolean>(false)
     const [mappings, setMappings] = useState<Array<Mapping>>()
     const history = useHistory()
     const showNotification = useNotification()
@@ -46,6 +47,15 @@ export const Mappings = ({ indexUUID, showOnlyPresets, type, modeOnlySelection, 
         requestGetMappings()
         requestGetESMapping()
     }, [])
+
+
+    useEffect(() => {
+        // TODO: Can we eliminate this timeout? Doing it to minimize FOUC due to the EmptyStateLayout view. 
+        setTimeout(() => {
+            setPageHasLoaded(true)            
+        }, 200)
+    }, [])
+    
 
     // ===============================
     // API REQUESTS
@@ -78,16 +88,11 @@ export const Mappings = ({ indexUUID, showOnlyPresets, type, modeOnlySelection, 
         .finally(() => {
             setIsInProgress(false)
         })
-
     }
 
     const requestDeleteMapping = async (e:Event, mapping:Mapping) => {
         e.stopPropagation()
         setIsInProgress(true)
-
-        // TODO: Possibly add visual prompt to user if they're attempting to delete a preset mapping.
-        // They must be aware that in doing so may affect multiple indexes that the preset mapping is applied to.
-
         await requestAPI_DeleteMapping(mapping, indexUUID)
         .catch((error) => {
             console.log("COMPONENT Mappings - requestDeleteMapping error", error)
@@ -99,14 +104,12 @@ export const Mappings = ({ indexUUID, showOnlyPresets, type, modeOnlySelection, 
             await requestGetMappings()
             setIsInProgress(false)
         })
-
     }
 
-    const requestGetESMapping = () => {
+    const requestGetESMapping = async () => {
         setIsInProgress(true)
-
         if (indexUUID) {
-            axiosInstance.get(apiGetESMapping(indexUUID))
+            await axiosInstance.get(apiGetESMapping(indexUUID))
             .then((response) => {
                 // TODO: Work on a better return from the server. For now doing this sillyness.
                 if (response && response.data && (Array.isArray(response.data) || response.data.constructor.name === "Object")) {
@@ -162,67 +165,79 @@ export const Mappings = ({ indexUUID, showOnlyPresets, type, modeOnlySelection, 
 
     return  (
 
-        <Flex width="100%" direction="column" alignItems="start" gap={2} background="neutral100">
-
+        <Flex width="100%" height="100%" direction="column" alignItems="start" gap={4} background="neutral100">
 
             {/* ---------------------------------------------- */}
             {/* HEADER */}
             {/* ---------------------------------------------- */}
-            <Flex direction="column" justifyContent="start">
-                <Typography variant="alpha">{ showOnlyPresets ? 'Preset Mappings' : 'Mappings'}</Typography>
-                <Typography variant="beta">For { type }</Typography>
-            </Flex>
+            <Flex width="100%" justifyContent="space-between">
 
-            { !modeOnlySelection && (
-
-                <Flex width="100%" gap={4} justifyContent="space-between">
-                    {/* <Typography variant="delta">Actions</Typography>
-                    <Button loading={isInProgress} fullWidth variant="secondary" onClick={requestGetMappings}>Reload list</Button> */}
-
-                    <Box>
-                        {/* <IconButton onClick={ () => requestGetMappings() } label="Get mappings" icon={<Refresh />} /> */}
-                    </Box>
-                    
-                    <Flex gap={4}>
-                        {/* { indexUUID && (
-                            <Link to={`/plugins/${pluginId}/indexes/${indexUUID}/mappings/new`}>
-                                <Button variant="secondary" style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
-                                    Create Mapping
-                                </Button>
-                            </Link>
-                        )} */}
-                        { !indexUUID && (
-                            <Flex direction="column" justifyContent="start">
-                                <Link to={`/plugins/${pluginId}/mappings/new`}>
-                                    <Button variant="secondary" style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
-                                        Create Preset Mapping
-                                    </Button>
-                                </Link>
-                                <Link to={`/plugins/${pluginId}/mappings/new/${type}`}>
-                                    <Button variant="secondary" style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
-                                        Create Preset Mapping for {type}
-                                    </Button>
-                                </Link>
-                            </Flex>
-                        )}
-                        {/* { indexUUID && (
-                            <Button loading={isInProgress} variant="secondary"
-                            onClick={ () => modalSelectPresetMappingOpen() } style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
-                                Add Preset Mapping
-                            </Button>
-                        )} */}
-                    </Flex>
+                <Flex direction="column" justifyContent="start">
+                    <Typography variant="alpha">{ showOnlyPresets ? 'Preset Mappings' : 'Mappings'}</Typography>
+                    {type && (
+                        <Typography variant="beta">For { type }</Typography>
+                    )}
                 </Flex>
-            )}
+
+                { !modeOnlySelection && (
+
+                    <Flex width="100%" gap={4} justifyContent="space-between">
+                        {/* <Typography variant="delta">Actions</Typography>
+                        <Button loading={isInProgress} fullWidth variant="secondary" onClick={ () => requestGetMappings }>Reload list</Button> */}
+
+                        <Box>
+                            {/* <IconButton onClick={ () => requestGetMappings() } label="Get mappings" icon={<Refresh />} /> */}
+                        </Box>
+                        
+                        <Flex gap={4}>
+                            {/* { indexUUID && (
+                                <Link to={`/plugins/${pluginId}/indexes/${indexUUID}/mappings/new`}>
+                                    <Button variant="secondary" style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
+                                        Create Mapping
+                                    </Button>
+                                </Link>
+                            )} */}
+                            { !indexUUID && (
+                                <Flex direction="column" justifyContent="start">
+                                    <Link to={`/plugins/${pluginId}/mappings/new`}>
+                                        <Button variant="secondary" style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
+                                            Create Preset Mapping
+                                        </Button>
+                                    </Link>
+                                    { type && (
+                                        <Link to={`/plugins/${pluginId}/mappings/new/${type}`}>
+                                            <Button variant="secondary" style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
+                                                Create Preset Mapping for {type}
+                                            </Button>
+                                        </Link>
+                                    )}
+                                </Flex>
+                            )}
+                            {/* { indexUUID && (
+                                <Button loading={isInProgress} variant="secondary"
+                                onClick={ () => modalSelectPresetMappingOpen() } style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
+                                    Add Preset Mapping
+                                </Button>
+                            )} */}
+                        </Flex>
+                    </Flex>
+                )}
+            </Flex>
 
 
             {/* ---------------------------------------------- */}
             {/* MAIN CONTENT */}
             {/* ---------------------------------------------- */}
-            <Box width="100%" style={{ overflow: 'hidden' }}>
+            <Box width="100%" height="100%" style={{ overflow: 'hidden' }}>
+
+                { !pageHasLoaded && (
+                    <Flex width="100%" height="100%" justifyContent="center">
+                        <Loader />
+                    </Flex>
+                )}
 
                 {/* EMPTY CONTENT */}
-                { (!mappings || (mappings && mappings.length === 0)) && (
+                { pageHasLoaded && (!mappings || (mappings && mappings.length === 0)) && (
                     <EmptyStateLayout icon={<Cross />}
                         content={ type ? "You don't have any preset mappings for " + type : "You don't have any preset mappings yet..."}
                         
@@ -237,16 +252,30 @@ export const Mappings = ({ indexUUID, showOnlyPresets, type, modeOnlySelection, 
                             )} */}
                             { !indexUUID && (
                                 <Flex direction="column" justifyContent="start" gap={4}>
-                                    <Link to={`/plugins/${pluginId}/mappings/new/${type}`}>
-                                        <Button variant="primary" style={{ whiteSpace: 'nowrap', color: 'white' }} startIcon={<Plus />}>
-                                            Create Preset for {type}
-                                        </Button>
-                                    </Link>
-                                    <Link to={`/plugins/${pluginId}/mappings`}>
-                                        <Button variant="secondary" style={{ whiteSpace: 'nowrap' }}>
-                                            Manage Mapping Presets
-                                        </Button>
-                                    </Link>
+                                    
+                                    { !type && (
+                                        <Link to={`/plugins/${pluginId}/mappings/new`}>
+                                            <Button variant="secondary" style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
+                                                Create Preset Mapping
+                                            </Button>
+                                        </Link>
+                                    )}
+
+                                    { type && (
+                                        <>
+                                        <Link to={`/plugins/${pluginId}/mappings/new/${type}`}>
+                                            <Button variant="primary" style={{ whiteSpace: 'nowrap', color: 'white' }} startIcon={<Plus />}>
+                                                Create Preset for {type}
+                                            </Button>
+                                        </Link>
+                                        <Link to={`/plugins/${pluginId}/mappings`}>
+                                            <Button variant="secondary" style={{ whiteSpace: 'nowrap' }}>
+                                                Manage Mapping Presets
+                                            </Button>
+                                        </Link>
+                                        </>
+                                    )}
+
 
                                 </Flex>
                             )}
@@ -261,7 +290,7 @@ export const Mappings = ({ indexUUID, showOnlyPresets, type, modeOnlySelection, 
                 )}
 
                 {/* NORMAL CONTENT */}
-                { (mappings && Array.isArray(mappings) && mappings.length > 0) && (
+                { pageHasLoaded && (mappings && Array.isArray(mappings) && mappings.length > 0) && (
                 <>
                 <Table colCount={8} rowCount={mappings.length} width="100%">
                     {/* footer={<TFooter icon={<Plus />}>Add another field to this collection type</TFooter>} */}
@@ -304,7 +333,7 @@ export const Mappings = ({ indexUUID, showOnlyPresets, type, modeOnlySelection, 
                     <Tbody>
                     { mappings.map((mapping, index) => {
                         return (
-                            <Tr key={index} className="row" onClick={() => handleRowClick(mapping) }>
+                            <Tr key={index} className="row" onClick={ () => handleRowClick(mapping) }>
                                 <Td>
                                     <Checkbox aria-label={`Select ${mapping.uuid}`} className="checkbox" />
                                 </Td>

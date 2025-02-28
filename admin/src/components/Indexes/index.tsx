@@ -106,23 +106,26 @@ export const ComponentIndexes = () => {
 
     const requestDeleteIndex = async () => {
         setModalDeleteIndexShow(false)
-        setIsInProgress(true)
-        await axiosInstance.post(apiDeleteIndex, {
-            data: {
-                indexUUID: indexUUIDToBeDeleted,
-                deleteIndexInElasticsearch: deleteFromElasticsearch
-            }
-        })
-        .catch((error) => {
-            console.log("COMPONENT Indexes - requestDeleteIndex error", error)
-            showNotification({
-                type: "warning", message: "An error has encountered: " + error, timeout: 5000
+
+        if (indexToBeDeleted) {
+            setIsInProgress(true)
+            await axiosInstance.post(apiDeleteIndex, {
+                data: {
+                    indexUUID: indexToBeDeleted.uuid,
+                    deleteIndexInElasticsearch: deleteFromElasticsearch
+                }
             })
-        })
-        .finally(() => {
-            setIsInProgress(false)
-            requestGetRegisteredIndexes()
-        })
+            .catch((error) => {
+                console.log("COMPONENT Indexes - requestDeleteIndex error", error)
+                showNotification({
+                    type: "warning", message: "An error has encountered: " + error, timeout: 5000
+                })
+            })
+            .finally(() => {
+                setIsInProgress(false)
+                requestGetRegisteredIndexes()
+            })
+        }
     }
 
     // ===============================
@@ -165,12 +168,12 @@ export const ComponentIndexes = () => {
     // DELETE REGISTERED INDEX
     // ===============================
     const [modalDeleteIndexShow, setModalDeleteIndexShow] = useState<boolean>(false)
-    const [indexUUIDToBeDeleted, setIndexUUIDToBeDeleted] = useState<string>()
+    const [indexToBeDeleted, setIndexToBeDeleted] = useState<RegisteredIndex>()
     const [deleteFromElasticsearch, setDeleteFromElasticsearch] = useState<boolean>(false)
 
-    const modalDeleteOpen = (e:Event, indexUUID:string) => {
+    const modalDeleteOpen = (e:Event, indexToBeDeleted:RegisteredIndex) => {
         e.stopPropagation()
-        setIndexUUIDToBeDeleted(indexUUID)
+        setIndexToBeDeleted(indexToBeDeleted)
         setDeleteFromElasticsearch(false)
         setModalDeleteIndexShow(true)
     }
@@ -180,10 +183,9 @@ export const ComponentIndexes = () => {
     // TEMPLATE
     // ===============================
 
-    return (
+    return  (
 
-        <Flex width="100%" direction="column" alignItems="start" gap={2} background="neutral100">
-
+        <Flex width="100%" height="100%" direction="column" alignItems="start" gap={4} background="neutral100">
 
             {/* ---------------------------------------------- */}
             {/* HEADER */}
@@ -195,11 +197,11 @@ export const ComponentIndexes = () => {
                 </Box>
                 <Flex width="100%" gap={4} justifyContent="space-between">
                     <Box>
-                        {/* <IconButton onClick={requestGetRegisteredIndexes} label="Create Index" icon={<Refresh />} /> */}
+                        {/* <IconButton onClick={ () => requestGetRegisteredIndexes() } label="Create Index" icon={<Refresh />} /> */}
                     </Box>
                     <Flex gap={4}>
-                        <Button variant="secondary" onClick={() => modalCreateOpen()} startIcon={<Plus />}>Create Index</Button>
-                        <Button variant="secondary" onClick={() => modalRegExistingIndexOpen()} startIcon={<Plus />}>Register Existing Index</Button>
+                        <Button variant="secondary" onClick={ () => modalCreateOpen() } startIcon={<Plus />}>Create Index</Button>
+                        <Button variant="secondary" onClick={ () => modalRegExistingIndexOpen() } startIcon={<Plus />}>Register Existing Index</Button>
                     </Flex>
                 </Flex>
             </Flex>
@@ -211,8 +213,8 @@ export const ComponentIndexes = () => {
                 { (!indexes || (indexes && indexes.length) === 0) && (
                     <EmptyStateLayout icon={<Cross />} content="You don't have any registered indexes yet..." action={
                         <Flex gap={4}>
-                            <Button variant="secondary" onClick={() => modalCreateOpen()} startIcon={<Plus />}>Create Index</Button>
-                            <Button variant="secondary" onClick={() => modalRegExistingIndexOpen()} startIcon={<Plus />}>Register Existing ES Index</Button>
+                            <Button variant="secondary" onClick={ () => modalCreateOpen() } startIcon={<Plus />}>Create Index</Button>
+                            <Button variant="secondary" onClick={ () => modalRegExistingIndexOpen() } startIcon={<Plus />}>Register Existing ES Index</Button>
                         </Flex>
                     } />
                 )}
@@ -253,34 +255,34 @@ export const ComponentIndexes = () => {
                             </Tr>
                         </Thead>
                         <Tbody>
-                            { indexes.map((data, index) => {
+                            { indexes.map((indexItem, indexCount) => {
                                 return (
-                                    <Tr key={index} className="row" onClick={() => history.push(`/plugins/${pluginId}/indexes/${data.uuid}`)}>
+                                    <Tr key={indexCount} className="row" onClick={ () => history.push(`/plugins/${pluginId}/indexes/${indexItem.uuid}`) }>
                                         <Td>
-                                            <Checkbox aria-label={`Select ${data.index_name}`} className="checkbox" />
+                                            <Checkbox aria-label={`Select ${indexItem.index_name}`} className="checkbox" />
                                         </Td>
                                         <Td>
-                                            <Typography textColor="neutral600">{data.uuid}</Typography>
+                                            <Typography textColor="neutral600">{indexItem.uuid}</Typography>
                                         </Td>
                                         <Td>
-                                            <Typography textColor="neutral600">{data.index_name}</Typography>
+                                            <Typography textColor="neutral600">{indexItem.index_name}</Typography>
                                         </Td>
                                         <Td>
-                                            <Typography textColor="neutral600">{data.index_alias}</Typography>
+                                            <Typography textColor="neutral600">{indexItem.index_alias}</Typography>
                                         </Td>
                                         <Td>
-                                            <Typography textColor="neutral600">{data.mappings && data.mappings.length > 0 ? data.mappings.length : ''}</Typography>
+                                            <Typography textColor="neutral600">{indexItem.mappings && indexItem.mappings.length > 0 ? indexItem.mappings.length : ''}</Typography>
                                         </Td>
                                         {/* <Td>
                                             <Typography textColor="neutral600">?</Typography>
                                         </Td> */}
                                         <Td>
-                                            <Typography textColor="neutral600">{data.active ? 'Yes':''}</Typography>
+                                            <Typography textColor="neutral600">{indexItem.active ? 'Yes':''}</Typography>
                                         </Td>
                                         <Td>
                                             <Flex alignItems="end" gap={2}>
                                                 <IconButton label="Edit" borderWidth={0} icon={<Pencil />} />                                                  
-                                                <IconButton onClick={(e:Event) => modalDeleteOpen(e, data.uuid)} label="Delete" borderWidth={0} icon={<Trash />} />
+                                                <IconButton onClick={(e:Event) => modalDeleteOpen(e, indexItem)} label="Delete" borderWidth={0} icon={<Trash />} />
                                             </Flex>
                                         </Td>
                                     </Tr>
@@ -317,20 +319,20 @@ export const ComponentIndexes = () => {
                                 <Flex gap={4} alignItems="end" width="100%">
                                     {/* {useNamePrepend && (<>strapi_es_plugin_</>) } */}
                                     <Box width="100%">
-                                        <TextInput value={newIndexName} onChange={(e:Event) => setNewIndexName((e.target as HTMLInputElement).value) } label="New index name" placeholder="Enter a new index name, e.g. 'myWebsite_testIndex'" name="newIndexName" />
+                                        <TextInput value={newIndexName} onChange={ (e:Event) => setNewIndexName((e.target as HTMLInputElement).value) } label="New index name" placeholder="Enter a new index name, e.g. 'myWebsite_testIndex'" name="newIndexName" />
                                     </Box>
                                 </Flex>
                                 <Flex gap={4}>
-                                    <Checkbox aria-label="Add prepend text" className="checkbox" checked={useNamePrepend} onChange={ () => setUseNamePrepend(!useNamePrepend)} />
-                                    <Box onClick={ () => setUseNamePrepend(!useNamePrepend)} cursor="pointer">Prepend with "{namePrepend}"</Box>
+                                    <Checkbox aria-label="Add prepend text" className="checkbox" checked={useNamePrepend} onChange={ () => setUseNamePrepend(!useNamePrepend) } />
+                                    <Box onClick={ () => setUseNamePrepend(!useNamePrepend) } cursor="pointer">Prepend with "{namePrepend}"</Box>
                                 </Flex>
                             </Flex>
 
                             <Flex direction="column" alignItems="start" gap={4}>
-                                <Typography as="h2" variant="beta">Create in Elasticsearch instance</Typography>
+                                <Typography as="h2" variant="beta">Optional: Create index in Elasticsearch instance</Typography>
                                 <Typography variant="delta">
                                     By default, the plugin will attempt to create this index in the connected Elasticsearch instance.
-                                    You may turn this off and do this step later via the plugin UI, or manually create an ES index yourself.
+                                    You may turn this off and do this step later via the plugin UI.
                                 </Typography>
                                 <Flex gap={4}>
                                     <>Create index in ES instance?</>
@@ -348,16 +350,19 @@ export const ComponentIndexes = () => {
                         </Flex>
                     </ModalBody>
                     <ModalFooter
-                        startActions={<></>}
+                        startActions={<>
+                            <Button onClick={ () => setModalCreateIndexShow(false) } variant="secondary">
+                                Cancel
+                            </Button>
+                        </>}
                         endActions={<>
                             <Flex width="100%" justifyContent="end" gap={4}>
                                 <Flex>
                                     {useNamePrepend && (<>{namePrepend}</>) }
                                     {newIndexName}
                                 </Flex>
-
-                                <Button onClick={createIndexActual} disabled={!newIndexName} variant="primary">
-                                    {addToElasticsearch && (<>Create index & add to Elasticsearch</>) }
+                                <Button onClick={ () => createIndexActual() } disabled={!newIndexName} variant="primary">
+                                    {addToElasticsearch && (<>Create index & add to Elasticsearch</>)}
                                     {!addToElasticsearch && (<>Create index</>) }
                                 </Button>
                             </Flex>
@@ -412,7 +417,7 @@ export const ComponentIndexes = () => {
                                             </Box>
                                             <Box width="100%">
                                                 <TextInput value={newIndexName}
-                                                onChange={(e:Event) => { setNewIndexName((e.target as HTMLInputElement).value) }}
+                                                onChange={ (e:Event) => setNewIndexName((e.target as HTMLInputElement).value) }
                                                 label="Index name" placeholder="Enter index name" name="Index name field" />
                                             </Box>
                                         </Flex>
@@ -427,7 +432,7 @@ export const ComponentIndexes = () => {
                                         <Flex direction="column" alignItems="start" gap={4} padding={2} style={{ overflow: 'auto',  height: "100%"}}>
                                             { ESIndexes && ESIndexes.map((data, index) => {
                                                 return (
-                                                    <TextButton key={index} onClick={() => setNewIndexName(data)}>
+                                                    <TextButton key={index} onClick={ () => setNewIndexName(data) }>
                                                         { data }
                                                     </TextButton>
                                                 )
@@ -440,11 +445,15 @@ export const ComponentIndexes = () => {
                         </Box>
                     </ModalBody>
                     <ModalFooter
-                        startActions={<> </>}
+                        startActions={<>
+                            <Button onClick={ () => setModalRegisterExistingIndexShow(false) } variant="secondary">
+                                Cancel
+                            </Button>
+                        </>}
                         endActions={
                             <Flex width="100%" justifyContent="end" gap={4}>
                                 <>{newIndexName}</>
-                                <Button disabled={!newIndexName} onClick={registerExistingIndexActual} variant="primary">
+                                <Button disabled={!newIndexName} onClick={ () => registerExistingIndexActual() } variant="primary">
                                     Register index
                                 </Button>
                             </Flex>
@@ -468,8 +477,16 @@ export const ComponentIndexes = () => {
                     <ModalBody>
                         <Flex direction="column" alignItems="start" gap={8}>
                             <Typography as="h2" variant="beta">Delete registered index</Typography>
-                            <Flex gap={4}>
-                                    <>Also delete index in Elasticsearch instance?</>
+
+                            <Box>
+                                <p>This will delete the registered index and any direct mappings it has.</p>
+                                <p>Any preset mappings linked to it will be untouched.</p>
+                            </Box>
+
+                            { indexToBeDeleted && ESIndexes && ESIndexes.includes(indexToBeDeleted.uuid) && (
+                                <Flex gap={4}>
+                                    <p>The registered index seems to also exist on the ES instance.</p>
+                                    <p>Delete the index in the Elasticsearch instance as well?</p>
                                     <Switch
                                         onClick={ () => setDeleteFromElasticsearch(!deleteFromElasticsearch) }
                                         selected={ deleteFromElasticsearch ? true : null }
@@ -478,18 +495,30 @@ export const ComponentIndexes = () => {
                                         offLabel = 'No'
                                     />
                                 </Flex>
-                            <Flex width="100%" justifyContent="space-between">
-                                <Button onClick={requestDeleteIndex} variant="primary">
-                                    Delete the registration
-                                </Button>
-                            </Flex>
+                            )}
+
+                            { indexToBeDeleted && (!ESIndexes || ESIndexes && !ESIndexes.includes(indexToBeDeleted.uuid)) && (
+                                <Flex gap={4}>
+                                    <p>No changes will be made to the actual ES index.</p>
+                                </Flex>
+                            )}
+
 
                         </Flex>
                     </ModalBody>
-                    {/* <ModalFooter
+                    <ModalFooter
                         startActions={<></>}
-                        endActions={<></>}
-                    /> */}
+                        endActions={<>
+                            <Flex width="100%" justifyContent="end" gap={4}>
+                                <Button onClick={ () => setModalDeleteIndexShow(false)} variant="secondary">
+                                    Cancel
+                                </Button>
+                                <Button onClick={ () => requestDeleteIndex() } variant="primary">
+                                    Delete the registered index
+                                </Button>
+                            </Flex>
+                        </>}
+                    />
                 </ModalLayout>
             )}
 

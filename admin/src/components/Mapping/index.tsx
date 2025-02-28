@@ -102,7 +102,7 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
                 }
             })
             .catch((error) => {
-                console.log("COMPONENT MAPPING - requestGetMapping error", error)
+                console.log("COMPONENT Mapping - requestGetMapping error", error)
                 showNotification({
                     type: "warning", message: "An error has encountered: " + error, timeout: 5000
                 })
@@ -138,7 +138,7 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
             }
         })
         .catch((error) => {
-            console.log("COMPONENT MAPPING - requestGetContentTypes error", error)
+            console.log("COMPONENT Mapping - requestGetContentTypes error", error)
             showNotification({
                 type: "warning", message: "An error has encountered: " + error, timeout: 5000
             })
@@ -177,7 +177,7 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
 
             })
             .catch((error) => {
-                console.log("COMPONENT MAPPING - requestCreateMapping error", error)
+                console.log("COMPONENT Mapping - requestCreateMapping error", error)
                 showNotification({
                     type: "warning", message: "An error has encountered: " + error, timeout: 5000
                 })
@@ -199,7 +199,7 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
                 setMappingOriginal(response.data)
             })
             .catch((error) => {
-                console.log("COMPONENT MAPPING - requestUpdateMapping error", error)
+                console.log("COMPONENT Mapping - requestUpdateMapping error", error)
                 showNotification({
                     type: "warning", message: "An error has encountered: " + error, timeout: 5000
                 })
@@ -245,96 +245,97 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
     // ===============================
 
     return  (
-        <Box>
-            { contentTypes && Object.values(contentTypes).length > 0 && (
-                <>
 
-                {/* ---------------------------------------------- */}
-                {/* HEADER */}
-                {/* ---------------------------------------------- */}
-                <Flex width="100%" justifyContent="space-between">
+        <Flex width="100%" height="100%" direction="column" alignItems="start" gap={4} background="neutral100">
+
+            {/* ---------------------------------------------- */}
+            {/* HEADER */}
+            {/* ---------------------------------------------- */}
+
+            <Flex width="100%" justifyContent="space-between">
+                <Box>
                     <Box>
-                        <Box>
-                            <Typography variant="alpha">{ mappingUUID && mappingUUID != 'new' ? 'Mapping ' + mappingUUID : indexUUID ? 'Create Mapping' : 'Create Preset Mapping'}</Typography>
-                        </Box>
-
-                        { posttypeFinal && (
-                            <Flex gap={2}>
-                                <Typography variant="beta">For post type: {getTypefromStrapiID(posttypeFinal)}</Typography>
-                                <Typography variant="sigma">({posttypeFinal})</Typography>
-                            </Flex>
-                        )}
+                        <Typography variant="alpha">{ mappingUUID && mappingUUID != 'new' ? 'Mapping ' + mappingUUID : indexUUID ? 'Create Mapping' : 'Create Preset Mapping'}</Typography>
                     </Box>
-
-                    { mappingUUID && mappingUUID != 'new' && (
-                        <Flex gap={4}>
-
-                            { changesExist && (
-                                <>
-                                    <Icon as={ExclamationMarkCircle} />
-                                    <Typography variant="sigma">Unsaved changes</Typography>
-                                    <TextButton onClick={() => resetForm()}>
-                                        Reset
-                                    </TextButton>
-                                </>
-                            )}
-
-                            <Button onClick={() => requestUpdateMapping()} variant="secondary" disabled={!changesExist}>
-                                Save
-                            </Button>
+                    { posttypeFinal && (
+                        <Flex gap={2}>
+                            <Typography variant="beta">For post type: {getTypefromStrapiID(posttypeFinal)}</Typography>
+                            <Typography variant="sigma">({posttypeFinal})</Typography>
                         </Flex>
                     )}
+                </Box>
 
-                    { (!mappingUUID || mappingUUID === 'new') && posttypeFinal && (
-                        <Button onClick={() => requestCreateMapping()} variant="secondary">
-                            { indexUUID ? 'Save New Mapping' : 'Save New Preset Mapping' }
+                { mappingUUID && mappingUUID != 'new' && (
+                    <Flex gap={4}>
+
+                        { changesExist && (
+                            <>
+                                <Icon as={ExclamationMarkCircle} />
+                                <Typography variant="sigma">Unsaved changes</Typography>
+                                <TextButton onClick={ () => resetForm() }>
+                                    Reset
+                                </TextButton>
+                            </>
+                        )}
+
+                        <Button onClick={ () => requestUpdateMapping() } variant="secondary" disabled={!changesExist}>
+                            Save
                         </Button>
-                    )}
-                </Flex>
-
-
-                {/* ---------------------------------------------- */}
-                {/* MAIN CONTENT */}
-                {/* ---------------------------------------------- */}
-
-                { (!mappingUUID || mappingUUID === 'new') && !posttypeFinal && contentTypes && (
-                    <Box width="100%">
-
-                        <Table colCount={2} rowCount={contentTypes.length} width="100%">
-                        {/* footer={<TFooter icon={<Plus />}>Add another field to this collection type</TFooter>} */}
-                            <Thead>
-                                <Tr>
-                                    <Th>
-                                        <Typography variant="sigma">Type</Typography>
-                                    </Th>
-                                    <Th>
-                                        
-                                    </Th>
-                                </Tr>
-                            </Thead>
-                            <Tbody>
-                            { Object.keys(contentTypes).map((key, index) => {
-                                return (
-                                    <Tr key={index}>
-                                        <Td>
-                                            <Typography textColor="neutral600">{key}</Typography>
-                                        </Td>
-                                        <Td>
-                                            <Button onClick={() => typeSelected(key)}>Use Type</Button>
-                                        </Td>
-                                    </Tr>
-                                )
-                            }) }
-                            </Tbody>
-                        </Table>
-                        <Box paddingTop={2} paddingBottom={2}>
-                            <Typography textColor="neutral600">This view lists approved content types for mapping.</Typography>
-                        </Box>
-                    </Box>
+                    </Flex>
                 )}
 
-                {/* -------- TABS ------------------*/}
-                { posttypeFinal && (
+                { (!mappingUUID || mappingUUID === 'new') && posttypeFinal && (
+                    <Button onClick={ () => requestCreateMapping() } variant="secondary">
+                        { indexUUID ? 'Save New Mapping' : 'Save New Preset Mapping' }
+                    </Button>
+                )}
+            </Flex>
+
+
+            {/* ---------------------------------------------- */}
+            {/* MAIN CONTENT */}
+            {/* ---------------------------------------------- */}
+
+            { (!mappingUUID || mappingUUID === 'new') && !posttypeFinal && contentTypes && Object.values(contentTypes).length > 0 && (
+                <Box width="100%">
+
+                    <Table colCount={2} rowCount={contentTypes.length} width="100%">
+                    {/* footer={<TFooter icon={<Plus />}>Add another field to this collection type</TFooter>} */}
+                        <Thead>
+                            <Tr>
+                                <Th>
+                                    <Typography variant="sigma">Type</Typography>
+                                </Th>
+                                <Th>
+                                    
+                                </Th>
+                            </Tr>
+                        </Thead>
+                        <Tbody>
+                        { Object.keys(contentTypes).map((key, index) => {
+                            return (
+                                <Tr key={index}>
+                                    <Td>
+                                        <Typography textColor="neutral600">{key}</Typography>
+                                    </Td>
+                                    <Td>
+                                        <Button onClick={ () => typeSelected(key) }>Use Type</Button>
+                                    </Td>
+                                </Tr>
+                            )
+                        }) }
+                        </Tbody>
+                    </Table>
+                    <Box paddingTop={2} paddingBottom={2}>
+                        <Typography textColor="neutral600">This view lists approved content types for mapping.</Typography>
+                    </Box>
+                </Box>
+            )}
+
+            {/* -------- TABS ------------------*/}
+            { posttypeFinal && contentTypes && (
+
+                <Box width="100%">
 
                     <TabGroup initialSelectedTabIndex={0}>
 
@@ -380,39 +381,38 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
 
                         </TabPanels>
                     </TabGroup>
-                )}
-
-                {/* <TextInput value={newMapping} onChange={(event) => { setNewMapping(event.target.value) }} label="Mapping name" placeholder="Enter mapping name" name="Mapping name field" /> */}
-                {/* onChange={e => updateMappedFieldName(e.target.value)} value={config.searchFieldName || ""} */}
-
-                {/* "post_type": {
-                    "type": "string",
-                    "required": true
-                },
-                "mapping": {
-                    "type": "richtext"
-                },
-                "preset": {
-                    "type": "string", // id of a preset mapping
-                },
-                "nested_level": {
-                    "type": "number"
-                },
-                "registered_index": {
-                    "type": "string", // id of a registered index
-                },
-
-
-                // "mapping_type": {
-                //     "type": "string", // 'custom', 'preset'
-                //     "required": true
-                // },
-                "default_preset": {
-                    "type": "boolean"
-                }, */}
-
-                </>
+                </Box>
             )}
-        </Box>
+
+            {/* <TextInput value={newMapping} onChange={ (event) => setNewMapping(event.target.value) } label="Mapping name" placeholder="Enter mapping name" name="Mapping name field" /> */}
+            {/* onChange={ (e:string) => updateMappedFieldName(e.target.value)} value={config.searchFieldName || "" } */}
+
+            {/* "post_type": {
+                "type": "string",
+                "required": true
+            },
+            "mapping": {
+                "type": "richtext"
+            },
+            "preset": {
+                "type": "string", // id of a preset mapping
+            },
+            "nested_level": {
+                "type": "number"
+            },
+            "registered_index": {
+                "type": "string", // id of a registered index
+            },
+
+
+            // "mapping_type": {
+            //     "type": "string", // 'custom', 'preset'
+            //     "required": true
+            // },
+            "default_preset": {
+                "type": "boolean"
+            }, */}
+
+        </Flex>
     )
 }

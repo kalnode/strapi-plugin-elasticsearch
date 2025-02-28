@@ -204,8 +204,8 @@ const PageConfigure = () => {
                                                     )}
                                                 </Td>
                                                 <Td>
-                                                    <IconButton onClick={() => history.push(`/plugins/${pluginId}/configure-collections/${collection.collectionName}`)} label="Edit collection configuration" noBorder icon={<Pencil />} />
-                                                    <IconButton onClick={() => scheduleCollectionIndexing(collection.collectionName)} label="Schedule indexing for all items in this collection" noBorder icon={<Server />} />
+                                                    <IconButton onClick={ () => history.push(`/plugins/${pluginId}/configure-collections/${collection.collectionName}`) } label="Edit collection configuration" noBorder icon={<Pencil />} />
+                                                    <IconButton onClick={ () => scheduleCollectionIndexing(collection.collectionName) } label="Schedule indexing for all items in this collection" noBorder icon={<Server />} />
                                                 </Td>                  
                                             </Tr>
                                             );
@@ -223,10 +223,10 @@ const PageConfigure = () => {
                                         <Divider />
                                         <Box paddingTop={4} paddingBottom={4}>
                                             <Box paddingTop={2} paddingBottom={2}>
-                                                <Button loading={isInProgress} fullWidth variant="secondary" onClick={performExport}>Export</Button>
+                                                <Button loading={isInProgress} fullWidth variant="secondary" onClick={ () => performExport() }>Export</Button>
                                             </Box>
                                             <Box paddingTop={2} paddingBottom={2}>
-                                                <Button loading={isInProgress} fullWidth variant="secondary" onClick={() => setDisplayImportModal(true)}>Import</Button>
+                                                <Button loading={isInProgress} fullWidth variant="secondary" onClick={ () => setDisplayImportModal(true) }>Import</Button>
                                             </Box>
                                         </Box>
                                     </Box>
@@ -245,21 +245,21 @@ const PageConfigure = () => {
                                     <Textarea 
                                     label="Configuration Json" 
                                     error={!isEnteredJsonValid ? 'Invalid Json' : undefined}
-                                    onChange={e => setImportJson(e.target.value)}>
+                                    onChange={ (e) => setImportJson(e.target.value) }>
                                         {importJson}
                                     </Textarea>
                                 </ModalBody>
                                 <ModalFooter
                                 
                                     startActions={
-                                        <Button onClick={() => setDisplayImportModal(false)} variant="tertiary">
+                                        <Button onClick={ () => setDisplayImportModal(false) } variant="tertiary">
                                             Cancel
                                         </Button>
                                     }
                                     
                                     endActions={
                                         <>
-                                            <Button loading={isInProgress} onClick={performImport} disabled={!isEnteredJsonValid && !importJson.length>0}>
+                                            <Button loading={isInProgress} onClick={ () => performImport() } disabled={!isEnteredJsonValid && !importJson.length>0}>
                                                 Import
                                             </Button>
                                         </>

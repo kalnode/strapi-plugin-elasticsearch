@@ -21,7 +21,7 @@ const PageMapping = () => {
 
                 <Breadcrumbs label="Extra navigation">
                     <Crumb>
-                        <Link to={`./`}>Mappings</Link>
+                        <Link to={`./`}>Mappings Home</Link>
                     </Crumb>
                     <Crumb>{ params.mappingUUID }</Crumb>
                     {/* isCurrent */}

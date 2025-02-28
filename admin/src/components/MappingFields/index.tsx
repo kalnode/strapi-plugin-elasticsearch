@@ -95,8 +95,10 @@ export const MappingFields = ({ contentTypeNames, mapping, mappingUpdated, disab
     // ===============================
     // TEMPLATE
     // ===============================
+
     return  (
-        <Box>
+
+        <Flex width="100%" height="100%" direction="column" alignItems="start" gap={4} background="neutral100">
 
             { contentTypeNames && mappingLocal && (
 
@@ -132,7 +134,7 @@ export const MappingFields = ({ contentTypeNames, mapping, mappingUpdated, disab
 
                                 { !disableEditing && (!mappingLocal.fields || (mappingLocal.fields && !mappingLocal.fields[fieldName])) && (
                                     <Button variant="tertiary"
-                                    onClick={ () => updateFieldAdd(fieldName)}
+                                    onClick={ () => updateFieldAdd(fieldName) }
                                     // TODO: Can this whiteSpace be a strapi UI attribute?
                                     style={{ whiteSpace: 'nowrap' }}
                                     startIcon={<Plus />}>
@@ -158,7 +160,7 @@ export const MappingFields = ({ contentTypeNames, mapping, mappingUpdated, disab
                                                     <Switch
                                                     disabled={disableEditing}
                                                     selected={ mappingLocal.fields[fieldName].active ? true : false }
-                                                    onChange={() => updateFieldActive(fieldName)}                                        
+                                                    onChange={ () => updateFieldActive(fieldName) }                                        
                                                     label='Active'
                                                     onLabel='Enabled'
                                                     offLabel='Disabled' />
@@ -178,7 +180,7 @@ export const MappingFields = ({ contentTypeNames, mapping, mappingUpdated, disab
                                                     <Switch
                                                     disabled={disableEditing}
                                                     selected={ mappingLocal.fields[fieldName].index ? true : false }
-                                                    onChange={() => updateFieldIndex(fieldName)}                                        
+                                                    onChange={ () => updateFieldIndex(fieldName) }                                        
                                                     label='Index'
                                                     onLabel='Enabled'
                                                     offLabel='Disabled' />
@@ -200,7 +202,7 @@ export const MappingFields = ({ contentTypeNames, mapping, mappingUpdated, disab
                                                 label="Data Type"
                                                 placeholder="Select data type" name="Data Type"
                                                 value={ mappingLocal.fields[fieldName].type }
-                                                onChange={ (e:string) => updateFieldDataType(fieldName, e)}>
+                                                onChange={ (e:string) => updateFieldDataType(fieldName, e) }>
                                                     <SingleSelectOption value="dynamic">(autodetect)</SingleSelectOption>
                                                     <SingleSelectOption value="binary">Binary</SingleSelectOption>
                                                     <SingleSelectOption value="boolean">Boolean</SingleSelectOption>
@@ -221,7 +223,7 @@ export const MappingFields = ({ contentTypeNames, mapping, mappingUpdated, disab
                                                 label="Custom field name (in ES)"
                                                 placeholder="Enter custom field name"
                                                 name="Custom field name"
-                                                onChange={ (e:Event) => updateFieldExternalName(fieldName, (e.target as HTMLInputElement).value)}
+                                                onChange={ (e:Event) => updateFieldExternalName(fieldName, (e.target as HTMLInputElement).value) }
                                                 value={mappingLocal.fields[fieldName].externalName ? mappingLocal.fields[fieldName].externalName : ''}
                                                 />
                                             </Box>
@@ -240,6 +242,6 @@ export const MappingFields = ({ contentTypeNames, mapping, mappingUpdated, disab
                     
             )}
 
-        </Box>
+        </Flex>
     )
 }

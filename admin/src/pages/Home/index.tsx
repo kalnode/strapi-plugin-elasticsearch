@@ -180,7 +180,6 @@ const PageHome = () => {
                     <Typography variant="alpha">Home</Typography>
                 </Box>
 
-
                 {/* ---------------------------------------------- */}
                 {/* HEADER */}
                 {/* ---------------------------------------------- */}
@@ -195,7 +194,7 @@ const PageHome = () => {
                                     <Flex gap={4}>
                                         <Typography variant="delta">Indexing</Typography>
                                         <Switch 
-                                            onClick={toggleIndexingEnabled}
+                                            onClick={ () => toggleIndexingEnabled() }
                                             selected={indexingEnabled}
                                             visibleLabels
                                             onLabel = 'Enabled'
@@ -208,7 +207,7 @@ const PageHome = () => {
                                     <Flex gap={4}>
                                         <Typography variant="delta">Use new paradigm</Typography>
                                         <Switch 
-                                            onClick={toggleUseNewPluginParadigmEnabled}
+                                            onClick={ () => toggleUseNewPluginParadigmEnabled() }
                                             selected={indexingEnabled}
                                             visibleLabels
                                             onLabel = 'Enabled'
@@ -222,14 +221,14 @@ const PageHome = () => {
                                         <Typography variant="delta">Mode</Typography>
                                         {/* <ToggleInput
                                             checked={IndexingMode}
-                                            onChange={toggleIndexingMode}
+                                            onChange={ () => toggleIndexingMode() }
                                             selected={IndexingMode}
                                             onLabel = 'Scheduled Indexing'
                                             offLabel = 'Instant Indexing'
                                         /> */}
                                         <RadioGroup
                                             value={ IndexingMode ? 'instant' : 'scheduled' }
-                                            onChange={ toggleIndexingMode }
+                                            onChange={ () => toggleIndexingMode() }
                                         >
                                             <Flex gap={4}>
                                                 <Radio value="instant">
@@ -249,8 +248,8 @@ const PageHome = () => {
                                 <Box>
                                     <Flex gap={4}>
                                         <Typography variant="delta">Actions</Typography>
-                                        <Button loading={isInProgress} fullWidth variant="secondary" onClick={requestForceRebuildIndex}>Force Rebuild Index</Button>
-                                        <Button loading={isInProgress} fullWidth variant="secondary" onClick={requestTriggerIndexing}>Trigger Scheduled Indexing</Button>
+                                        <Button loading={isInProgress} fullWidth variant="secondary" onClick={ () => requestForceRebuildIndex() }>Force Rebuild Index</Button>
+                                        <Button loading={isInProgress} fullWidth variant="secondary" onClick={ () => requestTriggerIndexing() }>Trigger Scheduled Indexing</Button>
                                     </Flex>
                                 </Box>
 
@@ -283,7 +282,7 @@ const PageHome = () => {
                                     </Box>
                                     <Box padding={1}>
                                         { setupInfo['connected'] ?
-                                            <IconButton disabled={isInProgress} onClick={() => reloadSystemInfo(true)} label="Refresh" icon={<Refresh />} />
+                                            <IconButton disabled={isInProgress} onClick={ () => reloadSystemInfo(true) } label="Refresh" icon={<Refresh />} />
                                         : null }
                                     </Box>
                                 </Flex>

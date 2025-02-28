@@ -23,7 +23,7 @@ const PageIndex = () => {
 
                     <Breadcrumbs label="Extra navigation">
                         <Crumb>
-                            <Link to={`./`}>Indexes</Link>
+                            <Link to={`./`}>Indexes Home</Link>
                         </Crumb>
                         <Crumb>{params.indexUUID}</Crumb>
                         {/* isCurrent */}

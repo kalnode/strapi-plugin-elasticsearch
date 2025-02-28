@@ -17,7 +17,7 @@ const PageIndexes = () => {
             <Box padding={8} background="neutral100" overflow='hidden'>
 
                 <Breadcrumbs label="Extra navigation">
-                    <Crumb>Indexes</Crumb>
+                    <Crumb>Indexes Home</Crumb>
                     {/* isCurrent */}
                 </Breadcrumbs>
 

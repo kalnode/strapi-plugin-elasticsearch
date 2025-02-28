@@ -59,17 +59,17 @@ const ConfigureField = ({config, index, setFieldConfig}) => {
                 <Typography fontWeight="bold" textColor="neutral600">{config.name}</Typography>
             </Box>
             <Box paddingTop={2} paddingBottom={2}>
-                <ToggleInput label="Index" onLabel="Yes" offLabel="No" checked={config.index} onChange={(e) => updateIndex(e.target.checked)} />
+                <ToggleInput label="Index" onLabel="Yes" offLabel="No" checked={config.index} onChange={ (e) => updateIndex(e.target.checked) } />
             </Box>
             <Box width="50%"  paddingTop={2} paddingBottom={2}>
-                <TextInput label="Maps to search field" placeholder="Enter field name" name="Search field" onChange={e => updateMappedFieldName(e.target.value)} value={config.searchFieldName || ""} />
+                <TextInput label="Maps to search field" placeholder="Enter field name" name="Search field" onChange={ (e) => updateMappedFieldName(e.target.value) } value={config.searchFieldName || ""} />
             </Box>
             { config.index && config.type && config.type === "dynamiczone" ? (
                     <Box paddingTop={2} paddingBottom={2}>
                         <Textarea 
                         label="Dynamic zone fields to index" 
                         error={config.subfieldsConfigValid === false ? 'Invalid indexing configuration' : undefined}
-                        onChange={e => updateSubfieldConfig(e.target.value)}>
+                        onChange={ (e) => updateSubfieldConfig(e.target.value) }>
                             {config.subfields || ""}
                         </Textarea>
                     </Box>
@@ -80,7 +80,7 @@ const ConfigureField = ({config, index, setFieldConfig}) => {
                     <Textarea 
                     label="Component fields to index" 
                     error={config.subfieldsConfigValid === false ? 'Invalid indexing configuration' : undefined}
-                    onChange={e => updateSubfieldConfig(e.target.value)}>
+                    onChange={ (e) => updateSubfieldConfig(e.target.value) }>
                         {config.subfields || ""}
                     </Textarea>
                 </Box>
@@ -202,7 +202,7 @@ const PageConfigureCollection = () => {
                                     </Box>
                                 </Flex>
                                 <Box paddingTop={4}>
-                                    <Button loading={isInProgress} variant="default" onClick={reqSaveCollectionConfig}>Save Configuration Changes</Button>
+                                    <Button loading={isInProgress} variant="default" onClick={ () => reqSaveCollectionConfig() }>Save Configuration Changes</Button>
                                 </Box>
                             </>
                         )}

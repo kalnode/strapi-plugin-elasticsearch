@@ -171,7 +171,9 @@ export const Index = ({ indexUUID }:Props) => {
     // ===============================
 
     return  (
-        <Flex width="100%" direction="column" alignItems="start" gap={4}>
+
+        <Flex width="100%" height="100%" direction="column" alignItems="start" gap={4} background="neutral100">
+
             { index && (
                 <>
 
@@ -192,7 +194,7 @@ export const Index = ({ indexUUID }:Props) => {
                             <>
                             <Icon as={ExclamationMarkCircle} />
                             <Typography variant="sigma">Unsaved changes</Typography>
-                            <TextButton onClick={() => resetForm()}>
+                            <TextButton onClick={ () => resetForm() }>
                                 Reset
                             </TextButton>
                             </>
@@ -201,7 +203,7 @@ export const Index = ({ indexUUID }:Props) => {
                         { indexUUID && (
                             <Flex gap={4}>
                                 <Switch
-                                onClick={ () => setIndex({...index, active: index.active ? false : true })}
+                                onClick={ () => setIndex({...index, active: index.active ? false : true }) }
                                 selected={ index.active ? true : null }
                                 visibleLabels
                                 onLabel = 'On'
@@ -241,7 +243,7 @@ export const Index = ({ indexUUID }:Props) => {
 
                         {/* TODO: justifyItems="end" doesn't seem to work as a Strapi attribute. For now: using it in style=. */}
                         <Box flex="1" style={{ justifyItems: 'flex-end' }}>
-                            <Button variant="secondary" onClick={ () => setShowNameAliasModal(true)}>
+                            <Button variant="secondary" onClick={ () => setShowNameAliasModal(true) }>
                                 Change
                             </Button>
                         </Box>
@@ -253,7 +255,7 @@ export const Index = ({ indexUUID }:Props) => {
                             <Flex direction="column" alignItems="start" gap={4}>
                                 <Typography variant="delta">State</Typography>
                                 <Switch
-                                    onClick={ () => setIndex({...index, active: index.active ? false : true })}
+                                    onClick={ () => setIndex({...index, active: index.active ? false : true }) }
                                     selected={ index.active ? true : null }
                                     visibleLabels
                                     onLabel = 'Enabled'
@@ -272,19 +274,19 @@ export const Index = ({ indexUUID }:Props) => {
                     </Box>
 
                     <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
-                        <Button variant="secondary" onClick={ () => requestCreateIndexOnES()}>
+                        <Button variant="secondary" onClick={ () => requestCreateIndexOnES() }>
                             Create index on ES instance with current mappings
                         </Button>
 
-                        <Button variant="secondary" onClick={ () => console.log("Delete index")}>
+                        <Button variant="secondary" onClick={ () => console.log("Delete index") }>
                             Delete index
                         </Button>
 
-                        <Button variant="secondary" onClick={ () => console.log("Re-build index")}>
+                        <Button variant="secondary" onClick={ () => console.log("Re-build index") }>
                             Re-build index
                         </Button>
 
-                        <Button variant="secondary" onClick={ () => requestIndexAllRecords()}>
+                        <Button variant="secondary" onClick={ () => requestIndexAllRecords() }>
                             Index all records
                         </Button>
 
@@ -309,8 +311,8 @@ export const Index = ({ indexUUID }:Props) => {
                     <ModalBody>
                         { index && (
                             <Box width="100%" padding={8}>
-                                <TextInput value={ index.index_name ? index.index_name : '' } onChange={(e:Event) => setIndex({ ...index, index_name: (e.target as HTMLInputElement).value }) } label="Index name" placeholder="Enter index name" name="Index name field" />
-                                <TextInput value={ index.index_alias ? index.index_alias : '' } onChange={(e:Event) => setIndex({ ...index, index_alias: (e.target as HTMLInputElement).value }) } label="Alias name" placeholder="Enter alias name" name="Index alias field" />
+                                <TextInput value={ index.index_name ? index.index_name : '' } onChange={ (e:Event) => setIndex({ ...index, index_name: (e.target as HTMLInputElement).value }) } label="Index name" placeholder="Enter index name" name="Index name field" />
+                                <TextInput value={ index.index_alias ? index.index_alias : '' } onChange={ (e:Event) => setIndex({ ...index, index_alias: (e.target as HTMLInputElement).value }) } label="Alias name" placeholder="Enter alias name" name="Index alias field" />
                             </Box>
                         )}
 

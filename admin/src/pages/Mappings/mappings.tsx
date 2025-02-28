@@ -17,7 +17,7 @@ const PageMappings = () => {
             <Box padding={8} background="neutral100" overflow='hidden'>
 
                 <Breadcrumbs label="Extra navigation">
-                    <Crumb>Mappings</Crumb>
+                    <Crumb>Mappings Home</Crumb>
                     {/* isCurrent */}
                 </Breadcrumbs>
 

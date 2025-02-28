@@ -351,7 +351,7 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
 
     return  (
 
-        <Flex id="TriggerMappings" width="100%" height="100%" direction="column" alignItems="start" gap={2} background="neutral100">
+        <Flex width="100%" height="100%" direction="column" alignItems="start" gap={2} background="neutral100">
            
             {/* ---------------------------------------------- */}
             {/* HEADER */}
@@ -370,13 +370,13 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
                         <>
                             <Icon as={ExclamationMarkCircle} />
                             <Typography variant="sigma">Unsaved changes</Typography>
-                            <TextButton onClick={() => resetForm()}>
+                            <TextButton onClick={ () => resetForm() }>
                                 Reset
                             </TextButton>
                         </>
                     )}
 
-                    <Button onClick={() => requestUpdateMappings()} variant="secondary" disabled={!changesExist}>
+                    <Button onClick={ () => requestUpdateMappings() } variant="secondary" disabled={!changesExist}>
                         Save
                     </Button>
 

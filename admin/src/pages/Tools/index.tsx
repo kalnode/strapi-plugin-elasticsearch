@@ -62,8 +62,8 @@ const PageTools = () => {
                 </Box>
                 <Box paddingTop={2} paddingBottom={4}>
                     Orphan records:
-                    <Button loading={isInProgress} fullWidth variant="secondary" onClick={requestFindOrphans}>Find orphans</Button>
-                    <Button loading={isInProgress} fullWidth variant="secondary" onClick={requestDeleteOrphans}>Delete orphans</Button>
+                    <Button loading={isInProgress} fullWidth variant="secondary" onClick={ () => requestFindOrphans() }>Find orphans</Button>
+                    <Button loading={isInProgress} fullWidth variant="secondary" onClick={ () => requestDeleteOrphans() }>Delete orphans</Button>
                 </Box>
             </Box>    
         </Flex>
