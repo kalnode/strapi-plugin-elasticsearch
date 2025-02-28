@@ -1,6 +1,6 @@
 /**
  *
- * Initializer
+ * COMPONENT: Initializer
  *
  */
 

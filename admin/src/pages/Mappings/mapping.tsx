@@ -12,7 +12,7 @@ import { Box, Flex, Breadcrumbs, Crumb, Link } from '@strapi/design-system'
 
 const PageMapping = () => {
 
-    const params = useParams<{ mappingUUID: string }>()
+    const params = useParams<{ mappingUUID: string, type: string }>()
 
     return (
         <Flex alignItems="stretch" gap={4}>
@@ -28,7 +28,7 @@ const PageMapping = () => {
                 </Breadcrumbs>
 
                 { params.mappingUUID && (
-                    <Mapping mappingUUID={params.mappingUUID} />
+                    <Mapping mappingUUID={params.mappingUUID} type={params.type} />
                 )}                    
             </Box>
         </Flex>

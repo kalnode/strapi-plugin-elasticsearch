@@ -1,3 +1,10 @@
+/**
+ *
+ * COMPONENT: Indexes
+ *
+ */
+
+
 import { useState, useEffect } from 'react'
 import pluginId from '../../pluginId'
 
@@ -17,24 +24,23 @@ import { RegisteredIndex } from "../../../../types"
 
 export const ComponentIndexes = () => {
 
+    // ===============================
+    // GENERAL
+    // ===============================
+
     const [isInProgress, setIsInProgress] = useState<boolean>(false)
     const [indexes, setIndexes] = useState<Array<RegisteredIndex>>()
     const [ESIndexes, setESIndexes] = useState<Array<string>>()
-    const [modalCreateIndexShow, setModalCreateIndexShow] = useState<boolean>(false)
-    const [newIndexName, setNewIndexName] = useState<string>('')
-    const [addToElasticsearch, setAddToElasticsearch] = useState<boolean>(true)
-    const [useNamePrepend, setUseNamePrepend] = useState<boolean>(false)
-    const namePrepend = "strapi_es_plugin_"
-    const [modalRegisterExistingIndexShow, setModalRegisterExistingIndexShow] = useState<boolean>(false)
-    const [modalDeleteIndexShow, setModalDeleteIndexShow] = useState<boolean>(false)
-    const [indexUUIDToBeDeleted, setIndexUUIDToBeDeleted] = useState<string>()
-    const [deleteFromElasticsearch, setDeleteFromElasticsearch] = useState<boolean>(false)
     const history = useHistory()
     const showNotification = useNotification()
 
     useEffect(() => {
         requestGetRegisteredIndexes()
     }, [])
+
+    // ===============================
+    // API REQUESTS
+    // ===============================
 
     const requestGetRegisteredIndexes = async () => {
         setIsInProgress(true)
@@ -47,7 +53,7 @@ export const ComponentIndexes = () => {
             }
         })
         .catch((error) => {
-            console.log("PAGE INDEXES - requestGetRegisteredIndexes ERROR: ", error)
+            console.log("COMPONENT Indexes - requestGetRegisteredIndexes error", error)
             showNotification({
                 type: "warning", message: "An error has encountered: " + error, timeout: 5000
             })
@@ -66,15 +72,68 @@ export const ComponentIndexes = () => {
             }
         })
         .catch((error) => {
-            console.log("PAGE INDEXES - requestCreateIndex ERROR: ", error)
+            console.log("COMPONENT Indexes - requestCreateIndex error", error)
             showNotification({
                 type: "warning", message: "An error has encountered: " + error, timeout: 5000
             })
         })
         .finally(() => {
+            setIsInProgress(false)
             requestGetRegisteredIndexes()
         })
     }
+
+    const requestGetESIndexes = async () => {
+        setIsInProgress(true)
+        await axiosInstance.get(apiGetESIndexes)
+        .then((response) => {
+            if (response.data && Object.keys(response.data).length > 0) {
+                setESIndexes(Object.keys(response.data))
+            } else {
+                setESIndexes(undefined)
+            }
+        })
+        .catch((error) => {
+            console.log("COMPONENT Indexes - requestGetESIndexes error", error)
+            showNotification({
+                type: "warning", message: "An error has encountered: " + error, timeout: 5000
+            })
+        })
+        .finally(() => {
+            setIsInProgress(false)
+        })
+    }
+
+    const requestDeleteIndex = async () => {
+        setModalDeleteIndexShow(false)
+        setIsInProgress(true)
+        await axiosInstance.post(apiDeleteIndex, {
+            data: {
+                indexUUID: indexUUIDToBeDeleted,
+                deleteIndexInElasticsearch: deleteFromElasticsearch
+            }
+        })
+        .catch((error) => {
+            console.log("COMPONENT Indexes - requestDeleteIndex error", error)
+            showNotification({
+                type: "warning", message: "An error has encountered: " + error, timeout: 5000
+            })
+        })
+        .finally(() => {
+            setIsInProgress(false)
+            requestGetRegisteredIndexes()
+        })
+    }
+
+    // ===============================
+    // CREATE REGISTERED INDEX / ADD EXISTING INDEX
+    // ===============================
+    const [modalCreateIndexShow, setModalCreateIndexShow] = useState<boolean>(false)
+    const [modalRegisterExistingIndexShow, setModalRegisterExistingIndexShow] = useState<boolean>(false)
+    const [newIndexName, setNewIndexName] = useState<string>('')
+    const [addToElasticsearch, setAddToElasticsearch] = useState<boolean>(true)
+    const [useNamePrepend, setUseNamePrepend] = useState<boolean>(false)
+    const namePrepend = "strapi_es_plugin_"
 
     const modalCreateOpen = () => {
         setNewIndexName('')
@@ -85,7 +144,7 @@ export const ComponentIndexes = () => {
     const modalRegExistingIndexOpen = async () => {
         setNewIndexName('')
         console.log("modalRegExistingIndexOpen 111")
-        await getESIndexes()
+        await requestGetESIndexes()
         console.log("modalRegExistingIndexOpen 222")
         setModalRegisterExistingIndexShow(true)
     }
@@ -101,29 +160,13 @@ export const ComponentIndexes = () => {
         requestCreateIndex(newIndexName)
     }
 
-    const getESIndexes = async () => {
-        setIsInProgress(true)
-        console.log("getESIndexes 111")
-        await axiosInstance.get(apiGetESIndexes)
-        .then((response) => {
-            if (response.data && Object.keys(response.data).length > 0) {
-                setESIndexes(Object.keys(response.data))
-            } else {
-                setESIndexes(undefined)
-            }
-        })
-        .catch((error) => {
-            console.log("PAGE INDEXES - getESIndexes ERROR: ", error)
-            showNotification({
-                type: "warning", message: "An error has encountered: " + error, timeout: 5000
-            })
-        })
-        .finally(() => {
-            setIsInProgress(false)
-        })
-        console.log("getESIndexes 222")
-    }
 
+    // ===============================
+    // DELETE REGISTERED INDEX
+    // ===============================
+    const [modalDeleteIndexShow, setModalDeleteIndexShow] = useState<boolean>(false)
+    const [indexUUIDToBeDeleted, setIndexUUIDToBeDeleted] = useState<string>()
+    const [deleteFromElasticsearch, setDeleteFromElasticsearch] = useState<boolean>(false)
 
     const modalDeleteOpen = (e:Event, indexUUID:string) => {
         e.stopPropagation()
@@ -132,36 +175,24 @@ export const ComponentIndexes = () => {
         setModalDeleteIndexShow(true)
     }
 
-    const requestDeleteIndex = async () => {
-        setModalDeleteIndexShow(false)
-        setIsInProgress(true)
-        await axiosInstance.post(apiDeleteIndex, {
-            data: {
-                indexUUID: indexUUIDToBeDeleted,
-                deleteIndexInElasticsearch: deleteFromElasticsearch
-            }
-        })
-        .catch((error) => {
-            console.log("PAGE INDEXES - requestDeleteIndex ERROR: ", error)
-            showNotification({
-                type: "warning", message: "An error has encountered: " + error, timeout: 5000
-            })
-        })
-        .finally(() => {
-            requestGetRegisteredIndexes()
-        })
-    }
+
+    // ===============================
+    // TEMPLATE
+    // ===============================
 
     return (
 
         <Flex width="100%" direction="column" alignItems="start" gap={2} background="neutral100">
 
-            {/* -------- TITLE -------- */}
-            <Box>
-                <Typography variant="alpha">Registered Indexes</Typography>
-            </Box>
 
-            {/* -------- ACTIONS -------- */}
+            {/* ---------------------------------------------- */}
+            {/* HEADER */}
+            {/* ---------------------------------------------- */}
+
+            <Flex width="100%" justifyContent='space-between'>
+                <Box flex="1">
+                    <Typography variant="alpha" style={{ whiteSpace:"nowrap"}}>Registered Indexes</Typography>
+                </Box>
                 <Flex width="100%" gap={4} justifyContent="space-between">
                     <Box>
                         {/* <IconButton onClick={requestGetRegisteredIndexes} label="Create Index" icon={<Refresh />} /> */}
@@ -171,14 +202,17 @@ export const ComponentIndexes = () => {
                         <Button variant="secondary" onClick={() => modalRegExistingIndexOpen()} startIcon={<Plus />}>Register Existing Index</Button>
                     </Flex>
                 </Flex>
+            </Flex>
 
-            {/* -------- CONTENT -------- */}
+            {/* ---------------------------------------------- */}
+            {/* CONTENT */}
+            {/* ---------------------------------------------- */}
             <Box width="100%">
                 { (!indexes || (indexes && indexes.length) === 0) && (
                     <EmptyStateLayout icon={<Cross />} content="You don't have any registered indexes yet..." action={
                         <Flex gap={4}>
                             <Button variant="secondary" onClick={() => modalCreateOpen()} startIcon={<Plus />}>Create Index</Button>
-                            <Button variant="secondary" onClick={() => modalRegExistingIndexOpen()} startIcon={<Plus />}>Register Existing Index</Button>
+                            <Button variant="secondary" onClick={() => modalRegExistingIndexOpen()} startIcon={<Plus />}>Register Existing ES Index</Button>
                         </Flex>
                     } />
                 )}
@@ -261,6 +295,10 @@ export const ComponentIndexes = () => {
                 )}
             </Box>
 
+
+            {/* ---------------------------------------------- */}
+            {/* MODAL: CREATE INDEX */}
+            {/* ---------------------------------------------- */}
             { modalCreateIndexShow && (
                 <ModalLayout onClose={() => setModalCreateIndexShow(false)}>
                     {/* labelledBy="title" */}
@@ -328,6 +366,9 @@ export const ComponentIndexes = () => {
                 </ModalLayout>
             )}
 
+            {/* ---------------------------------------------- */}
+            {/* MODAL: REGISTER EXISTING ES INDEX */}
+            {/* ---------------------------------------------- */}
             { modalRegisterExistingIndexShow && (
                 <ModalLayout onClose={() => setModalRegisterExistingIndexShow(false)}>
                     {/* labelledBy="title" */}
@@ -413,6 +454,9 @@ export const ComponentIndexes = () => {
             )}
 
 
+            {/* ---------------------------------------------- */}
+            {/* MODAL: DELETE INDEX REGISTRATION */}
+            {/* ---------------------------------------------- */}
             { modalDeleteIndexShow && (
                 <ModalLayout onClose={() => setModalDeleteIndexShow(false)}>
                     {/* labelledBy="title" */}

@@ -1,4 +1,9 @@
-import React from 'react'
+/**
+ *
+ * COMPONENT: SubNavigation
+ *
+ */
+
 import { Connector } from '@strapi/icons'
 import { Box } from '@strapi/design-system'
 //import { SubNav, SubNavHeader, SubNavSection, SubNavSections, SubNavLink } from '@strapi/design-system/v2'
@@ -6,8 +11,16 @@ import { SubNav, SubNavHeader, SubNavSection, SubNavSections, SubNavLink } from 
 import { NavLink } from 'react-router-dom'
 import pluginId from "../../pluginId"
 
+
+type MenuLink = {
+    id: number
+    label: string
+    icon: any // TODO: Type this
+    to: string
+}
+
 export const SubNavigation = () => {
-    const links = [
+    const links:Array<MenuLink> = [
         {
             id: 1,
             label: 'Home',
@@ -55,7 +68,7 @@ export const SubNavigation = () => {
             <SubNavSections>
                 <SubNavSection>
                     {links.map(
-                        link => link.icon &&
+                        (link:MenuLink) => link.icon &&
                         <SubNavLink as={NavLink} to={link.to} key={link.id}>
                             {link.label}
                         </SubNavLink>
@@ -72,7 +85,7 @@ export const SubNavigation = () => {
 
                 <SubNavSection>
                     {links_old.map(
-                        link => link.icon &&
+                        (link:MenuLink) => link.icon &&
                         <SubNavLink as={NavLink} to={link.to} key={link.id}>
                             {link.label}
                         </SubNavLink>

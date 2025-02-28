@@ -4,23 +4,23 @@
  *
  */
 
-import { useEffect, useRef, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import pluginId from '../../pluginId'
 import { Switch, Icon, TextButton, AccordionGroup, AccordionToggle, AccordionContent, Accordion, Box, Flex, Button, ModalLayout, ModalHeader, Link, ModalFooter, ModalBody, Table, Thead, Tbody, Tr, Td, Th, TFooter, EmptyStateLayout, Checkbox, TabGroup, Tabs, Tab, TabPanels, TabPanel, TextInput, IconButton, CaretDown, Typography } from '@strapi/design-system'
-import { Pencil, Trash, ChevronRight, ChevronDown, ExclamationMarkCircle, Plus } from '@strapi/icons'
+import { Pencil, Trash, Relation, SingleType, ChevronRight, ChevronDown, ExclamationMarkCircle, Plus } from '@strapi/icons'
 import { apiGetMappings, apiUpdateMappings, apiDeleteMapping, apiDetachMappingFromIndex, apiGetESMapping, apiGetContentTypes, apiCreateMapping } from '../../utils/apiUrls'
 import { requestAPI_DeleteMapping } from '../../utils/api/mappings'
 import axiosInstance  from '../../utils/axiosInstance'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
-import { useParams, useHistory } from 'react-router-dom'
+import { useHistory } from 'react-router-dom'
 import { requestUpdateIndex } from '../../utils/api/indexes'
 import { JSONTree } from 'react-json-tree'
 import { Mappings } from '../Mappings'
-//import { Mapping } from '../../components/Mapping'
 import { MappingFields } from '../MappingFields'
 import { Mapping, StrapiContentTypes } from "../../../../types"
+
+// TODO: Integrate ES types
 import { estypes } from '@elastic/elasticsearch'
-//import * as Types from "../../../../types"
 
 type Props = {
     indexUUID?: string
@@ -49,6 +49,10 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
         requestGetESMapping()
     }, [])
 
+    // ===============================
+    // API REQUESTS
+    // ===============================
+
     const requestContentTypes = async () => {
         setIsInProgress(true)
         await axiosInstance.get(apiGetContentTypes)
@@ -57,7 +61,7 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
             setAccordionStates(Object.keys(response.data).map( (x:string) => { return { post_type: x, open: false }}) )
         })
         .catch((error) => {
-            console.log("COMPONENT IndexMappings requestContentTypes error", error)
+            console.log("COMPONENT IndexMappings - requestContentTypes error", error)
             showNotification({
                 type: "warning", message: "An error has encountered: " + error, timeout: 5000
             })
@@ -72,14 +76,13 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
         await axiosInstance.get(apiGetMappings(indexUUID))
         .then((response) => {
             if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-
+                console.log("Mappings pull is dfdwsf", response.data)
                 setMappings(response.data)
                 setMappingsOriginal(response.data)
             } else {
                 setMappings([])
                 setMappingsOriginal([])
-            }               
-            
+            }
         })
         .catch((error) => {
             console.log("COMPONENT IndexMappings - requestGetMappings error", error)
@@ -169,16 +172,13 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
         
     }
 
-    const requestDeleteMapping = async (e:Event, key:string) => {
-        e.stopPropagation()
-
+    const requestDeleteMapping = async (key:string) => {
         if (mappings) {
 
             const mapping = mappings.find((x:Mapping) => x.post_type && x.post_type === key)
 
             if (mapping) {
                 setIsInProgress(true)
-
                 await requestAPI_DeleteMapping(mapping, indexUUID)
                 .catch((error) => {
                     console.log("COMPONENT IndexMappings - requestDeleteMapping error", error)
@@ -192,7 +192,6 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
                 })
             }
         }
-
     }
 
     // ===============================
@@ -270,6 +269,58 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
     }
 
     // ===============================
+    // SELECT PRESET MAPPING
+    // ===============================
+    const [showSelectPresetMappingModal, setShowSelectPresetMappingModal] = useState(false)
+    const [desiredPresetType, setDesiredPresetType] = useState<string>()
+
+    const modalSelectPresetMappingOpen = (key:string) => {
+        setDesiredPresetType(key)
+        setShowSelectPresetMappingModal(true)
+    }
+
+    const modalSelectPresetMappingClose = async (selectedPresetMapping:Mapping) => {
+        setShowSelectPresetMappingModal(false)
+        setDesiredPresetType(undefined)
+        if (selectedPresetMapping && selectedPresetMapping.uuid && indexUUID) {
+            let mappingsOutput:Array<string> = []
+            if (mappings) {
+                mappingsOutput = [selectedPresetMapping.uuid, ...mappings.map((x:Mapping) => x.uuid as string)]
+            } else {
+                mappingsOutput = [selectedPresetMapping.uuid]
+            }
+            await requestUpdateIndex(indexUUID, { mappings: mappingsOutput })
+            requestGetMappings()
+        }
+    }
+
+
+    // ===============================
+    // DELETE/DETACH MAPPING
+    // ===============================
+    const [showDeleteDetachMappingModal, setShowDeleteDetachMappingModal] = useState<boolean>(false)
+    const [mappingToDeleteDetach, setMappingToDeleteDetach] = useState<Mapping>()
+
+    const modalDeleteDetachMappingOpen = (mapping:Mapping, e?:Event) => {
+        e?.stopPropagation()
+        if (mapping) {
+            setMappingToDeleteDetach(mapping)
+            setShowDeleteDetachMappingModal(true)
+        }
+    }
+
+    const modalDeleteDetachMappingClose = async (userConfirmed:boolean) => {
+        setShowDeleteDetachMappingModal(false)
+
+        if (mappingToDeleteDetach && userConfirmed) {
+            requestDeleteMapping(mappingToDeleteDetach.post_type)
+        }
+
+        setMappingToDeleteDetach(undefined)
+
+    }
+
+    // ===============================
     // JSON TREE
     // ===============================
 
@@ -294,6 +345,7 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
         base0F: '#a16946'
     }
 
+
     // ===============================
     // TEMPLATE
     // ===============================
@@ -302,9 +354,9 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
 
         <Flex id="TriggerMappings" width="100%" height="100%" direction="column" alignItems="start" gap={2} background="neutral100">
            
-            {/* <Box>
-                <Typography variant="alpha">Mappings</Typography>
-            </Box> */}
+            {/* ---------------------------------------------- */}
+            {/* HEADER */}
+            {/* ---------------------------------------------- */}
 
             <Flex width="100%" justifyContent="space-between">
                 <Flex direction="column" alignItems="start">
@@ -332,9 +384,10 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
                 </Flex>
             </Flex>
 
-            {/* ===================================== */}
-            {/* ======== MAIN CONTENT =============== */}
-            {/* ===================================== */}
+
+            {/* ---------------------------------------------- */}
+            {/* MAIN CONTENT */}
+            {/* ---------------------------------------------- */}
 
             {/* TODO: For Comparison tab, make column heights 100% */}
 
@@ -373,11 +426,14 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
                                                         { key }
                                                     </Box>
 
-                                                    <Box alignItems="end">
-                                                        <Button onClick={ () => requestCreateMapping(key) } variant="tertiary" style={{ whiteSpace: 'nowrap' }} endIcon={<Plus />}>
-                                                            Add mapping
+                                                    <Flex gap={4}>
+                                                        <Button onClick={ () => requestCreateMapping(key) } variant="tertiary" style={{ whiteSpace: 'nowrap' }} startIcon={<Plus />}>
+                                                            Create mapping
                                                         </Button>
-                                                    </Box>
+                                                        <Button onClick={ () => modalSelectPresetMappingOpen(key) } variant="tertiary" style={{ whiteSpace: 'nowrap' }} startIcon={<Relation />}>
+                                                            Use preset mapping
+                                                        </Button>
+                                                    </Flex>
                                                 </Flex>
                                             )}
 
@@ -419,11 +475,11 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
                                                                 <IconButton label="Close" borderWidth={0} icon={<ChevronDown />} />    
                                                             )}
 
-                                                            <IconButton onClick={ (e:Event) => requestDeleteMapping(e, key) } label="Delete" borderWidth={0} icon={<Trash />} />
+                                                            <IconButton onClick={ (e:Event) => modalDeleteDetachMappingOpen(mappings.find( (x:Mapping) => x.post_type && x.post_type === key )!, e) } label="Delete" borderWidth={0} icon={<Trash />} />
 
                                                             {/* { mappings.find((x:Mapping) => x.post_type && x.post_type === key) && (
                                                                 <Link to={`/plugins/${pluginId}/indexes/${indexUUID}/mappings/${getMapping(key)?.uuid}`}>
-                                                                    <Button variant="default" style={{ whiteSpace: 'nowrap', color:'white' }} endIcon={<Pencil />}>
+                                                                    <Button variant="default" style={{ whiteSpace: 'nowrap', color:'white' }} startIcon={<Pencil />}>
                                                                         Edit mapping
                                                                     </Button>
                                                                 </Link>
@@ -432,12 +488,27 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
                                                     </Flex>
 
                                                     <AccordionContent>
-                                                        <Box padding={4}>
+                                                        <Flex padding={4} direction="column" gap={4} alignItems="start">
                                                             <Typography variant="sigma" textColor="neutral700">
                                                                 Mapping uuid: {mappings.find((x:Mapping) => x.post_type && x.post_type === key)?.uuid}
                                                             </Typography>
-                                                        </Box>
-                                                        <MappingFields key={'contentLoopFields-'+i+'key'}
+
+                                                            { mappings.find((x:Mapping) => x.post_type && x.post_type === key)?.preset && (
+                                                                <Flex gap={4}>
+                                                                    <Typography variant="sigma" textColor="neutral700">
+                                                                        Preset mapping
+                                                                    </Typography>
+                                                                    <Link to={`/plugins/${pluginId}/mappings/${mappings.find((x:Mapping) => x.post_type && x.post_type === key)?.uuid}`}>
+                                                                        <Button variant="secondary" style={{ whiteSpace: 'nowrap' }} startIcon={<Pencil />}>
+                                                                            Edit Preset Mapping
+                                                                        </Button>
+                                                                    </Link>
+                                                                </Flex>
+                                                            )}
+                                                        </Flex>
+                                                        <MappingFields
+                                                            disableEditing={mappings.find((x:Mapping) => x.post_type && x.post_type === key)?.preset ? true : undefined}
+                                                            key={'contentLoopFields-'+i+'key'}
                                                             contentTypeNames={Object.keys(contentTypes[key])}
                                                             mapping={mappings.find((x:Mapping) => x.post_type && x.post_type === key)}
                                                             mappingUpdated={(e:Mapping) => mappingUpdated(key, e)}
@@ -542,10 +613,71 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
                     </TabPanels>
                 </TabGroup>
 
-
             </Box>
 
 
+            {/* ---------------------------------------------- */}
+            {/* MODAL: SELECT PRESET MAPPING */}
+            {/* ---------------------------------------------- */}
+            { showSelectPresetMappingModal && (
+                <ModalLayout onClose={() => setShowSelectPresetMappingModal(false)}>
+                    <ModalHeader>
+                        <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
+                            Select preset mapping
+                        </Typography>
+                    </ModalHeader>
+                    <ModalBody>
+                        <Box width="100%">
+                            <Mappings showOnlyPresets={true} type={desiredPresetType} modeOnlySelection={true}
+                            mappingHasBeenSelected={ (mapping:Mapping) => modalSelectPresetMappingClose(mapping) } />
+                        </Box>                        
+                    </ModalBody>
+                </ModalLayout>
+            ) }
+
+            {/* ---------------------------------------------- */}
+            {/* MODAL: DELETE/DETACH MAPPING */}
+            {/* ---------------------------------------------- */}
+            { showDeleteDetachMappingModal && (
+                <ModalLayout onClose={() => setShowDeleteDetachMappingModal(false)}>
+                    <ModalHeader>
+                        <Flex direction="column" alignItems="start" gap={4}>
+                            <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
+                                { mappingToDeleteDetach && mappingToDeleteDetach.preset ? 'Detach mapping' : 'Delete mapping'}
+                            </Typography>
+                            <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
+                                { mappingToDeleteDetach?.post_type }
+                            </Typography>
+                        </Flex>
+                    </ModalHeader>
+                    <ModalBody>
+                        { mappingToDeleteDetach && mappingToDeleteDetach.preset && (
+                            <Typography>
+                                <p>This preset mapping will be detached from the index.</p>
+                                <p>The mapping will still exist as a preset mapping for future use.</p>
+                            </Typography>
+                        )}
+                        { mappingToDeleteDetach && !mappingToDeleteDetach.preset && (
+                            <Typography>
+                                <p>This mapping will be completely deleted.</p>
+                            </Typography>
+                        )}
+                    </ModalBody>
+                    <ModalFooter
+                        startActions={<></>}
+                        endActions={<>
+                            <Flex width="100%" justifyContent="end" gap={4}>
+                                <Button onClick={ () => modalDeleteDetachMappingClose(false) } variant="secondary">
+                                    Cancel
+                                </Button>
+                                <Button onClick={ () => modalDeleteDetachMappingClose(true) } variant="primary" style={{ color: 'white' }}>
+                                    Ok
+                                </Button>
+                            </Flex>
+                        </>}
+                    />
+                </ModalLayout>
+            ) }
         </Flex>
     )
 }

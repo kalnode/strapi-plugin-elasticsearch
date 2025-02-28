@@ -44,21 +44,8 @@ const PageHome = () => {
     }
 
     // =========================
-    // FUNCTIONS
+    // API REQUESTS
     // =========================
-
-    const reloadSystemInfo = (showNotificationAfter?: boolean) => {
-        setIsInProgress(true)
-        loadSystemInfo()
-        .then(setSystemInfo)
-        .then(() => {
-            if (showNotificationAfter)
-                showNotification({
-                    type: "success", message: "System information reloaded.", timeout: 5000
-                })
-        })
-        .finally(() => setIsInProgress(false))
-    }
 
     const requestForceRebuildIndex = () => {
         setIsInProgress(true)
@@ -88,6 +75,45 @@ const PageHome = () => {
             showNotification({
                 type: "warning", message: "An error was encountered.", timeout: 5000
             })
+        })
+        .finally(() => setIsInProgress(false))
+    }
+
+
+    const getIndexingMode = async () => {
+        let work = await axiosInstance.get(apiInstantIndexing)
+        if (work) {
+            setIndexingMode(work.data)
+        }
+    }
+
+    const toggleIndexingMode = async () => {
+        setIsInProgress(true)
+        let work = await axiosInstance.get(apiToggleInstantIndexing)
+        
+        if (work) {
+            setIndexingMode(work.data)
+        } else {
+            showNotification({
+                type: "warning", message: "An error was encountered trying to set Instant Indexing.", timeout: 5000
+            })
+        }
+        setIsInProgress(false)
+    }
+    
+    // =========================
+    // MISC
+    // =========================
+
+    const reloadSystemInfo = (showNotificationAfter?: boolean) => {
+        setIsInProgress(true)
+        loadSystemInfo()
+        .then(setSystemInfo)
+        .then(() => {
+            if (showNotificationAfter)
+                showNotification({
+                    type: "success", message: "System information reloaded.", timeout: 5000
+                })
         })
         .finally(() => setIsInProgress(false))
     }
@@ -128,37 +154,13 @@ const PageHome = () => {
     }
 
 
-    const getIndexingMode = async () => {
-        let work = await axiosInstance.get(apiInstantIndexing)
-        if (work) {
-            setIndexingMode(work.data)
-        }
-    }
-
-    const toggleIndexingMode = async () => {
-        setIsInProgress(true)
-        let work = await axiosInstance.get(apiToggleInstantIndexing)
-        
-        if (work) {
-            setIndexingMode(work.data)
-        } else {
-            showNotification({
-                type: "warning", message: "An error was encountered trying to set Instant Indexing.", timeout: 5000
-            })
-        }
-        setIsInProgress(false)
-    }
-
     // =========================
     // LIFECYCLE STUFF
     // =========================
 
-    // RUN ON MOUNT
-    getIndexingEnabled()
-    getIndexingMode()
-
-    // RUN AFTER EVERY RENDER
     useEffect(() => {
+        getIndexingEnabled()
+        getIndexingMode()
         reloadSystemInfo()
     }, [])
 
@@ -166,6 +168,7 @@ const PageHome = () => {
     // =========================
     // TEMPLATE
     // =========================
+
     if (setupInfo === null) {
         return <LoadingIndicatorPage />
     } else {
@@ -177,6 +180,10 @@ const PageHome = () => {
                     <Typography variant="alpha">Home</Typography>
                 </Box>
 
+
+                {/* ---------------------------------------------- */}
+                {/* HEADER */}
+                {/* ---------------------------------------------- */}
                 <Flex direction="column" alignItems="start" gap={8} width="100%">
                     <Box style={{ alignSelf: 'stretch' }} background="neutral0" padding="32px" hasRadius={true}>
                         <Flex direction="column" alignItems="start" gap={8}>
@@ -253,6 +260,10 @@ const PageHome = () => {
                     </Box>
                 </Flex>
 
+
+                {/* ---------------------------------------------- */}
+                {/* MAIN CONTENT */}
+                {/* ---------------------------------------------- */}
                 <Flex direction="column" alignItems="start" gap={8} width="100%">
                     <Box style={{ alignSelf: 'stretch' }} background="neutral0" padding="32px" hasRadius={true}>
                         <Flex direction="column" alignItems="start" gap={8}>

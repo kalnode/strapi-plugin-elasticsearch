@@ -21,7 +21,7 @@ const PageIndexMappings = () => {
             <SubNavigation />
             
             { params.indexUUID && (
-                <Box padding={8} background="neutral100" overflow='scroll'>
+                <Box padding={8} background="neutral100" overflow='hidden'>
                     
                     <Breadcrumbs label="Extra navigation">
                         <Crumb><Link to={`/plugins/${pluginId}/indexes`}>Indexes</Link></Crumb>
@@ -30,9 +30,9 @@ const PageIndexMappings = () => {
                         {/* isCurrent */}
                     </Breadcrumbs>
 
-                    <Box width='100%' overflow='scroll'>
-                        <Mappings indexUUID={params.indexUUID} />
-                        {/* <TriggersMappings indexUUID={params.indexUUID} /> */}
+                    <Box width='100%' overflow='hidden'>
+                        {/* <Mappings indexUUID={params.indexUUID} /> */}
+                        <TriggersMappings indexUUID={params.indexUUID} />
                         
                     </Box>
 

@@ -1,6 +1,6 @@
 /**
  *
- * Mapping component
+ * COMPONENT: Mapping
  *
  */
 
@@ -70,6 +70,26 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
         setMapping(mappingOriginal)
     }
 
+    useEffect(() => {
+        if (mappingUUID && mappingUUID != 'new') {
+            requestGetMapping()
+        }
+    }, [])
+
+    useEffect(() => {
+        requestGetContentTypes()
+    }, [])
+
+    const mappingUpdated = (updatedMapping:Types.Mapping) => {
+        if (mapping) {
+            setMapping(updatedMapping)            
+        }
+    }
+
+    // ===============================
+    // API REQUESTS
+    // ===============================
+
     const requestGetMapping = async () => {
 
         if (mappingUUID) {
@@ -106,17 +126,19 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
         
     }
 
-    const getContentTypes = async () => {
+    const requestGetContentTypes = async () => {
         setIsInProgress(true)
         await axiosInstance.get(apiGetContentTypes)
         .then((response) => {
-            // showNotification({
-            //     type: "success", message: "getContentTypes: " + response.data, timeout: 5000
-            // })
-            setContentTypes(response.data)
+            if (response.data) {
+                setContentTypes(response.data)
+                if (type && response.data && Object.keys(response.data).includes(type)) {
+                    typeSelected(type)
+                }
+            }
         })
         .catch((error) => {
-            console.log("COMPONENT MAPPING - getContentTypes error", error)
+            console.log("COMPONENT MAPPING - requestGetContentTypes error", error)
             showNotification({
                 type: "warning", message: "An error has encountered: " + error, timeout: 5000
             })
@@ -128,7 +150,6 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
 
     const requestCreateMapping = async () => {
         setIsInProgress(true)
-
         if (mapping && !mapping.uuid) {
 
             let output:Types.Mapping = mapping
@@ -169,9 +190,7 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
 
     const requestUpdateMapping = () => {
         setIsInProgress(true)
-
         if (mapping && mapping.uuid) {
-
             return axiosInstance.post(apiUpdateMapping(mapping.uuid), {
                 data: mapping
             })
@@ -206,52 +225,7 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
         setPosttypeFinal(posttype)
     }
 
-    const updateFieldActive = async (key:string) => {
-
-        if (mapping) {
-
-            let output:Types.Mapping
-
-            // TODO: This seems really stupid, but need to deep clone here otherwise strange reactivity occurs.
-            // e.g. without this deep clone, fields gets updated, even though we don't touch it in this func!
-            // Perhaps reactivity is being set earlier somewhere.
-            output = JSON.parse(JSON.stringify(mapping))
-
-            if (output.fields && output.fields[key]) {
-                delete output.fields[key]
-            } else {
-                output.fields = {}
-                output.fields[key] = {
-                    type: 'text', // TODO: We need to autodetect here; for now just resorting to default "text"
-                    index: false
-                }
-            }
-            
-            setMapping(output)
-        }
-        
-    }
-
-    const updateFieldIndex = async (key: string) => {
-
-        let output = JSON.parse(JSON.stringify(mapping))
-
-        if (output.fields[key]) {
-            output.fields[key].index = !output.fields[key].index
-            setMapping(output)
-        }
-    }
-
-    const updateFieldDataType = async (key: string, type: string) => {
-        if (mapping && mapping.fields && mapping.fields[key]) {
-            let output:Types.Mapping = mapping
-            if (output.fields && output.fields[key]) {
-                output.fields[key].type = type
-            }
-            setMapping(output)
-        }
-    }
-
+    // TODO: Legacy; keep for now. Scrutnize form validation app-wide.
     // const validatePayload = (payload) => {
     //     if (payload && payload.length > 0) {
     //         try {
@@ -265,35 +239,19 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
     //     }
     // }
 
+
     // ===============================
-    // LIFECYCLE
+    // TEMPLATE
     // ===============================
-
-    useEffect(() => {
-        if (mappingUUID && mappingUUID != 'new') {
-            requestGetMapping()
-        } else {
-            if (type) typeSelected(type)
-        }
-    }, [])
-
-
-    useEffect(() => {
-        getContentTypes()
-    }, [])
-
-
-    const mappingUpdated = (updatedMapping:Types.Mapping) => {
-        if (mapping) {
-            setMapping(updatedMapping)            
-        }
-    }
 
     return  (
         <Box>
             { contentTypes && Object.values(contentTypes).length > 0 && (
                 <>
 
+                {/* ---------------------------------------------- */}
+                {/* HEADER */}
+                {/* ---------------------------------------------- */}
                 <Flex width="100%" justifyContent="space-between">
                     <Box>
                         <Box>
@@ -333,6 +291,11 @@ export const Mapping = ({ mappingUUID, indexUUID, type }:Props) => {
                         </Button>
                     )}
                 </Flex>
+
+
+                {/* ---------------------------------------------- */}
+                {/* MAIN CONTENT */}
+                {/* ---------------------------------------------- */}
 
                 { (!mappingUUID || mappingUUID === 'new') && !posttypeFinal && contentTypes && (
                     <Box width="100%">

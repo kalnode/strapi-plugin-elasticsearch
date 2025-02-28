@@ -1,6 +1,6 @@
 /**
  *
- * PluginIcon
+ * COMPONENT: PluginIcon
  *
  */
 

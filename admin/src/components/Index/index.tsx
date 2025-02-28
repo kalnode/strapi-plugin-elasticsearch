@@ -1,11 +1,10 @@
 /**
  *
- * Index component
+ * COMPONENT: Index
  *
  */
 
-import { useEffect, useRef, useState, useMemo } from 'react'
-import PropTypes from 'prop-types'
+import { useEffect, useState, useMemo } from 'react'
 import pluginId from '../../pluginId'
 import { Link, Box, Button, Tooltip, Icon, Typography, ModalLayout, ModalHeader, ModalFooter, ModalBody, ToggleInput, TextButton, TextInput, Flex, Textarea, Switch, SingleSelect, SingleSelectOption, TabGroup, Tabs, Tab, TabPanels, TabPanel, Grid, Field } from '@strapi/design-system'
 import { apiUpdateIndex, apiGetIndex, apiCreateESindex, apiIndexRecords } from '../../utils/apiUrls'
@@ -17,10 +16,9 @@ import { Information } from '@strapi/icons'
 
 type Props = {
     indexUUID: string
-    closeEvent?: any // TODO: Need to type this properly for passed event callback
 }
 
-export const Index = ({ indexUUID, closeEvent }:Props) => {
+export const Index = ({ indexUUID }:Props) => {
 
     // ===============================
     // GENERAL
@@ -29,7 +27,7 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
     const [isInProgress, setIsInProgress] = useState<boolean>(false)
     const [indexOriginal,setIndexOriginal] = useState<RegisteredIndex>()
     const [index,setIndex] = useState<RegisteredIndex>()
-    const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
+    const [showNameAliasModal, setShowNameAliasModal] = useState<boolean>(false)
     const showNotification = useNotification()
 
     const changesExist = useMemo(() => JSON.stringify(index) != JSON.stringify(indexOriginal), [index])
@@ -37,6 +35,27 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
     const resetForm = () => {
         setIndex(indexOriginal)
     }
+
+    // TODO: Early work; keep for now.
+    // const convertEmptyStringsToNulls = (object:object) => {
+    //     return Object.keys(object).reduce((acc, key) => {
+    //         // TODO: Type this correctly... or... maybe we don't need this func at all, so blow it away.
+    //         // @ts-ignore
+    //         acc[key] = object[key] === '' ? null : object[key]
+    //         return acc
+    //     }, {})
+    // }
+
+
+    useEffect(() => {
+        if (indexUUID) {
+            requestGetIndex()
+        }
+    }, [])
+
+    // ===============================
+    // API REQUESTS
+    // ===============================
 
     const requestGetIndex = async () => {
 
@@ -49,7 +68,7 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
                 }
             })
             .catch((error) => {
-                console.log("PAGE requestGetIndex ERROR: ", error)
+                console.log("COMPONENT Index - requestGetIndex error", error)
                 showNotification({
                     type: "warning", message: "An error has encountered: " + error, timeout: 5000
                 })
@@ -61,17 +80,47 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
             setIndexOriginal(work)
             setIndex(work)
         }
-        
+
     }
 
-    const convertEmptyStringsToNulls = (object:object) => {
-        return Object.keys(object).reduce((acc, key) => {
+    const requestCreateIndexOnES = async () => {
+        if (indexUUID) {
+            setIsInProgress(true)
+            await axiosInstance.get(apiCreateESindex(indexUUID))
+            // .then( (response) => {
+            //     if (response.data) {
+            //         return response.data
+            //     }
+            // })
+            .catch((error) => {
+                console.log("COMPONENT Index - requestCreateIndexOnES error", error)
+                showNotification({
+                    type: "warning", message: "An error has encountered: " + error, timeout: 5000
+                })
+            })
+            .finally(() => {
+                setIsInProgress(false)
+            })
+        }
+    }
 
-            // TODO: Type this correctly... or... maybe we don't need this func at all, so blow it away.
-            // @ts-ignore
-            acc[key] = object[key] === '' ? null : object[key]
-            return acc
-        }, {})
+    const requestIndexAllRecords = async () => {
+        setIsInProgress(true)
+        await axiosInstance.get(apiIndexRecords(indexUUID))
+        .then( (response) => {
+            if (response.data) {
+                return response.data
+            }
+        })
+        .catch((error) => {
+            console.log("COMPONENT Index - error", error)
+            showNotification({
+                type: "warning", message: "An error has encountered: " + error, timeout: 5000
+            })
+        })
+        .finally(() => {
+            setIsInProgress(false)
+        })
     }
 
     const requestUpdateIndex = async () => {
@@ -102,7 +151,7 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
                     }
                 })
                 .catch((error) => {
-                    console.log("PAGE INDEX - requestUpdateIndex ERROR: ", error)
+                    console.log("COMPONENT Index - requestUpdateIndex error", error)
                     showNotification({
                         type: "warning", message: "An error has encountered: " + error, timeout: 5000
                     })
@@ -116,63 +165,19 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
         }
     }
 
-    const createOnES = async () => {
-        if (indexUUID) {
-            setIsInProgress(true)
-            let work = await axiosInstance.get(apiCreateESindex(indexUUID))
-            .then( (response) => {
-                console.log("get createOnES 111: ", response)
-                if (response.data) {
-                    return response.data
-                }
-            })
-            .catch((error) => {
-                console.log("PAGE createOnES ERROR: ", error)
-                showNotification({
-                    type: "warning", message: "An error has encountered: " + error, timeout: 5000
-                })
-            })
-            .finally(() => {
-                setIsInProgress(false)
-            })
-        }
-    }
-
-    const indexRecords = async () => {
-        setIsInProgress(true)
-        let work = await axiosInstance.get(apiIndexRecords(indexUUID))
-        .then( (response) => {
-            console.log("get indexRecords 111: ", response)
-            if (response.data) {
-                return response.data
-            }
-        })
-        .catch((error) => {
-            console.log("PAGE indexRecords ERROR: ", error)
-            showNotification({
-                type: "warning", message: "An error has encountered: " + error, timeout: 5000
-            })
-        })
-        .finally(() => {
-            setIsInProgress(false)
-        })
-    }
 
     // ===============================
-    // LIFECYCLE
+    // TEMPLATE
     // ===============================
-
-    useEffect(() => {
-        if (indexUUID) {
-            requestGetIndex()
-        }
-    }, [])
-
 
     return  (
         <Flex width="100%" direction="column" alignItems="start" gap={4}>
             { index && (
                 <>
+
+                {/* ---------------------------------------------- */}
+                {/* HEADER */}
+                {/* ---------------------------------------------- */}
                 <Flex width="100%" justifyContent="space-between">
                     <Flex direction="column" alignItems="start">
                         <Typography variant="alpha">{ indexUUID ? index.index_name : 'Create Index'}</Typography>
@@ -204,24 +209,20 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
                                 />
                                 <Tooltip label="On = Triggers activated for specified post types">
                                     <button aria-label="delete">
-                                        {/* <Trash aria-hidden focusable={false} /> */}
                                         <Icon as={Information} color="neutral300" variant="primary" />
                                         {/* aria-hidden focusable={false} */}
                                     </button>
                                 </Tooltip>
-                                {/* <Icon as={Information} color="neutral300" variant="primary" /> */}
-                               
                             </Flex>
                         )}
 
-                        {/* { indexUUID && (
-                            <Button onClick={() => requestUpdateIndex()} variant="tertiary" disabled={!changesExist}>
-                                Save
-                            </Button>
-                        )} */}
                     </Flex>
                 </Flex>
 
+
+                {/* ---------------------------------------------- */}
+                {/* CONTENT */}
+                {/* ---------------------------------------------- */}
                 <Flex width="100%" direction="column" alignItems="start" gap={4}>
 
                     <Flex width="100%" background="neutral0" padding={8} shadow="filterShadow" justifyContent="space-apart">
@@ -240,12 +241,13 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
 
                         {/* TODO: justifyItems="end" doesn't seem to work as a Strapi attribute. For now: using it in style=. */}
                         <Box flex="1" style={{ justifyItems: 'flex-end' }}>
-                            <Button variant="secondary" onClick={ () => setShowSettingsModal(true)}>
+                            <Button variant="secondary" onClick={ () => setShowNameAliasModal(true)}>
                                 Change
                             </Button>
                         </Box>
                     </Flex>
 
+                    {/* // ON/OFF SWITCH IN-PAGE */}
                     {/* <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
                         <Box>
                             <Flex direction="column" alignItems="start" gap={4}>
@@ -263,19 +265,14 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
 
                     <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
                         <Link to={`/plugins/${pluginId}/indexes/${index.uuid}/mappings`}>
-                            <Button variant="secondary">
-                                Mappings for Index
-                            </Button>
-                        </Link>
-                        <Link to={`/plugins/${pluginId}/indexes/${index.uuid}/mappingsnew`}>
-                            <Button variant="secondary">
-                                Mappings New for Index
+                            <Button variant="primary" style={{ color:'white' }}>
+                                Mappings
                             </Button>
                         </Link>
                     </Box>
 
                     <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
-                        <Button variant="secondary" onClick={ () => createOnES()}>
+                        <Button variant="secondary" onClick={ () => requestCreateIndexOnES()}>
                             Create index on ES instance with current mappings
                         </Button>
 
@@ -287,10 +284,9 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
                             Re-build index
                         </Button>
 
-                        <Button variant="secondary" onClick={ () => indexRecords()}>
+                        <Button variant="secondary" onClick={ () => requestIndexAllRecords()}>
                             Index all records
                         </Button>
-
 
                     </Box>
                     
@@ -299,13 +295,15 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
             )}
 
 
-
-            { showSettingsModal && (
-                <ModalLayout onClose={() => setShowSettingsModal(false) }>
+            {/* ---------------------------------------------- */}
+            {/* MODAL: CHANGE INDEX NAME/ALIAS */}
+            {/* ---------------------------------------------- */}
+            { showNameAliasModal && (
+                <ModalLayout onClose={() => setShowNameAliasModal(false) }>
                     {/* labelledBy="title" */}
                     <ModalHeader>
                         <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
-                            Select preset mapping
+                            Change name/alias
                         </Typography>
                     </ModalHeader>
                     <ModalBody>
@@ -315,6 +313,8 @@ export const Index = ({ indexUUID, closeEvent }:Props) => {
                                 <TextInput value={ index.index_alias ? index.index_alias : '' } onChange={(e:Event) => setIndex({ ...index, index_alias: (e.target as HTMLInputElement).value }) } label="Alias name" placeholder="Enter alias name" name="Index alias field" />
                             </Box>
                         )}
+
+                        ( user journey will be invoked on re-building the entire index)
                     </ModalBody>
                     {/* <ModalFooter
                         startActions={<></>}
