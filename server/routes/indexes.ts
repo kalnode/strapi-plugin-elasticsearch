@@ -55,5 +55,11 @@ export default {
             handler: 'indexes.getESMapping',
             config: { policies: [] }
         },
+        {
+            method: 'GET',
+            path: '/sync-index/:indexUUID',
+            handler: 'indexes.syncIndexWithExternal',
+            config: { policies: [] }
+        },
     ]    
 }

@@ -33,10 +33,11 @@ export interface StrapiContentTypes {
 
 export type RegisteredIndex = {
     uuid: string
-    mappings?: Array<string>
     index_name: string
     index_alias?: string
     active?: boolean
+    mappings?: Array<string> // Array of uuid's for mappings
+    mapping_dynamic?: boolean
 }
 
 

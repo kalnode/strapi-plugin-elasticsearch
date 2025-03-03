@@ -179,6 +179,7 @@ export default ({ strapi }) => ({
         const connected = pluginConfig.searchConnector && pluginConfig.searchConnector.host ? await esInterface.checkESConnection() : false
 
         return {
+
             indexingCronSchedule: pluginConfig.indexingCronSchedule || "Not configured",
             elasticHost: pluginConfig.searchConnector ? pluginConfig.searchConnector.host || "Not configured" : "Not configured",
             elasticUserName: pluginConfig.searchConnector ? pluginConfig.searchConnector.username || "Not configured" : "Not configured",
@@ -236,6 +237,25 @@ export default ({ strapi }) => ({
         }
     },
 
+    async getPluginSettings():Promise<object> {
+
+        try {
+            const pluginStore = this.getPluginStore()
+            const settings:any = JSON.parse(await pluginStore.get({ key: 'configsettings' }) as unknown as string)
+            if (settings) {
+                return settings
+            } else {
+                throw "Store settings not found"
+            }
+
+        } catch(error) {
+            console.error('SERVICE indexes getESMapping - error:', error)
+            return error
+        }
+
+   
+    },
+
     async storeToggleSettingInstantIndex():Promise<boolean> {
         const pluginStore = this.getPluginStore()
         const settings:any = JSON.parse(await pluginStore.get({ key: 'configsettings' }) as unknown as string)
@@ -284,13 +304,16 @@ export default ({ strapi }) => ({
     async storeSettingToggleUseNewPluginParadigm():Promise<boolean> {
         const pluginStore = this.getPluginStore()
         const settings:any = JSON.parse(await pluginStore.get({ key: 'configsettings' }) as unknown as string)
+        console.log("storeSettingToggleUseNewPluginParadigm 111, settings:", settings)
         if (settings) {
             settings['useNewPluginParadigm'] = !settings['useNewPluginParadigm']
             await pluginStore.set({ key: 'configsettings', value: JSON.stringify(settings)})
+            console.log("storeSettingToggleUseNewPluginParadigm 222", settings)
             return settings['useNewPluginParadigm']
         } else {
             const newSettings = JSON.stringify({'useNewPluginParadigm': false})
             await pluginStore.set({ key: 'configsettings', value: newSettings})
+            console.log("storeSettingToggleUseNewPluginParadigm 333")
             return false
         }
     },
@@ -445,6 +468,54 @@ export default ({ strapi }) => ({
             return 'No records exist!'
         }
 
+    },
+
+    async getContentTypes() {
+
+        try {
+
+            const contentTypes = strapi.contentTypes
+                    
+            // TODO: Use the below array in filteredContentTypes .filter(), instead of having so many "c.includes"
+            // allowedContentTypes = ['api::', 'plugin::users-permissions.user']            
+            const filteredContentTypes = Object.keys(contentTypes).filter((c) => c.includes('api::') || c.includes('plugin::users-permissions.user'))
+            const fieldsToExclude = ['createdAt', 'createdBy', 'publishedAt', 'publishedBy', 'updatedAt', 'updatedBy']
+            const finalOutput = {}
+
+            for (let r = 0; r < filteredContentTypes.length; r++) {
+
+                finalOutput[filteredContentTypes[r]] = {}
+
+                const rawAttributes = contentTypes[filteredContentTypes[r]].attributes
+
+                // Filter out fields we don't want (fieldsToExclude)
+                const filteredAttributes = Object.keys(rawAttributes).filter((i) => !fieldsToExclude.includes(i))
+
+                for (let k = 0; k < filteredAttributes.length; k++) {
+                    const currentAttribute = filteredAttributes[k]
+                    let attributeType = "regular"
+                    if (typeof rawAttributes[currentAttribute]["type"] !== "undefined" && rawAttributes[currentAttribute]["type"] !== null) {
+                        // TODO: Scrutinize strapi field types "component" and "dynamiczone"; I know nothing of them and how we'd want to handle them.
+                        if (rawAttributes[currentAttribute]["type"] === "component") {
+                            attributeType = "component"
+                        } else if (rawAttributes[currentAttribute]["type"] === "dynamiczone") {
+                            attributeType = "dynamiczone"
+                        }
+                    }
+
+                    finalOutput[filteredContentTypes[r]][filteredAttributes[k]] = {
+                        raw_type: rawAttributes[currentAttribute]["type"],
+                        field_type: attributeType
+                    }
+                }                
+            }
+
+            return finalOutput
+            
+        } catch(error) {
+            console.error('SERVICE helper getContentTypes - error:', error)
+            return error
+        }       
     }
 
 })

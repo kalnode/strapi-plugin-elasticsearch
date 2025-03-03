@@ -122,7 +122,6 @@ export default ({ strapi }) => ({
     async NEWgetPostTypesForIndexing() {
         const indexesService = await strapi.plugins['esplugin'].services.indexes
         let work = await indexesService.getIndexes()
-        console.log("NEWgetPostTypesForIndexing 111 is: ", work)
         if (work) {
 
             // TODO: Ideally we use a one-liner for all this logic, but got lost and spun my wheels:
@@ -143,7 +142,6 @@ export default ({ strapi }) => ({
                 }
             }
 
-            console.log("NEWgetPostTypesForIndexing 222aaa is: ", uniqueTypes)
             return uniqueTypes
         }
     },

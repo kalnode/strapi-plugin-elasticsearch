@@ -13,8 +13,8 @@ export default ({ strapi }) => {
         try {
             const updatedConfig = await configureIndexingService.setContentConfig({config: body})
             return updatedConfig
-        } catch (err) {
-            ctx.throw(500, err)
+        } catch (error) {
+            ctx.throw(500, error)
         }    
     }
 
@@ -31,8 +31,8 @@ export default ({ strapi }) => {
             } else {
                 ctx.throw(400, 'Invalid parameters')
             }
-        } catch (err) {
-            ctx.throw(500, err)
+        } catch (error) {
+            ctx.throw(500, error)
         }    
     }
 
@@ -49,8 +49,8 @@ export default ({ strapi }) => {
         try {
             const updatedConfig = await configureIndexingService.setContentConfig({collection: ctx.params.collectionname, config: body.data})
             return updatedConfig
-        } catch (err) {
-            ctx.throw(500, err)
+        } catch (error) {
+            ctx.throw(500, error)
         }
     }
 

@@ -50,12 +50,6 @@ export default {
             config: { policies: [] }
         },
         {
-            method: 'GET',
-            path: '/get-content-types',
-            handler: 'mappings.getContentTypes',
-            config: { policies: [] }
-        },
-        {
             method: 'POST',
             path: '/detach-mapping',
             handler: 'mappings.detachMapping',

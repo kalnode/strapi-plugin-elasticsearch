@@ -5,114 +5,8 @@ export default ({ strapi }) => ({
 
     async getMapping(mappingUUID:string) {
 
-        // -------------------------------------------
-        const helperGetPluginStore = () => {
-            return strapi.store({
-                environment: '',
-                type: 'plugin',
-                name: 'esplugin'
-            })
-        }
-        const pluginStore = helperGetPluginStore()
-        
-        // TODO: CHANGE TO PLUGINCACHE?
-        const mappings:Array<Mapping> = await pluginStore.get({ key: 'mappings' })
-        if (mappings && Array.isArray(mappings)) {
-            let work = mappings.find( (x:Mapping) => x.uuid === mappingUUID)
-            if (work) {
-                return work
-            }
-        }
-        return "No mapping found"
-        // -------------------------------------------
-
-        // DB PARADIGM
-        //return await strapi.entityService.findOne('plugin::esplugin.mapping', mappingId, { populate: "indexes" })
-    },
-
-    async getMappings(indexUUID:string) {
-
-        // -------------------------------------------
-        const helperGetPluginStore = () => {
-            return strapi.store({
-                environment: '',
-                type: 'plugin',
-                name: 'esplugin'
-            })
-        }
-        const pluginStore = helperGetPluginStore()
-
-        // TODO: CHANGE TO PLUGINCACHE?
-        let mappings:Array<Mapping> = await pluginStore.get({ key: 'mappings' })
-
-        if (mappings) {
-            if (indexUUID) {
-
-                // TODO: CHANGE TO PLUGINCACHE?
-                const indexesService = strapi.plugins['esplugin'].services.indexes
-                const index = await indexesService.getIndex(indexUUID)
-
-                if (index && index.mappings) {
-                    mappings = mappings.filter( (x:any) => index.mappings.includes(x.uuid))
-                }
-
-            }
-
-            return mappings
-        }
-
-        console.log("getMappings 555")
-        return "No mappings found"
-        
-        // -------------------------------------------
-
-
-        // DB paradigm
-
-        // let payload:any = {
-        //     sort: { createdAt: 'DESC' },
-        //     start: 0,
-        //     limit: 100,
-        //     filters: { },
-        //     populate: "indexes"
-        // }
-
-        // // TODO: This is really stupid, but need to figure out a better way to dynamically add "filters: {}" to the payload.
-        // // Right now we start with it empty, and delete or fill it. Ideally we don't have any of this and just add filters to payload.
-
-        // // TODO: Some sillyness going on here; for some reason all of these conditions are needed, and they must come first in the if-else order.
-        // // Simply checking !indexId doesn't seem to work.
-        // if (!indexId || indexId === 'undefined' || indexId === undefined || typeof indexId === 'undefined') {
-
-        //     delete payload.filters
-
-        // } else if (indexId || indexId != 'undefined' || indexId != undefined || typeof indexId != 'undefined') {
-
-        //     payload.filters['indexes'] = {
-        //         id: {
-        //             $eq: indexId
-        //         }
-        //     }
-
-        // }
-
-        // return await strapi.entityService.findMany('plugin::esplugin.mapping', payload)
-
-    },
-
-    async createMapping(mapping:Mapping) {
-        // TODO: This type doesn't seem to do anything; it accepts anything.
-        // For example, below, change .uuid to .uuidFoo and there's no warning.
-
         try {
 
-            let finalPayload = {
-                ...mapping,
-                uuid: uuidv4()
-            }
-
-            // ------------------------------------------
-            // ADD TO PLUGIN STORE
             const helperGetPluginStore = () => {
                 return strapi.store({
                     environment: '',
@@ -120,30 +14,156 @@ export default ({ strapi }) => ({
                     name: 'esplugin'
                 })
             }
-            const pluginStore = helperGetPluginStore()         
+            const pluginStore = helperGetPluginStore()
+
+            // TODO: QUERY PLUGIN CACHE instead; one less db call. Or is it risky?
+            const mappings:Array<Mapping> = await pluginStore.get({ key: 'mappings' })
+
+            if (mappingUUID) {
+                if (mappings && Array.isArray(mappings)) {
+                    let work = mappings.find( (x:Mapping) => x.uuid === mappingUUID)
+                    if (work) {
+                        return work
+                    } else {
+                        throw "No mapping found"
+                    }
+                }
+            } else {
+                throw "No mapping UUID provided"
+            }
+
+            // --------------------------
+            // EARLY DEV: DB PARADIGM
+            // return await strapi.entityService.findOne('plugin::esplugin.mapping', mappingId, { populate: "indexes" })
+            // --------------------------
+
+        } catch(error) {
+            console.error('SERVICE mappings getMapping - error:', error)
+            return error
+        }
+        
+    },
+
+    async getMappings(indexUUID?:string) {
+
+        try {
+
+            const helperGetPluginStore = () => {
+                return strapi.store({
+                    environment: '',
+                    type: 'plugin',
+                    name: 'esplugin'
+                })
+            }
+            const pluginStore = helperGetPluginStore()
+    
+            // TODO: QUERY PLUGIN CACHE instead; one less db call. Or is it risky?
+            let mappings:Array<Mapping> = await pluginStore.get({ key: 'mappings' })
+    
+            if (mappings) {
+                if (indexUUID) {
+    
+                    // TODO: QUERY PLUGIN CACHE instead; one less db call. Or is it risky?
+                    const indexesService = strapi.plugins['esplugin'].services.indexes
+                    const index:RegisteredIndex = await indexesService.getIndex(indexUUID)
+    
+                    if (index && index.mappings) {
+                        mappings = mappings.filter( (x:Mapping) => x.uuid && index.mappings && index.mappings.includes(x.uuid))
+                    }
+    
+                }
+    
+                return mappings
+
+            } else {
+                throw "No mappings found" 
+            }
+    
+            // --------------------------
+            // EARLY DEV: DB PARADIGM
+    
+            // let payload:any = {
+            //     sort: { createdAt: 'DESC' },
+            //     start: 0,
+            //     limit: 100,
+            //     filters: { },
+            //     populate: "indexes"
+            // }
+    
+            // // TODO: This is really stupid, but need to figure out a better way to dynamically add "filters: {}" to the payload.
+            // // Right now we start with it empty, and delete or fill it. Ideally we don't have any of this and just add filters to payload.
+    
+            // // TODO: Some sillyness going on here; for some reason all of these conditions are needed, and they must come first in the if-else order.
+            // // Simply checking !indexId doesn't seem to work.
+            // if (!indexId || indexId === 'undefined' || indexId === undefined || typeof indexId === 'undefined') {
+    
+            //     delete payload.filters
+    
+            // } else if (indexId || indexId != 'undefined' || indexId != undefined || typeof indexId != 'undefined') {
+    
+            //     payload.filters['indexes'] = {
+            //         id: {
+            //             $eq: indexId
+            //         }
+            //     }
+    
+            // }
+    
+            // return await strapi.entityService.findMany('plugin::esplugin.mapping', payload)
+            // --------------------------
+
+
+        } catch(error) {
+            console.error('SERVICE mappings getMappings - error:', error)
+            return error
+        }      
+
+    },
+
+    async createMapping(mapping:Mapping) {
+
+        try {
+
+            const finalPayload:Mapping = {
+                ...mapping,
+                uuid: uuidv4()
+            }
+
+            const helperGetPluginStore = () => {
+                return strapi.store({
+                    environment: '',
+                    type: 'plugin',
+                    name: 'esplugin'
+                })
+            }
+            const pluginStore = helperGetPluginStore()
+
+            // TODO: Change this to get from store cache instead? One less db call. Or is it risky?
             let mappings:Array<Mapping> = await pluginStore.get({ key: 'mappings' })
 
             if (!mappings) {
                 mappings = []
             }
 
-            mappings.push(finalPayload as unknown as Mapping)
+            mappings.push(finalPayload)
             await pluginStore.set({ key: 'mappings', value: mappings })
 
             if (finalPayload.indexes && finalPayload.uuid) {
                 await this.attachMapping(finalPayload.indexes[0], finalPayload.uuid)
             }
-            // -------------------------------------------
 
+            // --------------------------
+            // EARLY DEV: DB PARADIGM
             // const entry = await strapi.entityService.create('plugin::esplugin.mapping', {
             //     data: finalPayload
             // })
+            // --------------------------
+
             return finalPayload
 
-        } catch (err) {
-            console.log('SPE - createMapping: An error was encountered')
-            console.log(err)
-            return err
+        } catch(error) {
+            console.error('SERVICE mappings createMapping - error:', error)
+            return error
         }
 
     },
@@ -152,13 +172,6 @@ export default ({ strapi }) => ({
 
         try {
 
-            // TODO: Is this extra variable necessary?
-            //let finalPayload:TMapping1 = mapping
-
-            // console.log("updateMapping 222: ", finalPayload)
-
-            // -------------------------------------------
-            // UPDATE THE PLUGIN STORE
             const helperGetPluginStore = () => {
                 return strapi.store({
                     environment: '',
@@ -166,44 +179,49 @@ export default ({ strapi }) => ({
                     name: 'esplugin'
                 })
             }
-            const pluginStore = helperGetPluginStore()         
-            let mappings:any = await pluginStore.get({ key: 'mappings' })
+            const pluginStore = helperGetPluginStore()
+
+            // TODO: Change this to get from store cache instead? One less db call. Or is it risky?
+            let mappings:Array<Mapping> = await pluginStore.get({ key: 'mappings' })
 
             if (mappings && Array.isArray(mappings)) {
-                let foundIndex = mappings.findIndex( (x:any) => x.uuid === mapping.uuid)
+
+                // TODO: Probably a more elegant way to do this.
+                const foundIndex:number = mappings.findIndex( (x:Mapping) => x.uuid === mapping.uuid)
                 if (foundIndex >= 0) {
                     mappings[foundIndex] = mapping
+                    await pluginStore.set({ key: 'mappings', value: mappings })
+                } else {
+                    return "Cannot find mapping to update"
                 }
-            } else {
-                console.log("Cannot find mapping to update")
-            }
-            await pluginStore.set({ key: 'mappings', value: mappings })
-            // -------------------------------------------
 
-            // UPDATE DB
+            } else {
+                throw "No mappings found; cannot update"
+            }
+
+            // --------------------------
+            // SYNC INDEXS WITH ES, if mapping applies
+            // let indexes:Array<RegisteredIndex> = await pluginStore.get({ key: 'indexes' })
+            // indexes = indexes.filter( (x:RegisteredIndex) => x.mappings && mapping.uuid && x.mappings.includes(mapping.uuid))
+            // const indexesService = strapi.plugins['esplugin'].services.indexes
+            // indexes.forEach( async (x:RegisteredIndex) => {
+            //     console.log("updateMapping 444")
+            //     await indexesService.syncIndexWithExternal(x.uuid)
+            // })
+            // --------------------------
+
+
+            // --------------------------
+            // EARLY DEV: DB PARADIGM
             // const entry = await strapi.entityService.update('plugin::esplugin.mapping', mappingId, {
             //     data: finalPayload,
             //     populate: 'indexes'
             // })
-            return mapping
+            // --------------------------
 
-            // EXPERIMENTAL
-            // TODO: PROBABLY REMOVE... ES basically cannot accept updates to mappings
-            // Updating mappings on existing index; basically not possible however you can 1. add new mappings to an existing index, or 2. change the secondary properties (?) of an existing mapping.
-            // if (entry.indexes) {
-            //     // 1 - Loop through indexes, updateMapping for each
-            //     for (i = 0; i < entry.indexes.length; i++) {
-            //         let index = entry.indexes[i]
-            //         console.log("ESwork index is:", index)
-            //         let ESwork = await esInterface.updateMapping({indexName: index.index_name, mapping: finalPayload2})
-            //         console.log("ESwork after work is: ", ESwork)
-            //     }
-            // }
-
-        } catch (err) {
-            console.log('SPE - updateMapping: An error was encountered')
-            console.log(err)
-            return err
+        } catch(error) {
+            console.error('SERVICE mappings updateMapping - error:', error)
+            return error
         }
 
     },
@@ -212,14 +230,6 @@ export default ({ strapi }) => ({
 
         try {
 
-            // TODO: Is this extra variable necessary?
-            //let finalPayload:TMapping1 = mapping
-            //finalPayload.fields = JSON.stringify(finalPayload.fields)
-
-            // console.log("updateMapping 222: ", finalPayload)
-
-            // -------------------------------------------
-            // UPDATE THE PLUGIN STORE
             const helperGetPluginStore = () => {
                 return strapi.store({
                     environment: '',
@@ -227,110 +237,104 @@ export default ({ strapi }) => ({
                     name: 'esplugin'
                 })
             }
-            const pluginStore = helperGetPluginStore()         
-            let existingMappings:any = await pluginStore.get({ key: 'mappings' })
+            const pluginStore = helperGetPluginStore()
+
+            // TODO: Change this to get from store cache instead? One less db call. Or is it risky?
+            let existingMappings:Array<Mapping> = await pluginStore.get({ key: 'mappings' })
 
             if (existingMappings && Array.isArray(existingMappings)) {
-
-                // Loop through updateMappings
                 for (let i = 0; i < mappings.length; i++) {
-                    let mapping = mappings[i]
-                    let foundIndex = existingMappings.findIndex( (x:Mapping) => x.uuid === mapping.uuid)
+                    let mapping:Mapping = mappings[i]
+                    let foundIndex:number = existingMappings.findIndex( (x:Mapping) => x.uuid === mapping.uuid)
                     if (foundIndex >= 0) {
                         existingMappings[foundIndex] = mapping
+                    } else {
+                        throw "Cannot find mapping to update"
                     }
                 }
             } else {
-                console.log("Cannot find mapping to update")
+                throw "Cannot find mappings"
             }
-            await pluginStore.set({ key: 'mappings', value: existingMappings })
-            // -------------------------------------------
 
-            // UPDATE DB
+            await pluginStore.set({ key: 'mappings', value: existingMappings })
+
+            return "Success"
+
+            // --------------------------
+            // SYNC INDEXS WITH ES, if mapping applies
+            // let indexes:Array<RegisteredIndex> = await pluginStore.get({ key: 'indexes' })
+            // if (existingMappings) {
+            //     existingMappings.forEach( (x:Mapping) => {
+            //         let matchedIndexes = indexes.filter( (y:RegisteredIndex) => y.mappings && x.uuid && y.mappings.includes(x.uuid))
+            //         const indexesService = strapi.plugins['esplugin'].services.indexes
+            //         matchedIndexes.forEach( async (x:RegisteredIndex) => {
+            //             console.log("updateMapping 444")
+            //             await indexesService.syncIndexWithExternal(x.uuid)
+            //         })
+            //     })
+            // }
+            // --------------------------
+            
+            // --------------------------
+            // EARLY DEV: DB PARADIGM
             // const entry = await strapi.entityService.update('plugin::esplugin.mapping', mappingId, {
             //     data: finalPayload,
             //     populate: 'indexes'
             // })
-            return "Success"
+            // --------------------------
 
-            // EXPERIMENTAL
-            // TODO: PROBABLY REMOVE... ES basically cannot accept updates to mappings
-            // Updating mappings on existing index; basically not possible however you can 1. add new mappings to an existing index, or 2. change the secondary properties (?) of an existing mapping.
-            // if (entry.indexes) {
-            //     // 1 - Loop through indexes, updateMapping for each
-            //     for (i = 0; i < entry.indexes.length; i++) {
-            //         let index = entry.indexes[i]
-            //         console.log("ESwork index is:", index)
-            //         let ESwork = await esInterface.updateMapping({indexName: index.index_name, mapping: finalPayload2})
-            //         console.log("ESwork after work is: ", ESwork)
-            //     }
-            // }
-
-        } catch (err) {
-            console.log('SPE - updateMappings: An error was encountered')
-            console.log(err)
-            return err
+        } catch(error) {
+            console.error('SERVICE mappings updateMappings - error:', error)
+            return error
         }
 
     },
 
-
     async attachMapping(indexUUID:string, mappingUUID:string) {
-
         try {
-
             if (indexUUID && mappingUUID) {
-
                 const indexesService = strapi.plugins['esplugin'].services.indexes
-                let index = await indexesService.getIndex(indexUUID)
-
+                let index:RegisteredIndex = await indexesService.getIndex(indexUUID)
                 if (index.mappings) {
                     if (index.mappings.includes(mappingUUID)) {
-                        return "Mapping already attached"
+                        throw "Mapping already attached"
                     }
                 } else {
                     index.mappings = []
-                }
-                  
+                }                  
                 index.mappings.push(mappingUUID)
                 await indexesService.updateIndex(indexUUID, index)
-
-                return "Attachment success"
+                return "Success - Mapping attached to index"
+            } else {
+                throw "Need indexUUID & mappingUUID"
             }
-
-        } catch (err) {
-            console.log('SPE - attachMapping: An error was encountered')
-            console.log(err)
-            return err
+        } catch(error) {
+            console.error('SERVICE mappings attachMapping - error:', error)
+            return error
         }
-
     },
 
     async detachMapping(indexUUID:string, mappingUUID:string) {
-
         try {
-
             const indexesService = strapi.plugins['esplugin'].services.indexes
-            const index = await indexesService.getIndex(indexUUID)
-
-            index.mappings = index.mappings.filter( (x:string) => x !== mappingUUID)
-
-            await indexesService.updateIndex(indexUUID, index)
-            return "Detachment success"
-
-        } catch (err) {
-            console.log('SPE - detachMapping: An error was encountered')
-            console.log(err)
-            return err
+            const index:RegisteredIndex = await indexesService.getIndex(indexUUID)
+            if (index && index.mappings) {
+                index.mappings = index.mappings.filter( (x:string) => x !== mappingUUID)
+                await indexesService.updateIndex(indexUUID, index)
+                return "Success - Mapping detached from index"
+            } else {
+                throw "Fail - No index found"
+            }
+        } catch(error) {
+            console.error('SERVICE mappings detachMapping - error:', error)
+            return error
         }
-
     },
 
     async deleteMapping(mappingUUID:string) {
 
         try {
 
-            // -------------------------------------------
             const helperGetPluginStore = () => {
                 return strapi.store({
                     environment: '',
@@ -338,128 +342,43 @@ export default ({ strapi }) => ({
                     name: 'esplugin'
                 })
             }
-            const pluginStore = helperGetPluginStore()         
+            const pluginStore = helperGetPluginStore()
+
+            // TODO: Change this to get from store cache instead? One less db call. Or is it risky?
             let mappings:Array<Mapping> = await pluginStore.get({ key: 'mappings' })
 
             if (mappings && Array.isArray(mappings)) {
-
-                const foundIndex = mappings.findIndex( (x:Mapping) => x.uuid === mappingUUID)
+                const foundIndex:number = mappings.findIndex( (x:Mapping) => x.uuid === mappingUUID)
                 if (foundIndex >= 0) {
-                    const mapping = mappings[foundIndex]
-
+                    const mapping:Mapping = mappings[foundIndex]
                     const indexesService = strapi.plugins['esplugin'].services.indexes
-                    const indexes = await indexesService.getIndexes()
-
+                    let indexes:Array<RegisteredIndex> = await indexesService.getIndexes()
                     if (indexes && Array.isArray(indexes) && indexes.length > 0) {
-
-                        const indexesWithMatchingMappings = indexes.filter( (x:RegisteredIndex) => x.mappings && mapping.uuid && x.mappings.includes(mapping.uuid))
-
-                        if (indexesWithMatchingMappings) {
-                            for (let i = 0; i < indexesWithMatchingMappings.length; i++) {
-                                await this.detachMapping(indexesWithMatchingMappings[i].uuid, mapping.uuid)
+                        indexes = indexes.filter( (x:RegisteredIndex) => x.mappings && mapping.uuid && x.mappings.includes(mapping.uuid))
+                        if (indexes) {
+                            for (let i = 0; i < indexes.length; i++) {
+                                await this.detachMapping(indexes[i].uuid, mapping.uuid)
                             }
                         }
                     }
-
                     mappings.splice(foundIndex, 1)
                 }
             }
 
+            // TODO: Add check whether mappings actually updated; if not, avoid this transaction
             await pluginStore.set({ key: 'mappings', value: mappings.length ? mappings : null })
-            // -------------------------------------------
-            
-            // DB paradigm
+
+            // --------------------------
+            // EARLY DEV: DB PARADIGM
             //const entry = await strapi.entityService.delete('plugin::esplugin.mapping', mappingUUID)
-            return "Delete mapping success"
+            // --------------------------
+            
+            return "Success - Mapping deleted"
 
-        } catch (err) {
-            console.log('SPE - deleteMapping: An error has encountered', err)
-            console.log(err)
-            return err
+        } catch(error) {
+            console.error('SERVICE mappings deleteMapping - error:', error)
+            return error
         }
-    },
-
-
-
-
-    async getContentTypes() {
-
-        // TODO: Change this to use plugin store instead of db table.
-
-        const contentTypes = strapi.contentTypes
-        
-        // TODO: Use the below array in filteredContentTypes .filter(), instead of having so many "c.includes"
-        // allowedContentTypes = ['api::', 'plugin::users-permissions.user']
-        
-        const filteredContentTypes = Object.keys(contentTypes).filter((c) => c.includes('api::') || c.includes('plugin::users-permissions.user'))
-        const fieldsToExclude = ['createdAt', 'createdBy', 'publishedAt', 'publishedBy', 'updatedAt', 'updatedBy']
-
-        const finalOutput = {}
-
-        for (let r = 0; r < filteredContentTypes.length; r++) {
-
-            finalOutput[filteredContentTypes[r]] = {}
-
-            const rawAttributes = contentTypes[filteredContentTypes[r]].attributes
-
-            // Filter out fields we don't want (fieldsToExclude)
-            const filteredAttributes = Object.keys(rawAttributes).filter((i) => !fieldsToExclude.includes(i))
-
-            for (let k = 0; k < filteredAttributes.length; k++) {
-                const currentAttribute = filteredAttributes[k]
-                let attributeType = "regular"
-                if (typeof rawAttributes[currentAttribute]["type"] !== "undefined" && rawAttributes[currentAttribute]["type"] !== null) {
-
-                    // TODO: Scrutinize strapi field types "component" and "dynamiczone"; I know nothing of them and how we'd want to handle them.
-                    if (rawAttributes[currentAttribute]["type"] === "component") {
-                        attributeType = "component"
-                    } else if (rawAttributes[currentAttribute]["type"] === "dynamiczone") {
-                        attributeType = "dynamiczone"
-                    }
-                }
-
-                finalOutput[filteredContentTypes[r]][filteredAttributes[k]] = {
-                    raw_type: rawAttributes[currentAttribute]["type"],
-                    field_type: attributeType
-                }
-            }                
-        }
-
-        return finalOutput
-
-
-        // LEGACY CODE; still may need this if we need to interact with the plugin store.
-        //const pluginStore = helper.getPluginStore()
-        //const settings = await pluginStore.get({ key: 'configsettings' })
-
-        // if (settings) {
-        //     const objSettings = JSON.parse(settings)
-        //     if (Object.keys(objSettings).includes('contentConfig')) {
-        //         const collections = Object.keys(finalOutput)
-        //         for (let r = 0; r < collections.length; r++) {
-        //             if (Object.keys(objSettings['contentConfig']).includes(collections[r])) {
-        //                 const attribsForCollection = Object.keys(finalOutput[collections[r]])
-        //                 for (let s = 0; s < attribsForCollection.length; s++) {
-        //                     if (!Object.keys(objSettings['contentConfig'][collections[r]]).includes(attribsForCollection[s])) {
-        //                         objSettings['contentConfig'][collections[r]][attribsForCollection[s]] = {index: false, 
-        //                         type: finalOutput[collections[r]][attribsForCollection[s]].type}
-        //                     } else {
-        //                         if (!Object.keys(objSettings['contentConfig'][collections[r]][attribsForCollection[s]]).includes('type')) {
-        //                             objSettings['contentConfig'][collections[r]][attribsForCollection[s]]['type'] = finalOutput[collections[r]][attribsForCollection[s]].type
-        //                         }
-        //                     }
-        //                 }
-        //             } else {
-        //                 objSettings['contentConfig'][collections[r]] = finalOutput[collections[r]]
-        //             }
-        //             return objSettings['contentConfig']
-        //         }
-        //     } else {
-        //         return finalOutput
-        //     }
-        // } else {
-        //     return finalOutput
-        // }
-    },
+    }
 
 })

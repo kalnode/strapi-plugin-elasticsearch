@@ -4,7 +4,11 @@ export default ({ strapi }) => {
     const logIndexingService = strapi.plugins['esplugin'].services.logIndexing
 
     const fetchRecentRunsLog = async (ctx) => {
-        return await logIndexingService.fetchIndexingLogs()
+        try {
+            return await logIndexingService.fetchIndexingLogs()
+        } catch (error) {
+            ctx.throw(500, error)
+        }
     }
 
     return {

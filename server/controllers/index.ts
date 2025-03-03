@@ -8,6 +8,7 @@ import performIndexing from "./perform-indexing"
 import tools from "./tools"
 import indexes from "./indexes"
 import mappings from "./mappings"
+import esInterface from "./es-interface"
 
 export default {
     configureIndexing,
@@ -17,5 +18,6 @@ export default {
     performIndexing,
     tools,
     indexes,
-    mappings
+    mappings,
+    esInterface
 }

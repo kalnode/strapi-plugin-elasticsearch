@@ -1,3 +1,6 @@
+import { RegisteredIndex } from "../../types"
+import { estypes } from '@elastic/elasticsearch'
+
 export default ({ strapi }) => ({
 
     // =============================================
@@ -63,8 +66,74 @@ export default ({ strapi }) => ({
             }
 
         } catch(err) {
-            console.log('SPE - rebuildIndex - searchController: An error was encountered while re-indexing.')
-            console.log(err)
+            console.error('SPE - rebuildIndex - searchController: An error was encountered while re-indexing.')
+            console.error(err)
+            await logIndexingService.recordIndexingFail(err)
+        }
+
+    },
+
+    async rebuildIndex_NEW(indexName:estypes.IndexName) {
+
+        console.log('SPE - rebuildIndex_NEW 111')
+
+        const helper = strapi.plugins['esplugin'].services.helper
+        const esInterface = strapi.plugins['esplugin'].services.esInterface
+        const scheduleIndexingService = strapi.plugins['esplugin'].services.scheduleIndexing
+        const configureIndexingService = strapi.plugins['esplugin'].services.configureIndexing
+        const logIndexingService = strapi.plugins['esplugin'].services.logIndexing
+
+        try {
+
+            const oldIndexName = await helper.getCurrentIndexName()
+            console.log('SPE - rebuildIndex - Previous index name:', oldIndexName)
+
+            // Step 1: Create a new index
+            const newIndexName = await helper.getIncrementedIndexName()
+            await esInterface.createIndex(newIndexName)
+            console.log('SPE - rebuildIndex - Created new index with name:', newIndexName)
+
+            // Step 2: Index things
+            console.log('SPE - rebuildIndex - Starting to index all data into the new index.')
+            const item = await scheduleIndexingService.addFullSiteIndexingTask()
+
+            if (item.id) {
+
+                const cols = await configureIndexingService.getCollectionsConfiguredForIndexing()
+
+                for (let r = 0; r < cols.length; r++) {
+                    await this.indexCollection(cols[r], newIndexName)
+                }
+
+                await scheduleIndexingService.markIndexingTaskComplete(item.id)
+                console.log('SPE - rebuildIndex - Indexing of data into the new index complete.')
+
+                // Step 3: Attach the alias to this new index
+                await esInterface.attachAliasToIndex(newIndexName)
+                console.log('SPE - rebuildIndex - Attaching the newly created index to the alias.')
+
+                // Step 4: Update the search-indexing-name
+                await helper.storeCurrentIndexName(newIndexName)
+                console.log('SPE - rebuildIndex - Storing current index name.')
+
+                // Step 5: Delete the previous index
+                await esInterface.deleteIndex(oldIndexName)
+                console.log('SPE - rebuildIndex - deleted old index name:', oldIndexName)
+
+                await logIndexingService.recordIndexingPass('Request to immediately re-index site-wide content completed successfully.')
+
+                return true
+
+            } else {
+
+                await logIndexingService.recordIndexingFail('An error was encountered while trying site-wide re-indexing of content.')
+                return false
+
+            }
+
+        } catch(err) {
+            console.error('SPE - rebuildIndex - searchController: An error was encountered while re-indexing.')
+            console.error(err)
             await logIndexingService.recordIndexingFail(err)
         }
 
@@ -76,6 +145,8 @@ export default ({ strapi }) => ({
     // =============================================
 
     async indexCollection(collectionName, indexName = null) {
+
+        console.log("indexCollection 111")
 
         const helper = strapi.plugins['esplugin'].services.helper
         const populateAttrib = helper.getPopulateAttribute({collectionName})
@@ -211,91 +282,104 @@ export default ({ strapi }) => ({
 
     async indexPendingData() {
 
+        console.log("indexPendingData 111")
+
         const scheduleIndexingService = strapi.plugins['esplugin'].services.scheduleIndexing
         const configureIndexingService = strapi.plugins['esplugin'].services.configureIndexing
         const logIndexingService = strapi.plugins['esplugin'].services.logIndexing
         const esInterface = strapi.plugins['esplugin'].services.esInterface
         const helper = strapi.plugins['esplugin'].services.helper
-        const recs = await scheduleIndexingService.getItemsPendingToBeIndexed()
-        const fullSiteIndexing = recs.filter(r => r.full_site_indexing === true).length > 0
+        const recordsToIndex = await scheduleIndexingService.getItemsPendingToBeIndexed()
 
-        if (fullSiteIndexing) {
-            await this.rebuildIndex()
-            for (let r = 0; r < recs.length; r++) {
-                await scheduleIndexingService.markIndexingTaskComplete(recs[r].id)
-            }
-        } else {
-            try {
-                for (let r = 0; r < recs.length; r++) {
-                    const col = recs[r].collection_name
+        if (recordsToIndex && recordsToIndex.length > 0) {
+            const fullSiteIndexing = recordsToIndex.filter(r => r.full_site_indexing === true).length > 0
 
-                    if (configureIndexingService.isCollectionConfiguredToBeIndexed(col)) {
+            if (fullSiteIndexing) {
+                await this.rebuildIndex()
+                for (let r = 0; r < recordsToIndex.length; r++) {
+                    await scheduleIndexingService.markIndexingTaskComplete(recordsToIndex[r].id)
+                }
+            } else {
+                try {
+                    for (let r = 0; r < recordsToIndex.length; r++) {
+                        const collection_name = recordsToIndex[r].collection_name
 
-                        // Indexing the individual item
-                        if (recs[r].item_id) {
+                        console.log("indexPendingData recordsToIndex 111 collection_name", collection_name)
 
-                            if (recs[r].indexing_type !== 'remove-from-index') {
-                                const populateAttrib = helper.getPopulateAttribute({collectionName: col})
-                                const item = await strapi.entityService.findOne(col, recs[r].item_id, {
-                                    populate: populateAttrib['populate']
-                                })
+                        if (configureIndexingService.isCollectionConfiguredToBeIndexed(collection_name)) {
 
-                                if (item) {
-                                    
+                            console.log("indexPendingData recordsToIndex 222")
 
-                                    const indexItemId = helper.getIndexItemId({collectionName: col, itemId: item.id})
+                            // Indexing the individual item
+                            if (recordsToIndex[r].item_id) {
 
-                                    // FAILS
-                                    // let dataToIndex = await this.assembleDataToIndex(col, item)
+                                console.log("indexPendingData recordsToIndex 333", recordsToIndex[r].item_id)
 
-                                    // -------------------------
-                                    //WORKS
-                                    const collectionConfig = await configureIndexingService.getCollectionConfig({collectionName: col})
-                                    let dataToIndex = await helper.extractRecordDataToIndex({
-                                        collectionName: col, data: item, collectionConfig
+                                if (recordsToIndex[r].indexing_type !== 'remove-from-index') {
+                                    const populateAttrib = helper.getPopulateAttribute({collectionName: collection_name})
+                                    const item = await strapi.entityService.findOne(collection_name, recordsToIndex[r].item_id, {
+                                        populate: populateAttrib['populate']
                                     })
-                                    dataToIndex['posttype'] = col.split('.').pop()
-                                    dataToIndex = this.processGeoLocation(dataToIndex)
-                                    //console.log("Kal - dataToIndex: ", dataToIndex)
-                                    // -------------------------
 
-                                    await esInterface.indexData({itemId: indexItemId, itemData: dataToIndex})
-                                    await scheduleIndexingService.markIndexingTaskComplete(recs[r].id)
+                                    if (item) {                                        
+
+                                        const indexItemId = helper.getIndexItemId({collectionName: collection_name, itemId: item.id})
+
+                                        // FAILS
+                                        // let dataToIndex = await this.assembleDataToIndex(col, item)
+
+                                        // -------------------------
+                                        //WORKS
+                                        const collectionConfig = await configureIndexingService.getCollectionConfig({collectionName: collection_name})
+                                        let dataToIndex = await helper.extractRecordDataToIndex({
+                                            collectionName: collection_name, data: item, collectionConfig
+                                        })
+                                        dataToIndex['posttype'] = collection_name.split('.').pop()
+                                        dataToIndex = this.processGeoLocation(dataToIndex)
+                                        //console.log("Kal - dataToIndex: ", dataToIndex)
+                                        // -------------------------
+
+                                        await esInterface.indexData({itemId: indexItemId, itemData: dataToIndex})
+                                        await scheduleIndexingService.markIndexingTaskComplete(recordsToIndex[r].id)
+                                    }
+                                } else {
+                                    const indexItemId = helper.getIndexItemId({collectionName: collection_name, itemId: recordsToIndex[r].item_id})
+                                    await esInterface.removeItemFromIndex({itemId: indexItemId})
+                                    await scheduleIndexingService.markIndexingTaskComplete(recordsToIndex[r].id)
                                 }
+
+                            // Index the entire collection
                             } else {
-                                const indexItemId = helper.getIndexItemId({collectionName: col, itemId: recs[r].item_id})
-                                await esInterface.removeItemFromIndex({itemId: indexItemId})
-                                await scheduleIndexingService.markIndexingTaskComplete(recs[r].id)
+
+                                // PENDING: Index an entire collection
+                                await this.indexCollection(collection_name)
+                                await scheduleIndexingService.markIndexingTaskComplete(recordsToIndex[r].id)
                             }
 
-                        // Index the entire collection
                         } else {
-
-                            // PENDING: Index an entire collection
-                            await this.indexCollection(col);
-                            await scheduleIndexingService.markIndexingTaskComplete(recs[r].id)
-
+                            await scheduleIndexingService.markIndexingTaskComplete(recordsToIndex[r].id)
                         }
-
-                    } else {
-                        await scheduleIndexingService.markIndexingTaskComplete(recs[r].id)
                     }
+
+                    await logIndexingService.recordIndexingPass('Indexing of ' + String(recordsToIndex.length) + ' records complete.')
+
+                } catch(err) {
+                    await logIndexingService.recordIndexingFail('Indexing of records failed - ' + ' ' + String(err))
+                    console.log(err)
+                    return false
                 }
-
-                await logIndexingService.recordIndexingPass('Indexing of ' + String(recs.length) + ' records complete.')
-
-            } catch(err) {
-                await logIndexingService.recordIndexingFail('Indexing of records failed - ' + ' ' + String(err))
-                console.log(err)
-                return false
             }
+            return true
+        } else {
+            return false
         }
-        return true
     },
 
 
 
     async indexRecordsNEW(indexUUID) {
+
+        console.log("indexRecordsNEW 111", indexUUID)
 
         // 1. Get index with mappings
 
@@ -369,7 +453,7 @@ export default ({ strapi }) => ({
                 }
             }
         }
-        console.log("FUCK OFF -0-------")
+
         if (entries.length > 0) {
             console.log("entries.length 333", entries.length)
             for (let i = 0; i < entries.length; i++) {
@@ -422,4 +506,41 @@ export default ({ strapi }) => ({
 
         return true
     },
+
+    async indexSingleRecord_NEW(item:any, postType:string, index:RegisteredIndex) {
+
+        console.log("indexSingleRecord_NEW 111, postType", postType)
+        console.log("indexSingleRecord_NEW 333, index.index_name", index.index_name)
+        //console.log("indexSingleRecord_NEW 444, item", item)
+
+        const logIndexingService = strapi.plugins['esplugin'].services.logIndexing
+        const esInterface = strapi.plugins['esplugin'].services.esInterface
+        const helper = strapi.plugins['esplugin'].services.helper
+        const configureIndexingService = strapi.plugins['esplugin'].services.configureIndexing
+
+        // TODO: This outputs "collectionName+'::' + itemId"... why is this needed?
+        const processed_id = helper.getIndexItemId({collectionName: postType, itemId: item.id})
+
+
+        // =========================
+        // FAILS
+        // let process_data = await this.assembleDataToIndex(col, item)
+
+        //WORKS
+        const collectionConfig = await configureIndexingService.getCollectionConfig({ collectionName: postType })
+        let process_data = await helper.extractRecordDataToIndex({
+            collectionName: postType, data: item, collectionConfig
+        })
+        process_data['posttype'] = postType.split('.').pop()
+        process_data = this.processGeoLocation(process_data)
+
+        // =========================
+
+        await esInterface.indexRecordToSpecificIndex_NEW({itemId: processed_id, itemData: process_data}, index)
+        await logIndexingService.recordIndexingPass('Indexing of single record complete.')
+    }
 })
+
+
+
+

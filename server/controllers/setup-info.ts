@@ -12,8 +12,8 @@ export default ({ strapi }) => {
         try {
             const updatedConfig = await helperService.storeToggleSettingInstantIndex() //({config: body})
             return updatedConfig
-        } catch (err) {
-            ctx.throw(500, err)
+        } catch (error) {
+            ctx.throw(500, error)
         }    
     }
     
@@ -21,8 +21,8 @@ export default ({ strapi }) => {
         try {
             const pluginConfig = await helperService.storeSettingInstantIndex()
             return pluginConfig
-        } catch (err) {
-            ctx.throw(500, err)
+        } catch (error) {
+            ctx.throw(500, error)
         } 
     }
 
@@ -31,18 +31,16 @@ export default ({ strapi }) => {
         try {
             const updatedConfig = await helperService.storeSettingToggleInstantIndexing() //({config: body})
             return updatedConfig
-        } catch (err) {
-            ctx.throw(500, err)
+        } catch (error) {
+            ctx.throw(500, error)
         }    
     }
 
     const toggleUseNewPluginParadigm = async (ctx) => {
-        const { body } = ctx.request
         try {
-            const updatedConfig = await helperService.storeSettingToggleUseNewPluginParadigm() //({config: body})
-            return updatedConfig
-        } catch (err) {
-            ctx.throw(500, err)
+            return await helperService.storeSettingToggleUseNewPluginParadigm()
+        } catch (error) {
+            ctx.throw(500, error)
         }    
     }
     
@@ -50,8 +48,8 @@ export default ({ strapi }) => {
         try {
             const pluginConfig = await helperService.storeSettingIndexingEnabled()
             return pluginConfig
-        } catch (err) {
-            ctx.throw(500, err)
+        } catch (error) {
+            ctx.throw(500, error)
         } 
     }
     

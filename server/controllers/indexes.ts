@@ -8,24 +8,24 @@ export default ({ strapi }) => {
     const getIndex = async (ctx) => {
         try {
             return await indexes.getIndex(ctx.params.indexUUID)
-        } catch (err) {
-            ctx.throw(500, err)
+        } catch (error) {
+            ctx.throw(500, error)
         }
     }
 
     const getIndexes = async (ctx) => {
         try {
             return await indexes.getIndexes()
-        } catch (err) {
-            ctx.throw(500, err)
+        } catch (error) {
+            ctx.throw(500, error)
         }
     }
 
     const getESIndexes = async (ctx) => {
          try {
             return await ESindexes.getIndexes()
-        } catch (err) {
-            ctx.throw(500, err)
+        } catch (error) {
+            ctx.throw(500, error)
         }
     }
 
@@ -33,8 +33,8 @@ export default ({ strapi }) => {
         const { body } = ctx.request
         try {
             return await indexes.createIndex(body.data.indexName, body.data.addToExternalIndex)
-        } catch (err) {
-            ctx.throw(500, err)
+        } catch (error) {
+            ctx.throw(500, error)
         }
     }
 
@@ -42,8 +42,16 @@ export default ({ strapi }) => {
         const { body } = ctx.request
         try {
             return await indexes.updateIndex(ctx.params.indexUUID, body.data)
-        } catch (err) {
-            ctx.throw(500, err)
+        } catch (error) {
+            ctx.throw(500, error)
+        }
+    }
+
+    const toggleDynamicMappingOnIndex = async (ctx) => {
+        try {
+            return await indexes.toggleDynamicMappingOnIndex(ctx.params.indexUUID)
+        } catch (error) {
+            ctx.throw(500, error)
         }
     }
 
@@ -51,24 +59,32 @@ export default ({ strapi }) => {
         const { body } = ctx.request
         try {
             return await indexes.deleteIndex(body.data.indexUUID, body.data.deleteIndexInElasticsearch)
-        } catch (err) {
-            ctx.throw(500, err)
+        } catch (error) {
+            ctx.throw(500, error)
         }
     }
 
     const createESindex = async (ctx) => {
         try {
             return await indexes.createESindex(ctx.params.indexUUID)
-        } catch (err) {
-            ctx.throw(500, err)
+        } catch (error) {
+            ctx.throw(500, error)
         }
     }
 
     const getESMapping = async (ctx) => {
         try {
             return await indexes.getESMapping(ctx.params.indexUUID)
-        } catch (err) {
-            ctx.throw(500, err)
+        } catch (error) {
+            ctx.throw(500, error)
+        }
+    }
+
+    const syncIndexWithExternal = async (ctx) => {
+        try {
+            return await indexes.syncIndexWithExternal(ctx.params.indexUUID)
+        } catch (error) {
+            ctx.throw(500, error)
         }
     }
 
@@ -80,6 +96,8 @@ export default ({ strapi }) => {
         deleteIndex,
         updateIndex,
         createESindex,
-        getESMapping
+        getESMapping,
+        toggleDynamicMappingOnIndex,
+        syncIndexWithExternal
     }
 }

@@ -5,25 +5,34 @@ export default ({ strapi }) => {
     const scheduleIndexingService = strapi.plugins['esplugin'].services.scheduleIndexing
 
     const rebuildIndex = async (ctx) => {
-        return await indexerService.rebuildIndex()
+        try {
+            return await indexerService.rebuildIndex()
+        } catch (error) {
+            ctx.throw(500, error)
+        }
     }
 
     const indexCollection = async (ctx) => {
-        if (ctx.params.collectionname)
+        try {
             return await scheduleIndexingService.addCollectionToIndex({collectionUid: ctx.params.collectionname})
-        else
-            return null
+        } catch (error) {
+            ctx.throw(500, error)
+        }
     }
 
     const triggerIndexingTask = async (ctx) => {
-        return await indexerService.indexPendingData()
+        try {
+            return await indexerService.indexPendingData()
+        } catch (error) {
+            ctx.throw(500, error)
+        }
     }
 
     const indexRecordsNEW = async (ctx) => {
         try {
             return await indexerService.indexRecordsNEW(ctx.params.indexUUID)
-        } catch (err) {
-            ctx.throw(500, err)
+        } catch (error) {
+            ctx.throw(500, error)
         }
     }
 

@@ -7,7 +7,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import pluginId from '../../pluginId'
 import { Link, Box, Button, Tooltip, Icon, Typography, ModalLayout, ModalHeader, ModalFooter, ModalBody, ToggleInput, TextButton, TextInput, Flex, Textarea, Switch, SingleSelect, SingleSelectOption, TabGroup, Tabs, Tab, TabPanels, TabPanel, Grid, Field } from '@strapi/design-system'
-import { apiUpdateIndex, apiGetIndex, apiCreateESindex, apiIndexRecords } from '../../utils/apiUrls'
+import { apiUpdateIndex, apiSyncIndex, apiDeleteESIndex, apiGetIndex, apiCreateESindex, apiIndexRecords } from '../../utils/apiUrls'
 import axiosInstance from '../../utils/axiosInstance'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 import { Pencil, Trash, ExclamationMarkCircle, Plus } from '@strapi/icons'
@@ -104,6 +104,27 @@ export const Index = ({ indexUUID }:Props) => {
         }
     }
 
+    const requestDeleteIndexOnES = async () => {
+        if (index) {
+            setIsInProgress(true)
+            await axiosInstance.get(apiDeleteESIndex(index.index_name))
+            // .then( (response) => {
+            //     if (response.data) {
+            //         return response.data
+            //     }
+            // })
+            .catch((error) => {
+                console.log("COMPONENT Index - requestDeleteIndexOnES error", error)
+                showNotification({
+                    type: "warning", message: "An error has encountered: " + error, timeout: 5000
+                })
+            })
+            .finally(() => {
+                setIsInProgress(false)
+            })
+        }
+    }
+
     const requestIndexAllRecords = async () => {
         setIsInProgress(true)
         await axiosInstance.get(apiIndexRecords(indexUUID))
@@ -113,7 +134,7 @@ export const Index = ({ indexUUID }:Props) => {
             }
         })
         .catch((error) => {
-            console.log("COMPONENT Index - error", error)
+            console.log("COMPONENT Index - error:", error)
             showNotification({
                 type: "warning", message: "An error has encountered: " + error, timeout: 5000
             })
@@ -130,40 +151,55 @@ export const Index = ({ indexUUID }:Props) => {
 
             let payload:RegisteredIndex = index
 
-            if (payload) {
+            // TODO: Need comment; why are we doing this?
+            delete payload.mappings
+            // TODO: Legacy from db paradigm; keep for now
+            //delete payload.createdAt
+            //delete payload.updatedAt
 
-                // TODO: Need comment; why are we doing this?
-                delete payload.mappings
-                // TODO: Legacy from db paradigm; keep for now
-                //delete payload.createdAt
-                //delete payload.updatedAt
+            // TODO: Do we need this? Were we only using it for createdAt and updatedAt ?
+            //payload = convertEmptyStringsToNulls(payload)
 
-                // TODO: Do we need this? Were we only using it for createdAt and updatedAt ?
-                //payload = convertEmptyStringsToNulls(payload)
-
-                await axiosInstance.post(apiUpdateIndex(indexUUID), {
-                    data: payload
+            await axiosInstance.post(apiUpdateIndex(indexUUID), {
+                data: payload
+            })
+            .then( async (response) => {
+                if (response.data) {                    
+                    setIndexOriginal(response.data)
+                    setIndex(response.data)
+                }
+            })
+            .catch((error) => {
+                console.log("COMPONENT Index - requestUpdateIndex error:", error)
+                showNotification({
+                    type: "warning", message: "An error has encountered: " + error, timeout: 5000
                 })
-                .then( (response) => {
-                    if (response.data) {
-                        setIndexOriginal(response.data)
-                        setIndex(response.data)
-                    }
-                })
-                .catch((error) => {
-                    console.log("COMPONENT Index - requestUpdateIndex error", error)
-                    showNotification({
-                        type: "warning", message: "An error has encountered: " + error, timeout: 5000
-                    })
-                })
-                .finally(() => {
-                    setIsInProgress(false)
-                })
-                
-            }
+            })
+            .finally(() => {
+                setIsInProgress(false)
+            })
 
         }
     }
+
+    const requestSyncIndex = async () => {
+        setIsInProgress(true)
+
+        await axiosInstance.get(apiSyncIndex(indexUUID))
+        .then( (response) => {
+            console.log("Sync response is: ", response)
+        })
+        .catch((error) => {
+            console.log("COMPONENT Index - requestSyncIndex error:", error)
+            showNotification({
+                type: "warning", message: "An error has encountered: " + error, timeout: 5000
+            })
+        })
+        .finally(() => {
+            setIsInProgress(false)
+        })
+    }
+
 
 
     // ===============================
@@ -192,15 +228,22 @@ export const Index = ({ indexUUID }:Props) => {
 
                         { changesExist && (
                             <>
-                            <Icon as={ExclamationMarkCircle} />
-                            <Typography variant="sigma">Unsaved changes</Typography>
-                            <TextButton onClick={ () => resetForm() }>
-                                Reset
-                            </TextButton>
+                                <Icon as={ExclamationMarkCircle} />
+                                <Typography variant="sigma">Unsaved changes</Typography>
+                                <TextButton onClick={ () => resetForm() }>
+                                    Reset
+                                </TextButton>
                             </>
                         )}
 
-                        { indexUUID && (
+                        <Button onClick={ () => requestUpdateIndex() } variant="secondary" disabled={!changesExist}>
+                            Save
+                        </Button>
+                        <Button onClick={ () => requestSyncIndex() } variant="secondary">
+                            Sync
+                        </Button>
+
+                        {/* { indexUUID && (
                             <Flex gap={4}>
                                 <Switch
                                 onClick={ () => setIndex({...index, active: index.active ? false : true }) }
@@ -211,12 +254,11 @@ export const Index = ({ indexUUID }:Props) => {
                                 />
                                 <Tooltip label="On = Triggers activated for specified post types">
                                     <button aria-label="delete">
-                                        <Icon as={Information} color="neutral300" variant="primary" />
-                                        {/* aria-hidden focusable={false} */}
+                                        <Icon as={Information} color="neutral300" variant="primary" aria-hidden focusable={false} />
                                     </button>
                                 </Tooltip>
                             </Flex>
-                        )}
+                        )} */}
 
                     </Flex>
                 </Flex>
@@ -250,10 +292,12 @@ export const Index = ({ indexUUID }:Props) => {
                     </Flex>
 
                     {/* // ON/OFF SWITCH IN-PAGE */}
-                    {/* <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
+                    <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
                         <Box>
                             <Flex direction="column" alignItems="start" gap={4}>
-                                <Typography variant="delta">State</Typography>
+                                <Typography variant="beta">Operational State</Typography>
+                                <Typography variant="delta">On = Indexeding of Strapi records will occur, if the records' type matches a type activated in the index mappings.</Typography>
+                                <Typography variant="delta">Off = No indexing will occur when Strapi records are updated.</Typography>
                                 <Switch
                                     onClick={ () => setIndex({...index, active: index.active ? false : true }) }
                                     selected={ index.active ? true : null }
@@ -263,14 +307,29 @@ export const Index = ({ indexUUID }:Props) => {
                                 />
                             </Flex>
                         </Box>
-                    </Box> */}
+                    </Box>
 
                     <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
-                        <Link to={`/plugins/${pluginId}/indexes/${index.uuid}/mappings`}>
-                            <Button variant="primary" style={{ color:'white' }}>
-                                Mappings
-                            </Button>
-                        </Link>
+                        <Flex>
+                            <Box>
+                                <Flex direction="column" alignItems="start" gap={4}>
+                                    <Typography variant="beta">Dynamic Mapping</Typography>
+                                    <Typography variant="delta">Allow new mapping fields to be automatically added to the index when indexing a document.</Typography>
+                                    <Switch
+                                        onClick={ () => setIndex({...index, mapping_dynamic: index.mapping_dynamic ? false : true }) }
+                                        selected={ index.mapping_dynamic ? true : null }
+                                        visibleLabels
+                                        onLabel = 'Enabled'
+                                        offLabel = 'Disabled'
+                                    />
+                                </Flex>
+                            </Box>
+                            <Link to={`/plugins/${pluginId}/indexes/${index.uuid}/mappings`}>
+                                <Button variant="primary" style={{ color:'white' }}>
+                                    Mappings
+                                </Button>
+                            </Link>
+                        </Flex>                        
                     </Box>
 
                     <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
@@ -278,7 +337,7 @@ export const Index = ({ indexUUID }:Props) => {
                             Create index on ES instance with current mappings
                         </Button>
 
-                        <Button variant="secondary" onClick={ () => console.log("Delete index") }>
+                        <Button variant="secondary" onClick={ () => requestDeleteIndexOnES() }>
                             Delete index
                         </Button>
 

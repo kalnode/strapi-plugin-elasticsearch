@@ -5,6 +5,7 @@ export const apiGetSystemInfo = `/${pluginId}/setup-info`
 export const apiGetContentConfig = `/${pluginId}/content-config`
 
 // SETTINGS
+export const apiGetPluginSettings = `/${pluginId}/plugin-settings`
 export const apiInstantIndexing = `/${pluginId}/instant-indexing`
 export const apiToggleInstantIndexing = `/${pluginId}/toggle-instant-indexing`
 export const apiIndexingEnabled = `/${pluginId}/indexing-enabled`
@@ -28,6 +29,11 @@ export const apiDeleteIndex = `/${pluginId}/delete-index`
 export const apiUpdateIndex = (indexUUID:string) => `/${pluginId}/update-index/${indexUUID}`
 export const apiCreateESindex = (indexUUID:string) => `/${pluginId}/create-es-index/${indexUUID}`
 export const apiIndexRecords = (indexUUID:string) => `/${pluginId}/index-records/${indexUUID}`
+
+// ES
+export const apiDeleteESIndex = (indexName:string) => `/${pluginId}/delete-es-index/${indexName}`
+export const apiSyncIndex = (indexUUID:string) => `/${pluginId}/sync-index/${indexUUID}`
+
 
 // MAPPING
 export const apiGetMapping = (mappingUUID:string) => `/${pluginId}/get-mapping/${mappingUUID}`
