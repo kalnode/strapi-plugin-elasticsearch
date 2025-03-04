@@ -8,7 +8,7 @@ import { useEffect, useState, useMemo } from 'react'
 import pluginId from '../../pluginId'
 import { Switch, Icon, TextButton, AccordionGroup, AccordionToggle, AccordionContent, Accordion, Box, Flex, Button, ModalLayout, ModalHeader, Link, ModalFooter, ModalBody, Table, Thead, Tbody, Tr, Td, Th, TFooter, EmptyStateLayout, Checkbox, TabGroup, Tabs, Tab, TabPanels, TabPanel, TextInput, IconButton, CaretDown, Typography } from '@strapi/design-system'
 import { Pencil, Trash, Relation, SingleType, ChevronRight, ChevronDown, ExclamationMarkCircle, Plus } from '@strapi/icons'
-import { apiGetMappings, apiUpdateMappings, apiDeleteMapping, apiDetachMappingFromIndex, apiGetESMapping, apiGetContentTypes, apiCreateMapping } from '../../utils/apiUrls'
+import { apiGetMappings, apiUpdateMappings, apiSyncIndex, apiDeleteMapping, apiDetachMappingFromIndex, apiGetESMapping, apiGetContentTypes, apiCreateMapping } from '../../utils/apiUrls'
 import { requestAPI_DeleteMapping } from '../../utils/api/mappings'
 import axiosInstance  from '../../utils/axiosInstance'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
@@ -18,6 +18,7 @@ import { JSONTree } from 'react-json-tree'
 import { Mappings } from '../Mappings'
 import { MappingFields } from '../MappingFields'
 import { Mapping, StrapiContentTypes } from "../../../../types"
+import { convertMappingsToESMappings } from "../../../../scripts"
 
 // TODO: Integrate ES types
 import { estypes } from '@elastic/elasticsearch'
@@ -101,6 +102,7 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
             axiosInstance.get(apiGetESMapping(indexUUID))
             .then((response) => {
                 // TODO: Work on a better return from the server. For now doing this sillyness.
+                console.log("Get ES mapping is: ", response.data)
                 if (response && response.data && (Array.isArray(response.data) || response.data.constructor.name === "Object")) {
                     setESMapping(response.data)
                 } else {
@@ -193,29 +195,64 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
         }
     }
 
+    const requestSyncIndex = async () => {
+
+        if (indexUUID) {
+            setIsInProgress(true)
+            await axiosInstance.get(apiSyncIndex(indexUUID))
+            .then( (response) => {
+                console.log("Sync response is: ", response)
+            })
+            .catch((error) => {
+                console.log("COMPONENT Index - requestSyncIndex error:", error)
+                showNotification({
+                    type: "warning", message: "An error has encountered: " + error, timeout: 5000
+                })
+            })
+            .finally(() => {
+                setIsInProgress(false)
+                requestGetESMapping()
+            })
+        }
+    }
+
     // ===============================
     // RAW MAPPINGS
     // ===============================
 
     const rawMappingsCombined = useMemo(() => {
-        if (mappings) {
-            let work = mappings.map( (x:Mapping) =>
-                x.fields
-                // {
-                //     return {
-                //         [x.post_type]: x.fields
-                //     }
-                // }
-            )
+        if (mappings && mappings.length > 0) {
 
-            // const work = Object.entries(mappings).reduce((acc,[key,val])=>(
-            //     acc[key] = Array.prototype.concat.apply([], Object.values(val)), acc
-            // ), {})
+            const sortedMappings = mappings.sort((a, b) => b.post_type.toLowerCase().localeCompare(a.post_type.toLowerCase()))
+            return convertMappingsToESMappings(sortedMappings)
+            // let work = mappings.map( (x:Mapping) =>
+            //     x.fields
+            //     // {
+            //     //     return {
+            //     //         [x.post_type]: x.fields
+            //     //     }
+            //     // }
+            // )
 
-            return work
+            // // const work = Object.entries(mappings).reduce((acc,[key,val])=>(
+            // //     acc[key] = Array.prototype.concat.apply([], Object.values(val)), acc
+            // // ), {})
+
+            // return work
         }
         return null
     }, [mappings])
+
+    const rawMappingsES = useMemo(() => {
+        if (ESMapping) {
+
+            const rawESmapping = (Object.values(ESMapping)[0] as unknown as any).mappings.properties
+            //const sortedMappings = mappings.sort((a, b) => a.post_type.toLowerCase().localeCompare(b.post_type.toLowerCase()))
+            let sortedESMapping = Object.fromEntries(Object.entries(rawESmapping).sort(([a],[b]) => a.localeCompare(b)))
+            //const sortedMappings = (Object.values(ESMapping)[0] as unknown as any).mappings.properties.sort((a, b) => a.post_type.toLowerCase().localeCompare(b.post_type.toLowerCase()))
+            return sortedESMapping
+        }
+    }, [ESMapping])
 
 
     // ===============================
@@ -379,6 +416,9 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
                     <Button onClick={ () => requestUpdateMappings() } variant="secondary" disabled={!changesExist}>
                         Save
                     </Button>
+                    <Button onClick={ () => requestSyncIndex() } variant="secondary">
+                        Sync
+                    </Button>
 
                 </Flex>
             </Flex>
@@ -394,17 +434,19 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
 
                 <TabGroup initialSelectedTabIndex={0} height="100%" style={{ overflow: 'hidden' }}>
 
-                    {/* -------- TABS ACTUAL ------------------*/}
+                    {/* -------- TABS NAV ------------------*/}
                     <Tabs>
                         <Tab id="mappings">Mappings</Tab>
                         {/* <Tab id="raw">Raw Output</Tab> */}
                         <Tab id="raw_es">Compare to ES</Tab>
                     </Tabs>
 
-
+                    {/* -------- TAB PANELS ------------------*/}
                     <TabPanels height="100%" style={{height: '100%'}}>
 
+                        {/* ============================================== */}
                         {/* -------- TAB PANEL: MAPPINGS ------------------*/}
+                        {/* ============================================== */}
 
                         <TabPanel id="mappings">
 
@@ -526,7 +568,9 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
 
                         </TabPanel>
 
-                        {/* -------- TAB PANEL: RAW OUTPUT ------------------*/}
+                        {/* ============================================== */}
+                        {/* -------- TAB PANEL: RAW OUTPUT --------------- */}
+                        {/* ============================================== */}
                         {/* <TabPanel id="raw">
                             { mappings && Array.isArray(mappings) && mappings.length > 0 && (
                                 <Box padding={4} background="neutral0" shadow="filterShadow">
@@ -551,62 +595,62 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
                         )} */}
 
 
-                        {/* -------- TAB: ES MAPPING ------------------*/}
+                        {/* ============================================== */}
+                        {/* -------- TAB PANEL: ES MAPPING --------------- */}
+                        {/* ============================================== */}
                         <Box height="100%">
-                        <TabPanel id="raw_es" height="100%" style={{height: '100%'}}>
+                            <TabPanel id="raw_es" height="100%" style={{height: '100%'}}>
+                                <Flex width="100%" height="100%" gap={4} alignItems="start" style={{ overflow: 'hidden' }} background="neutral0" shadow="filterShadow">
 
-                            <Flex height="100%" gap={4} alignItems="start">
-
-                                <Box height="100%" flex="1" padding={4} background="neutral0" shadow="filterShadow">
-                                    <Typography variant="beta">Preview raw output</Typography>
-                                    <Box marginTop={2}>
-                                        <Typography variant="delta">
-                                            This is what the raw mapping output will look like when applied to an index Elasticsearch instance.
-                                            Keep in mind, in that ES index, you may see other fields if additional mappings have been applied to it.
-                                        </Typography>
+                                    <Box height="100%" flex="1" padding={4} background="neutral0" shadow="filterShadow">
+                                        <Typography variant="beta">Local raw mappings</Typography>
+                                        {/* <Box marginTop={2}>
+                                            <Typography variant="delta">
+                                                This is what the raw mapping output will look like when applied to an index Elasticsearch instance.
+                                                Keep in mind, in that ES index, you may see other fields if additional mappings have been applied to it.
+                                            </Typography>
+                                        </Box> */}
+                                        { mappings && Array.isArray(mappings) && mappings.length > 0 && (
+                                            <Box marginTop={4} background="secondary100">
+                                                { !rawMappingsCombined && (
+                                                    <>(Please apply some mappings)</>
+                                                )}
+                                                {/* { rawMappingsCombined && (
+                                                    <pre>{ JSON.stringify(rawMappingsCombined, null, 8) }</pre>
+                                                )} */}
+                                                <JSONTree data={ rawMappingsCombined } theme={JSONTreeTheme} invertTheme={true} />
+                                            </Box>
+                                        )}
                                     </Box>
-                                    { mappings && Array.isArray(mappings) && mappings.length > 0 && (
+
+                                    <Box height="100%" flex="1" padding={4} background="neutral0" shadow="filterShadow">
+                                        <Typography variant="beta">External ES mappings</Typography>
+                                        {/* <Box marginTop={2}>
+                                            <Typography variant="delta">
+                                                The current mapping as it exists on the ES index.
+                                            </Typography>
+                                        </Box> */}
                                         <Box marginTop={4} background="secondary100">
-                                            { !rawMappingsCombined && (
-                                                <>(Please apply some mappings)</>
+                                            { !ESMapping && (
+                                                <>(No mapping found on ES index)</>
                                             )}
-                                            {/* { rawMappingsCombined && (
-                                                <pre>{ JSON.stringify(rawMappingsCombined, null, 8) }</pre>
-                                            )} */}
+                                            { ESMapping && (
 
-                                            <JSONTree data={ rawMappingsCombined } theme={JSONTreeTheme} invertTheme={true} />
+                                                // KEEP FOR NOW; old way showing static <pre>
+                                                // <pre>{ JSON.stringify(Object.values(ESMapping)[0].mappings.properties, null, 8) }</pre>
+
+                                                // TODO: In below data= prop we're inline casting type as any to satisfy TS warnings. Is there a better way? How to do this properly?
+                                                // TODO: Below we simply want the 'light' default theme but so far we have to pass a full theme object to allow for invertTheme to work. It's stupid and messy.
+                                                <JSONTree data={ rawMappingsES } theme={JSONTreeTheme} invertTheme={true} />
+                                            )}
                                         </Box>
-                                    )}
-                                </Box>
-
-                                <Box height="100%" flex="1" padding={4} background="neutral0" shadow="filterShadow">
-                                    <Typography variant="beta">Mapping currently applied to ES Index</Typography>
-                                    <Box marginTop={2}>
-                                        <Typography variant="delta">
-                                            The current mapping as it exists on the ES index.
-                                        </Typography>
                                     </Box>
-                                    <Box marginTop={4} background="secondary100">
-                                        { !ESMapping && (
-                                            <>(No mapping found on ES index)</>
-                                        )}
-                                        { ESMapping && (
-
-                                            // KEEP FOR NOW; old way showing static <pre>
-                                            // <pre>{ JSON.stringify(Object.values(ESMapping)[0].mappings.properties, null, 8) }</pre>
-
-                                            // TODO: In below data= prop we're inline casting type as any to satisfy TS warnings. Is there a better way? How to do this properly?
-                                            // TODO: Below we simply want the 'light' default theme but so far we have to pass a full theme object to allow for invertTheme to work. It's stupid and messy.
-                                            <JSONTree data={ (Object.values(ESMapping)[0] as unknown as any).mappings.properties } theme={JSONTreeTheme} invertTheme={true} />
-                                        )}
-                                    </Box>
-                                </Box>
 
 
-                            </Flex>
+                                </Flex>
 
-                            
-                        </TabPanel>
+                                
+                            </TabPanel>
                         </Box>
 
                     </TabPanels>

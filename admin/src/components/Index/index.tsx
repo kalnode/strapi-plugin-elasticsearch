@@ -25,6 +25,7 @@ export const Index = ({ indexUUID }:Props) => {
     // ===============================
 
     const [isInProgress, setIsInProgress] = useState<boolean>(false)
+    const [disableControls, setDisableControls] = useState<boolean>(false)
     const [indexOriginal,setIndexOriginal] = useState<RegisteredIndex>()
     const [index,setIndex] = useState<RegisteredIndex>()
     const [showNameAliasModal, setShowNameAliasModal] = useState<boolean>(false)
@@ -52,6 +53,10 @@ export const Index = ({ indexUUID }:Props) => {
             requestGetIndex()
         }
     }, [])
+
+    useEffect(() => {
+        setDisableControls(isInProgress)
+    }, [isInProgress])
 
     // ===============================
     // API REQUESTS
@@ -318,6 +323,7 @@ export const Index = ({ indexUUID }:Props) => {
                                     <Switch
                                         onClick={ () => setIndex({...index, mapping_dynamic: index.mapping_dynamic ? false : true }) }
                                         selected={ index.mapping_dynamic ? true : null }
+                                        disabled={disableControls}
                                         visibleLabels
                                         onLabel = 'Enabled'
                                         offLabel = 'Disabled'
@@ -325,7 +331,7 @@ export const Index = ({ indexUUID }:Props) => {
                                 </Flex>
                             </Box>
                             <Link to={`/plugins/${pluginId}/indexes/${index.uuid}/mappings`}>
-                                <Button variant="primary" style={{ color:'white' }}>
+                                <Button variant="primary" disabled={disableControls} style={{ color:'white' }}>
                                     Mappings
                                 </Button>
                             </Link>
@@ -333,19 +339,19 @@ export const Index = ({ indexUUID }:Props) => {
                     </Box>
 
                     <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
-                        <Button variant="secondary" onClick={ () => requestCreateIndexOnES() }>
+                        <Button variant="secondary" disabled={disableControls} onClick={ () => requestCreateIndexOnES() }>
                             Create index on ES instance with current mappings
                         </Button>
 
-                        <Button variant="secondary" onClick={ () => requestDeleteIndexOnES() }>
+                        <Button variant="secondary" disabled={disableControls} onClick={ () => requestDeleteIndexOnES() }>
                             Delete index
                         </Button>
 
-                        <Button variant="secondary" onClick={ () => console.log("Re-build index") }>
+                        <Button variant="secondary" disabled={disableControls} onClick={ () => console.log("Re-build index") }>
                             Re-build index
                         </Button>
 
-                        <Button variant="secondary" onClick={ () => requestIndexAllRecords() }>
+                        <Button variant="secondary" disabled={disableControls} onClick={ () => requestIndexAllRecords() }>
                             Index all records
                         </Button>
 

@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import { RegisteredIndex, Mapping, MappingField } from "../../types"
+import { removeUndefineds, convertMappingsToESMappings } from "../../scripts"
 
 export default ({ strapi }) => ({
 
@@ -199,7 +200,6 @@ export default ({ strapi }) => ({
             if (foundIndexNumber >= 0 && indexes[foundIndexNumber] != payload) {
                 indexes[foundIndexNumber] = { ...indexes[foundIndexNumber], ...payload }
                 await pluginStore.set({ key: 'indexes', value: indexes })
-                //await this.syncIndexWithExternal(indexUUID)
                 return indexes[foundIndexNumber]
             } else {
                 throw "No index found"
@@ -282,24 +282,17 @@ export default ({ strapi }) => ({
                 //const externalMappings = await esInterface.getMapping(index.index_name)
                 let mappingFieldsFinal:MappingField = {}
 
-
                 if (mappings) {
                     mappings = mappings.filter( (x:Mapping) => x.uuid && index.mappings && index.mappings.includes(x.uuid))
                     
-                    for (let i = 0; i < mappings.length; i++) {
-                        const mapping:Mapping = mappings[i]
-                        for (const [key, value] of Object.entries(mapping.fields!)) {
-                            mappingFieldsFinal[key] = {
-                                type: value.type ? value.type : 'text',
-                                index: value.index
-                            }
-                        }
-                    }
+                    mappingFieldsFinal = convertMappingsToESMappings(mappings)
                 }
                 
                 // REMOVED UNDEFINED PROPERTIES
-                // TODO: This is not recursive; look into it.
-                Object.keys(mappingFieldsFinal).forEach(key => mappingFieldsFinal[key] === undefined && delete mappingFieldsFinal[key])
+                // TODO: This step seems silly; perhaps we can simply not create the item if it has no type.
+                // TODO: This is not recursive for nested properties; look into it.
+                removeUndefineds(mappingFieldsFinal)
+                //Object.keys(mappingFieldsFinal).forEach(key => mappingFieldsFinal[key] === undefined && delete mappingFieldsFinal[key])
 
                 // "properties": {
                 //     "pin": {
@@ -349,7 +342,7 @@ export default ({ strapi }) => ({
                     payload.properties = mappingFieldsFinal
                 }
 
-                esInterface.updateMapping({indexName: index.index_name, mapping: payload})
+                await esInterface.updateMapping({indexName: index.index_name, mapping: payload})
 
                 return "Success"
 

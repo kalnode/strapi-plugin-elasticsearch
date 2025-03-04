@@ -1,5 +1,3 @@
-'use strict'
-
 export default ({ strapi }) => {
     const helperService = strapi.plugins['esplugin'].services.helper
 

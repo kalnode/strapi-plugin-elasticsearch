@@ -1,5 +1,3 @@
-'use strict'
-
 import qs from "qs"
 
 export default ({ strapi }) => ({

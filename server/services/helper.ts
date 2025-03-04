@@ -346,7 +346,7 @@ export default ({ strapi }) => ({
                         if (Object.keys(subfieldjson).includes('subfields')) {
                             collectionConfig[collectionName][attr]['subfields'] = subfieldjson['subfields']
                         }
-                    } catch(err) {
+                    } catch(error) {
                         continue
                     }
                 }

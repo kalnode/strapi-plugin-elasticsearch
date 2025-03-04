@@ -65,10 +65,10 @@ export default ({ strapi }) => ({
 
             }
 
-        } catch(err) {
+        } catch(error) {
             console.error('SPE - rebuildIndex - searchController: An error was encountered while re-indexing.')
-            console.error(err)
-            await logIndexingService.recordIndexingFail(err)
+            console.error(error)
+            await logIndexingService.recordIndexingFail(error)
         }
 
     },
@@ -131,10 +131,10 @@ export default ({ strapi }) => ({
 
             }
 
-        } catch(err) {
+        } catch(error) {
             console.error('SPE - rebuildIndex - searchController: An error was encountered while re-indexing.')
-            console.error(err)
-            await logIndexingService.recordIndexingFail(err)
+            console.error(error)
+            await logIndexingService.recordIndexingFail(error)
         }
 
     },
@@ -363,9 +363,9 @@ export default ({ strapi }) => ({
 
                     await logIndexingService.recordIndexingPass('Indexing of ' + String(recordsToIndex.length) + ' records complete.')
 
-                } catch(err) {
-                    await logIndexingService.recordIndexingFail('Indexing of records failed - ' + ' ' + String(err))
-                    console.log(err)
+                } catch(error) {
+                    await logIndexingService.recordIndexingFail('Indexing of records failed - ' + ' ' + String(error))
+                    console.log(error)
                     return false
                 }
             }

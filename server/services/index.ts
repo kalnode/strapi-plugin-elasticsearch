@@ -1,5 +1,3 @@
-'use strict'
-
 import indexes from './indexes'
 import mappings from './mappings'
 import performIndexing from './perform-indexing'

@@ -5,9 +5,9 @@ function transformMarkdownToText(md) {
     try {
         text = markdownToTxt(md)
     }
-    catch(err) {
+    catch(error) {
         console.error('ES transformMarkdownToText: Error while transforming markdown to text.')
-        console.error(err)
+        console.error(error)
     }
     return text
 }

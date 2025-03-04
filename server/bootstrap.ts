@@ -1,5 +1,3 @@
-'use strict'
-
 import { Mapping, RegisteredIndex } from "../types"
 //import MappingService from "../server/services/mappings"
 

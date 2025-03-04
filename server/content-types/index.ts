@@ -1,5 +1,3 @@
-'use strict'
-
 import task from "./tasks"
 import indexingLog from "./indexing-logs"
 import registeredIndex from "./registered-indexes"

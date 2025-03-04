@@ -1,10 +1,5 @@
-'use strict'
-
-import { estypes } from '@elastic/elasticsearch'
-
 export default ({ strapi }) => {
     
-    const indexes = strapi.plugins['esplugin'].services.indexes
     const ESindexes = strapi.plugins['esplugin'].services.esInterface
 
     const deleteIndex = async (ctx) => {

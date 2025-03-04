@@ -67,8 +67,7 @@ export default ({ strapi }) => ({
             } else {
                 console.error('SERVICE es-interface initializeSearchEngine error:', error)
             }
-            // TODO: Why throw here? What about return?
-            throw(error)
+            return error
         }
 
     },
@@ -196,7 +195,7 @@ export default ({ strapi }) => ({
             return "Success"
         } catch(error) {
             console.error('SERVICES es-interface toggleDynamicMapping error:', error)
-            throw error
+            return error
         }
     },
 
@@ -302,7 +301,7 @@ export default ({ strapi }) => ({
             return "Success"
         } catch(error) {
             console.error('SERVICES es-interface indexRecordToSpecificIndex error:', error)
-            throw error
+            return error
         }
     },
 
@@ -318,7 +317,7 @@ export default ({ strapi }) => ({
             return "Success"
         } catch(error) {
             console.error('SERVICES es-interface indexRecordToSpecificIndex_NEW error:', error)
-            throw error
+            return error
         }
     },
 
@@ -331,7 +330,7 @@ export default ({ strapi }) => ({
             return await this.indexRecordToSpecificIndex({ itemId, itemData }, pluginConfig.indexAliasName)
         } catch(error) {
             console.error('SERVICES es-interface indexData error:', error)
-            throw error
+            return error
         }
     },
 
@@ -351,7 +350,7 @@ export default ({ strapi }) => ({
             return 'Delete success'
         } catch(error) {
             console.error('SERVICES es-interface removeItemFromIndex error:', error)
-            throw error
+            return error
         }
     },
 
@@ -366,7 +365,7 @@ export default ({ strapi }) => ({
     //         await client.indices.refresh({ index: iName })
             // } catch(error) {
             //     console.error('SERVICES es-interface updateDataToSpecificIndex error:', error)
-            //     throw error
+            //     return error
             // }
     // },
 
@@ -410,7 +409,7 @@ export default ({ strapi }) => ({
             return result
         } catch(error) {
             console.error('SERVICES es-interface searchData error:', error)
-            throw error
+            return error
         }
     }
 

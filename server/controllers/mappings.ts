@@ -1,5 +1,3 @@
-'use strict'
-
 export default ({ strapi }) => {
     
     const mappings = strapi.plugins['esplugin'].services.mappings

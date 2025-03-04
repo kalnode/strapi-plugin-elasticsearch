@@ -1,5 +1,3 @@
-'use strict'
-
 export default ({ strapi }) => {
     
     const indexes = strapi.plugins['esplugin'].services.indexes

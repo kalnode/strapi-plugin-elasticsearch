@@ -1,5 +1,3 @@
-'use strict'
-
 export default ({ strapi }) => {
     const indexerService = strapi.plugins['esplugin'].services.performIndexing
     const scheduleIndexingService = strapi.plugins['esplugin'].services.scheduleIndexing

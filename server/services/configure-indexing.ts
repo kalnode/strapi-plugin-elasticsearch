@@ -1,5 +1,3 @@
-'use strict'
-
 // TODO: Ideally we load this, but this seems to break type generation in parent project Strapi root
 //const helper = strapi.plugins['esplugin'].services.helper
 
