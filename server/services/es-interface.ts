@@ -156,7 +156,7 @@ export default ({ strapi }) => ({
                 await esInterface.createIndex(indexName)
             }
             await client.indices.putAlias({ index: indexName, name: aliasName })
-            return "Success"
+            return "Success - Alias attached to index"
 
         } catch(error) {
             if (error.message.includes('ECONNREFUSED')) {
@@ -192,7 +192,7 @@ export default ({ strapi }) => ({
                 this.updateMapping({indexName, mapping})
                 console.log("toggleDynamicMapping 777")
             }
-            return "Success"
+            return "Success - Dynamic mapping toggled on ES"
         } catch(error) {
             console.error('SERVICES es-interface toggleDynamicMapping error:', error)
             return error
@@ -298,7 +298,7 @@ export default ({ strapi }) => ({
                 document: itemData
             })
             let workRefresh = await client.indices.refresh({ index: indexName })
-            return "Success"
+            return "Success - record indexed on ES"
         } catch(error) {
             console.error('SERVICES es-interface indexRecordToSpecificIndex error:', error)
             return error
@@ -314,7 +314,7 @@ export default ({ strapi }) => ({
                 document: itemData
             })
             let workRefresh = await client.indices.refresh({ index: index.index_name })
-            return "Success"
+            return "Success - record indexed on ES"
         } catch(error) {
             console.error('SERVICES es-interface indexRecordToSpecificIndex_NEW error:', error)
             return error

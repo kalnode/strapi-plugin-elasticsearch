@@ -344,7 +344,7 @@ export default ({ strapi }) => ({
 
                 await esInterface.updateMapping({indexName: index.index_name, mapping: payload})
 
-                return "Success"
+                return "Success - Index syncd with external ES"
 
                 
             }
@@ -397,7 +397,7 @@ export default ({ strapi }) => ({
             // const entry = await strapi.entityService.delete('plugin::esplugin.registered-index', indexUUID)
             // --------------------------
 
-            return "Success"
+            return "Success - Index deleted"
 
         } catch(error) {
             console.error('SERVICE indexes deleteIndex - error:', error)
@@ -417,7 +417,7 @@ export default ({ strapi }) => ({
             if (index) {
                 await esInterface.createIndex(index.index_name)
                 await this.syncIndexWithExternal(indexUUID)
-                return "Success create index and mapping"
+                return "Success - Created ES index"
             } else {
                 throw "No index found"
             }

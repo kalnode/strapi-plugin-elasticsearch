@@ -245,12 +245,17 @@ export const TriggersMappings = ({ indexUUID }:Props) => {
 
     const rawMappingsES = useMemo(() => {
         if (ESMapping) {
-
+            console.log("rawESmapping is 111", ESMapping)
             const rawESmapping = (Object.values(ESMapping)[0] as unknown as any).mappings.properties
-            //const sortedMappings = mappings.sort((a, b) => a.post_type.toLowerCase().localeCompare(b.post_type.toLowerCase()))
-            let sortedESMapping = Object.fromEntries(Object.entries(rawESmapping).sort(([a],[b]) => a.localeCompare(b)))
-            //const sortedMappings = (Object.values(ESMapping)[0] as unknown as any).mappings.properties.sort((a, b) => a.post_type.toLowerCase().localeCompare(b.post_type.toLowerCase()))
-            return sortedESMapping
+
+            if (rawESmapping) {
+                console.log("rawESmapping is 222", rawESmapping)
+                //const sortedMappings = mappings.sort((a, b) => a.post_type.toLowerCase().localeCompare(b.post_type.toLowerCase()))
+                let sortedESMapping = Object.fromEntries(Object.entries(rawESmapping).sort(([a],[b]) => b.localeCompare(a)))
+                //const sortedMappings = (Object.values(ESMapping)[0] as unknown as any).mappings.properties.sort((a, b) => a.post_type.toLowerCase().localeCompare(b.post_type.toLowerCase()))
+                console.log("rawESmapping is 333", sortedESMapping)
+                return sortedESMapping
+            }
         }
     }, [ESMapping])
 

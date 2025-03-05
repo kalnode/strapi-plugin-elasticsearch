@@ -258,7 +258,7 @@ export default ({ strapi }) => ({
 
             await pluginStore.set({ key: 'mappings', value: existingMappings })
 
-            return "Success"
+            return "Success - mappings updated"
 
             // --------------------------
             // SYNC INDEXS WITH ES, if mapping applies
