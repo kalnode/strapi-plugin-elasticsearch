@@ -142,43 +142,43 @@ export default ({ strapi }) => ({
 
     },
 
-    async toggleDynamicMappingOnIndex(indexUUID:string) {
+    // async toggleDynamicMappingOnIndex(indexUUID:string) {
 
-        try {
+    //     try {
 
-            const helperGetPluginStore = () => {
-                return strapi.store({
-                    environment: '',
-                    type: 'plugin',
-                    name: 'esplugin'
-                })
-            }
-            const pluginStore = helperGetPluginStore()
-            // TODO: QUERY PLUGIN CACHE instead; one less db call. Or is it risky?
-            let indexes:Array<RegisteredIndex> = await pluginStore.get({ key: 'indexes' })
-            console.log("Hello toggleDynamicMappingOnIndex oh 111????")
-            if (indexes && Array.isArray(indexes)) {
-                let foundIndexNumber:number = indexes.findIndex( (x:RegisteredIndex) => x.uuid === indexUUID)
-                console.log("Hello toggleDynamicMappingOnIndex oh 222????")
-                if (foundIndexNumber >= 0) {
-                    indexes[foundIndexNumber].mapping_dynamic = !indexes[foundIndexNumber].mapping_dynamic
-                    await pluginStore.set({ key: 'indexes', value: indexes })
-                    console.log("Hello toggleDynamicMappingOnIndex oh 333????")
-                    console.log("Hello toggleDynamicMappingOnIndex oh 444????")
-                    const esInterface = strapi.plugins['esplugin'].services.esInterface
-                    await esInterface.toggleDynamicMapping(indexes[foundIndexNumber].index_name)
-                    console.log("Hello toggleDynamicMappingOnIndex oh 555????")
-                }
-            } else {
-                throw "No index found"
-            }
+    //         const helperGetPluginStore = () => {
+    //             return strapi.store({
+    //                 environment: '',
+    //                 type: 'plugin',
+    //                 name: 'esplugin'
+    //             })
+    //         }
+    //         const pluginStore = helperGetPluginStore()
+    //         // TODO: QUERY PLUGIN CACHE instead; one less db call. Or is it risky?
+    //         let indexes:Array<RegisteredIndex> = await pluginStore.get({ key: 'indexes' })
+    //         console.log("Hello toggleDynamicMappingOnIndex oh 111????")
+    //         if (indexes && Array.isArray(indexes)) {
+    //             let foundIndexNumber:number = indexes.findIndex( (x:RegisteredIndex) => x.uuid === indexUUID)
+    //             console.log("Hello toggleDynamicMappingOnIndex oh 222????")
+    //             if (foundIndexNumber >= 0) {
+    //                 indexes[foundIndexNumber].mapping_type = !indexes[foundIndexNumber].mapping_type
+    //                 await pluginStore.set({ key: 'indexes', value: indexes })
+    //                 console.log("Hello toggleDynamicMappingOnIndex oh 333????")
+    //                 console.log("Hello toggleDynamicMappingOnIndex oh 444????")
+    //                 const esInterface = strapi.plugins['esplugin'].services.esInterface
+    //                 await esInterface.toggleDynamicMapping(indexes[foundIndexNumber].index_name)
+    //                 console.log("Hello toggleDynamicMappingOnIndex oh 555????")
+    //             }
+    //         } else {
+    //             throw "No index found"
+    //         }
 
-        } catch(error) {
-            console.error('SERVICE indexes toggleDynamicMappingOnIndex - error:', error)
-            return error
-        }
+    //     } catch(error) {
+    //         console.error('SERVICE indexes toggleDynamicMappingOnIndex - error:', error)
+    //         return error
+    //     }
 
-    },
+    // },
     
 
     async updateIndex(indexUUID:string, payload:RegisteredIndex) {
@@ -332,17 +332,18 @@ export default ({ strapi }) => ({
                 //   }
 
                 // TODO: Apply ES typing here
-                let payload:any = {}
+                let finalPayload:any = {}
 
-                if (index.mapping_dynamic != undefined) {
-                    payload.dynamic = index.mapping_dynamic
+                // TODO: Add enum typing here?
+                if (index.mapping_type != undefined) {
+                    finalPayload.dynamic = index.mapping_type // ? 'true' : 'runtime'
                 }
 
                 if (mappingFieldsFinal && Object.keys(mappingFieldsFinal).length > 0) {
-                    payload.properties = mappingFieldsFinal
+                    finalPayload.properties = mappingFieldsFinal
                 }
 
-                await esInterface.updateMapping({indexName: index.index_name, mapping: payload})
+                await esInterface.updateMapping({indexName: index.index_name, mapping: finalPayload})
 
                 return "Success - Index syncd with external ES"
 

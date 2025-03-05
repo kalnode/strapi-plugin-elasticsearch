@@ -6,12 +6,12 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import pluginId from '../../pluginId'
-import { Link, Box, Button, Tooltip, Icon, Typography, ModalLayout, ModalHeader, ModalFooter, ModalBody, ToggleInput, TextButton, TextInput, Flex, Textarea, Switch, SingleSelect, SingleSelectOption, TabGroup, Tabs, Tab, TabPanels, TabPanel, Grid, Field } from '@strapi/design-system'
+import { Link, Box, Button, Tooltip, Icon, Typography, RadioGroup, Radio, ModalLayout, ModalHeader, ModalFooter, ModalBody, ToggleInput, TextButton, TextInput, Flex, Textarea, Switch, SingleSelect, SingleSelectOption, TabGroup, Tabs, Tab, TabPanels, TabPanel, Grid, Field } from '@strapi/design-system'
 import { apiUpdateIndex, apiSyncIndex, apiDeleteESIndex, apiGetIndex, apiCreateESindex, apiIndexRecords } from '../../utils/apiUrls'
 import axiosInstance from '../../utils/axiosInstance'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 import { Pencil, Trash, ExclamationMarkCircle, Plus } from '@strapi/icons'
-import { RegisteredIndex } from "../../../../types"
+import { RegisteredIndex, mappingTypes } from "../../../../types"
 import { Information } from '@strapi/icons'
 
 type Props = {
@@ -29,6 +29,7 @@ export const Index = ({ indexUUID }:Props) => {
     const [indexOriginal,setIndexOriginal] = useState<RegisteredIndex>()
     const [index,setIndex] = useState<RegisteredIndex>()
     const [showNameAliasModal, setShowNameAliasModal] = useState<boolean>(false)
+
     const showNotification = useNotification()
 
     const changesExist = useMemo(() => JSON.stringify(index) != JSON.stringify(indexOriginal), [index])
@@ -69,6 +70,7 @@ export const Index = ({ indexUUID }:Props) => {
             let work = await axiosInstance.get(apiGetIndex(indexUUID))
             .then( (response) => {
                 if (response.data) {
+                    console.log("Index dsata is: ", response.data)
                     return response.data
                 }
             })
@@ -315,27 +317,65 @@ export const Index = ({ indexUUID }:Props) => {
                     </Box>
 
                     <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
-                        <Flex>
+                        <Box>
                             <Box>
-                                <Flex direction="column" alignItems="start" gap={4}>
+                                {/* <Flex direction="column" alignItems="start" gap={4}>
+                                    <Typography variant="beta">Mode</Typography>
                                     <Typography variant="beta">Dynamic Mapping</Typography>
                                     <Typography variant="delta">Allow new mapping fields to be automatically added to the index when indexing a document.</Typography>
                                     <Switch
-                                        onClick={ () => setIndex({...index, mapping_dynamic: index.mapping_dynamic ? false : true }) }
-                                        selected={ index.mapping_dynamic ? true : null }
+                                        onClick={ () => setIndex({...index, mapping_type: index.mapping_type ? false : true }) }
+                                        selected={ index.mapping_type ? true : null }
                                         disabled={disableControls}
                                         visibleLabels
                                         onLabel = 'Enabled'
                                         offLabel = 'Disabled'
                                     />
+                                </Flex> */}
+                                <Flex direction="column" alignItems="start" gap={4}>
+                                    <Typography variant="beta">Mapping Mode</Typography>
+                                    <RadioGroup
+                                        value={ index.mapping_type }
+                                        // TODO: Scrutinize this inline typing; basically we want the radio value to only be one of mappingTypes.
+                                        onChange={ (e:Event) => setIndex({...index, mapping_type: (e.target as HTMLInputElement).value as unknown as typeof mappingTypes }) }
+                                    >
+                                        <Flex direction="column" alignItems="start" gap={4}>
+                                            <Radio value="false" alignItems="start">
+                                                <Flex direction="column" alignItems="start">
+                                                    <Typography variant="delta">False (default)</Typography>
+                                                    <Typography>New fields, introduced by indexed documents, will not get mappings in ES</Typography>
+                                                </Flex>
+                                            </Radio>
+                                            <Radio value="true">
+                                                <Flex direction="column" alignItems="start">
+                                                    <Typography variant="delta">True</Typography>
+                                                    <Typography>New fields, introduced by indexed documents, <strong>will</strong> get mappings in ES</Typography>
+                                                </Flex>
+                                            </Radio>
+                                            <Radio value="runtime">
+                                                <Flex direction="column" alignItems="start">
+                                                    <Typography variant="delta">Runtime</Typography>
+                                                    <Typography>Field mappings determined at query-time</Typography>
+                                                </Flex>
+                                            </Radio>
+                                            <Radio value="strict">
+                                                <Flex direction="column" alignItems="start">
+                                                    <Typography variant="delta">Strict</Typography>
+                                                    <Typography>Document indexing will not occur if new fields are introduced</Typography>
+                                                </Flex>
+                                            </Radio>
+                                        </Flex>
+                                    </RadioGroup>
+
                                 </Flex>
+
                             </Box>
                             <Link to={`/plugins/${pluginId}/indexes/${index.uuid}/mappings`}>
                                 <Button variant="primary" disabled={disableControls} style={{ color:'white' }}>
-                                    Mappings
+                                    Manage Mappings
                                 </Button>
                             </Link>
-                        </Flex>                        
+                        </Box>                        
                     </Box>
 
                     <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">

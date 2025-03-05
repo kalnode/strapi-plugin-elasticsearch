@@ -30,6 +30,19 @@ export interface StrapiContentTypes {
     }
 }
 
+export const mappingTypes = {
+    false: 'false',
+    true: 'true',
+    runtime: 'runtime',
+    strict: 'strict'
+} as const
+
+export enum mappingTypes2 {
+    false = 'false',
+    true = 'true',
+    runtime = 'runtime',
+    strict = 'strict'
+}
 
 export type RegisteredIndex = {
     uuid: string
@@ -37,7 +50,7 @@ export type RegisteredIndex = {
     index_alias?: string
     active?: boolean
     mappings?: Array<string> // Array of uuid's for mappings
-    mapping_dynamic?: boolean
+    mapping_type?: typeof mappingTypes
 }
 
 

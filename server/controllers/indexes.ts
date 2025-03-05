@@ -45,13 +45,13 @@ export default ({ strapi }) => {
         }
     }
 
-    const toggleDynamicMappingOnIndex = async (ctx) => {
-        try {
-            return await indexes.toggleDynamicMappingOnIndex(ctx.params.indexUUID)
-        } catch (error) {
-            ctx.throw(500, error)
-        }
-    }
+    // const toggleDynamicMappingOnIndex = async (ctx) => {
+    //     try {
+    //         return await indexes.toggleDynamicMappingOnIndex(ctx.params.indexUUID)
+    //     } catch (error) {
+    //         ctx.throw(500, error)
+    //     }
+    // }
 
     const deleteIndex = async (ctx) => {
         const { body } = ctx.request
@@ -95,7 +95,7 @@ export default ({ strapi }) => {
         updateIndex,
         createESindex,
         getESMapping,
-        toggleDynamicMappingOnIndex,
+        //toggleDynamicMappingOnIndex,
         syncIndexWithExternal
     }
 }
