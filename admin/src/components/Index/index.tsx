@@ -7,11 +7,11 @@
 import { useEffect, useState, useMemo } from 'react'
 import pluginId from '../../pluginId'
 import { Link, Box, Button, Tooltip, Icon, Typography, RadioGroup, Radio, ModalLayout, ModalHeader, ModalFooter, ModalBody, ToggleInput, TextButton, TextInput, Flex, Textarea, Switch, SingleSelect, SingleSelectOption, TabGroup, Tabs, Tab, TabPanels, TabPanel, Grid, Field } from '@strapi/design-system'
-import { apiUpdateIndex, apiSyncIndex, apiDeleteESIndex, apiGetIndex, apiCreateESindex, apiIndexRecords } from '../../utils/apiUrls'
+import { apiUpdateIndex, apiSyncIndex, apiGetMappings, apiDeleteESIndex, apiGetIndex, apiCreateESindex, apiIndexRecords } from '../../utils/apiUrls'
 import axiosInstance from '../../utils/axiosInstance'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 import { Pencil, Trash, ExclamationMarkCircle, Plus } from '@strapi/icons'
-import { RegisteredIndex, mappingTypes } from "../../../../types"
+import { RegisteredIndex, Mapping, mappingTypes } from "../../../../types"
 import { Information } from '@strapi/icons'
 
 type Props = {
@@ -28,7 +28,9 @@ export const Index = ({ indexUUID }:Props) => {
     const [disableControls, setDisableControls] = useState<boolean>(false)
     const [indexOriginal,setIndexOriginal] = useState<RegisteredIndex>()
     const [index,setIndex] = useState<RegisteredIndex>()
+    const [mappings, setMappings] = useState<Array<Mapping>>()
     const [showNameAliasModal, setShowNameAliasModal] = useState<boolean>(false)
+    const [showMappingDynamicModal, setShowMappingDynamicModal] = useState<boolean>(false)
 
     const showNotification = useNotification()
 
@@ -52,6 +54,7 @@ export const Index = ({ indexUUID }:Props) => {
     useEffect(() => {
         if (indexUUID) {
             requestGetIndex()
+            requestGetMappings()
         }
     }, [])
 
@@ -189,6 +192,29 @@ export const Index = ({ indexUUID }:Props) => {
         }
     }
 
+    const requestGetMappings = async () => {
+        setIsInProgress(true)
+        await axiosInstance.get(apiGetMappings(indexUUID))
+        .then((response) => {
+            if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+                console.log("Mappings is: ", response.data)
+                setMappings(response.data)
+            } else {
+                setMappings([])
+            }
+        })
+        .catch((error) => {
+            console.log("COMPONENT Index - requestGetMappings error", error)
+            showNotification({
+                type: "warning", message: "An error has encountered: " + error, timeout: 5000
+            })
+        })
+        .finally(() => {
+            setIsInProgress(false)
+        })
+    }
+
+
     const requestSyncIndex = async () => {
         setIsInProgress(true)
 
@@ -316,66 +342,35 @@ export const Index = ({ indexUUID }:Props) => {
                         </Box>
                     </Box>
 
-                    <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
-                        <Box>
-                            <Box>
-                                {/* <Flex direction="column" alignItems="start" gap={4}>
-                                    <Typography variant="beta">Mode</Typography>
-                                    <Typography variant="beta">Dynamic Mapping</Typography>
-                                    <Typography variant="delta">Allow new mapping fields to be automatically added to the index when indexing a document.</Typography>
-                                    <Switch
-                                        onClick={ () => setIndex({...index, mapping_type: index.mapping_type ? false : true }) }
-                                        selected={ index.mapping_type ? true : null }
-                                        disabled={disableControls}
-                                        visibleLabels
-                                        onLabel = 'Enabled'
-                                        offLabel = 'Disabled'
-                                    />
-                                </Flex> */}
-                                <Flex direction="column" alignItems="start" gap={4}>
-                                    <Typography variant="beta">Mapping Mode</Typography>
-                                    <RadioGroup
-                                        value={ index.mapping_type }
-                                        // TODO: Scrutinize this inline typing; basically we want the radio value to only be one of mappingTypes.
-                                        onChange={ (e:Event) => setIndex({...index, mapping_type: (e.target as HTMLInputElement).value as unknown as typeof mappingTypes }) }
-                                    >
-                                        <Flex direction="column" alignItems="start" gap={4}>
-                                            <Radio value="false" alignItems="start">
-                                                <Flex direction="column" alignItems="start">
-                                                    <Typography variant="delta">False (default)</Typography>
-                                                    <Typography>New fields, introduced by indexed documents, will not get mappings in ES</Typography>
-                                                </Flex>
-                                            </Radio>
-                                            <Radio value="true">
-                                                <Flex direction="column" alignItems="start">
-                                                    <Typography variant="delta">True</Typography>
-                                                    <Typography>New fields, introduced by indexed documents, <strong>will</strong> get mappings in ES</Typography>
-                                                </Flex>
-                                            </Radio>
-                                            <Radio value="runtime">
-                                                <Flex direction="column" alignItems="start">
-                                                    <Typography variant="delta">Runtime</Typography>
-                                                    <Typography>Field mappings determined at query-time</Typography>
-                                                </Flex>
-                                            </Radio>
-                                            <Radio value="strict">
-                                                <Flex direction="column" alignItems="start">
-                                                    <Typography variant="delta">Strict</Typography>
-                                                    <Typography>Document indexing will not occur if new fields are introduced</Typography>
-                                                </Flex>
-                                            </Radio>
-                                        </Flex>
-                                    </RadioGroup>
+                    <Box width="100%">
+                        <Flex height="100%" direction="column" alignItems="start" gap={4}>
 
+                            <Flex gap={4} width="100%" height="100%">
+                                
+                                <Flex flex="1" direction="column" alignItems="start" justifyContent="space-between" gap={4} background="neutral0" padding={8} shadow="filterShadow">
+                                    <Typography variant="beta">Dynamic Mapping</Typography>
+                                    <Typography variant="delta">Index-level setting</Typography>
+                                    Current: { index.mapping_type }
+
+                                    <Button variant="primary" 
+                                    onClick={ () => setShowMappingDynamicModal(true) }
+                                    style={{ color:'white' }}>
+                                        Change Dynamic Mapping
+                                    </Button>
+                                </Flex>
+                                <Flex flex="1" direction="column" alignItems="start" justifyContent="space-between" gap={4} height="100%" background="neutral0" padding={8} shadow="filterShadow">
+                                    <Typography variant="beta">Mappings</Typography>
+                                    Current active (with active fields): { mappings && mappings.filter( (x:Mapping) => !x.disabled && (x.fields && Object.keys(x.fields).length > 0) ).length }
+                                    <Link to={`/plugins/${pluginId}/indexes/${index.uuid}/mappings`}>
+                                        <Button variant="primary" disabled={disableControls} style={{ color:'white' }}>
+                                            Manage Mappings
+                                        </Button>
+                                    </Link>
                                 </Flex>
 
-                            </Box>
-                            <Link to={`/plugins/${pluginId}/indexes/${index.uuid}/mappings`}>
-                                <Button variant="primary" disabled={disableControls} style={{ color:'white' }}>
-                                    Manage Mappings
-                                </Button>
-                            </Link>
-                        </Box>                        
+                            </Flex>
+
+                        </Flex>                        
                     </Box>
 
                     <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
@@ -435,6 +430,95 @@ export const Index = ({ indexUUID }:Props) => {
                                 Cancel
                             </Button>
                             </Flex>
+                        </>}
+                    />
+                </ModalLayout>
+            ) }
+
+
+            {/* ---------------------------------------------- */}
+            {/* MODAL: CHANGE INDEX NAME/ALIAS */}
+            {/* ---------------------------------------------- */}
+            { showMappingDynamicModal && index && indexOriginal && (
+                <ModalLayout onClose={() => {setIndex({...index, mapping_type: indexOriginal.mapping_type as unknown as typeof mappingTypes });setShowMappingDynamicModal(false)} }>
+                    {/* labelledBy="title" */}
+                    <ModalHeader>
+                        <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
+                            Dynamic Mapping
+                        </Typography>
+                    </ModalHeader>
+                    <ModalBody>
+                        { index && indexOriginal && (
+                            <>
+                                {/* <Flex direction="column" alignItems="start" gap={4}>
+                                    <Typography variant="beta">Mode</Typography>
+                                    <Typography variant="beta">Dynamic Mapping</Typography>
+                                    <Typography variant="delta">Allow new mapping fields to be automatically added to the index when indexing a document.</Typography>
+                                    <Switch
+                                        onClick={ () => setIndex({...index, mapping_type: index.mapping_type ? false : true }) }
+                                        selected={ index.mapping_type ? true : null }
+                                        disabled={disableControls}
+                                        visibleLabels
+                                        onLabel = 'Enabled'
+                                        offLabel = 'Disabled'
+                                    />
+                                </Flex> */}
+                                <Flex direction="column" alignItems="start" gap={4}>
+                                    <Typography variant="beta">Mapping Mode</Typography>
+                                    <RadioGroup
+                                        value={ index.mapping_type }
+                                        // TODO: Scrutinize this inline typing; basically we want the radio value to only be one of mappingTypes.
+                                        onChange={ (e:Event) => setIndex({...index, mapping_type: (e.target as HTMLInputElement).value as unknown as typeof mappingTypes }) }
+                                    >
+                                        <Flex direction="column" alignItems="start" gap={4}>
+                                            <Radio value="false" alignItems="start">
+                                                <Flex direction="column" alignItems="start">
+                                                    <Typography variant="delta">False (ES default)</Typography>
+                                                    <Typography>New fields <i>will not</i> be automatically added to mappings in the ES index (when indexing a document)</Typography>
+                                                    (Use cases)
+                                                </Flex>
+                                            </Radio>
+                                            <Radio value="true">
+                                                <Flex direction="column" alignItems="start">
+                                                    <Typography variant="delta">True</Typography>
+                                                    <Typography>New fields <i>will</i> be automatically added to mappings in the ES index (when indexing a document)</Typography>
+                                                    (Use cases)
+                                                </Flex>
+                                            </Radio>
+                                            <Radio value="runtime">
+                                                <Flex direction="column" alignItems="start">
+                                                    <Typography variant="delta">Runtime</Typography>
+                                                    <Typography>Mappings will be dynamically determined by ES at query-time</Typography>
+                                                    (Use cases)
+                                                </Flex>
+                                            </Radio>
+                                            <Radio value="strict">
+                                                <Flex direction="column" alignItems="start">
+                                                    <Typography variant="delta">Strict</Typography>
+                                                    <Typography>Document indexing will not occur if new fields are introduced</Typography>
+                                                    (Use cases)
+                                                </Flex>
+                                            </Radio>
+                                        </Flex>
+                                    </RadioGroup>
+                                </Flex>
+                            </>                    
+                        )}
+                    </ModalBody>
+                    <ModalFooter
+                        startActions={<>
+                            { index && indexOriginal && (
+                                <Button onClick={ () => {setIndex({...index, mapping_type: indexOriginal.mapping_type as unknown as typeof mappingTypes });setShowMappingDynamicModal(false)} } variant="secondary">
+                                    Cancel
+                                </Button>
+                            )}
+                        </>}
+                        endActions={<>
+                            { index && indexOriginal && (
+                                <Button onClick={ () => setShowMappingDynamicModal(false) } variant="primary">
+                                    Ok
+                                </Button>
+                            )}
                         </>}
                     />
                 </ModalLayout>
