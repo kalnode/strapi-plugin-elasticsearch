@@ -27,8 +27,8 @@ export default ({ strapi }) => ({
             await client.ping()
             return true
         } catch(error) {
-            console.error('SERVICES es-interface checkESConnection error:', error)
-            return error
+            console.error('SERVICE es-interface checkESConnection error:', error)
+            throw error
         }
     },
 
@@ -67,7 +67,7 @@ export default ({ strapi }) => ({
             } else {
                 console.error('SERVICE es-interface initializeSearchEngine error:', error)
             }
-            return error
+            throw error
         }
 
     },
@@ -89,8 +89,8 @@ export default ({ strapi }) => ({
                throw "No indexes found"
            }
        } catch(error) {
-           console.error('SERVICES es-interface getIndexes error:', error)
-           return error
+           console.error('SERVICE es-interface getIndexes error:', error)
+           throw error
        }
    },
 
@@ -110,8 +110,7 @@ export default ({ strapi }) => ({
                 throw "ES index already exists"
             }
         } catch(error) {
-            console.error('SERVICES es-interface createIndex error:', error)
-            return error
+            throw error
         }
     },
 
@@ -120,15 +119,16 @@ export default ({ strapi }) => ({
             this.checkClient()
             const exists = await client.indices.exists({ index: indexName })
             if (exists) {
-                console.log("ES deleteIndex 222", indexName)
                 await client.indices.delete({
                     index: indexName
                 })
-                return 'ES deleteIndex success'
+                return "ES successfully deleted"
+            } else {
+                throw "ES index not found; no deletion occurred"
             }
         } catch(error) {
-            console.error('SERVICES es-interface deleteIndex error:', error)
-            return error
+            console.error('SERVICE es-interface deleteIndex error:', error)
+            throw error
         }
     },
 
@@ -160,11 +160,11 @@ export default ({ strapi }) => ({
 
         } catch(error) {
             if (error.message.includes('ECONNREFUSED')) {
-                console.error('SERVICES es-interface attachAliasToIndex error: Connection to ElasticSearch refused error:', error)
+                console.error('SERVICE es-interface attachAliasToIndex error: Connection to ElasticSearch refused error:', error)
             } else {
-                console.error('SERVICES es-interface attachAliasToIndex error:', error)
+                console.error('SERVICE es-interface attachAliasToIndex error:', error)
             }
-            return error
+            throw error
         }
     },
 
@@ -194,8 +194,8 @@ export default ({ strapi }) => ({
             }
             return "Success - Dynamic mapping toggled on ES"
         } catch(error) {
-            console.error('SERVICES es-interface toggleDynamicMapping error:', error)
-            return error
+            console.error('SERVICE es-interface toggleDynamicMapping error:', error)
+            throw error
         }
     },
 
@@ -218,8 +218,8 @@ export default ({ strapi }) => ({
             }
 
         } catch(error) {
-            console.error('SERVICES es-interface getMapping error:', error)
-            return error
+            console.error('SERVICE es-interface getMapping error:', error)
+            throw error
         }
 
     },
@@ -231,54 +231,23 @@ export default ({ strapi }) => ({
         // However you cannot change the mapping itself for an existing index.
 
         try {
-            this.checkClient()
 
-            console.log("es updateMapping 111 mapping:", mapping)
-            let mappingsFinal = {
-                ...mapping,
+            if (mapping && Object.keys(mapping).length > 0) {
+                this.checkClient()
 
-                // TODO: Old stuff, remove, but make sure the equivalent from UI works.
-                // "properties": {
-                //     "pin": {
-                //         type: "geo_point",
-                //         index: true
-                //     },
-                //     "Participants": {
-                //         type: "nested"
-                //     },
-                //     "Organizers": {
-                //         type: "nested"
-                //     },
-                //     "child_terms": {
-                //         type: "nested"
-                //     },                            
-                //     // "uuid": {
-                //     //     type: "string",
-                //     //     index: "not_analyzed"
-                //     // }
-                // }
+                //console.log("es updateMapping 111 mapping:", mapping)
+                //let mappingsFinal = { ...mapping }
+
+                //console.log("es updateMapping 222 mappingsFinal:", mappingsFinal)
+
+                await client.indices.putMapping({ index: indexName, ...mapping })
+                return "Success - ES mapping updated"
+            } else {
+                throw 'No mapping supplied'
             }
-
-            console.log("es updateMapping 222 mappingsFinal:", mappingsFinal)
-
-            await client.indices.putMapping({
-                index: indexName,
-                ...mappingsFinal
-
-
-                //dynamic: true,
-                //properties: {
-
-
-                    //dynamic: true
-
-                   
-                //},
-            })
-            return "Success - ES update mapping"
         } catch(error) {
-            console.error('SERVICES es-interface updateMapping error:', error)
-            return error
+            console.error('SERVICE es-interface updateMapping error:', error)
+            throw error
         }
     },
 
@@ -300,8 +269,8 @@ export default ({ strapi }) => ({
             let workRefresh = await client.indices.refresh({ index: indexName })
             return "Success - record indexed on ES"
         } catch(error) {
-            console.error('SERVICES es-interface indexRecordToSpecificIndex error:', error)
-            return error
+            console.error('SERVICE es-interface indexRecordToSpecificIndex error:', error)
+            throw error
         }
     },
 
@@ -316,8 +285,8 @@ export default ({ strapi }) => ({
             let workRefresh = await client.indices.refresh({ index: index.index_name })
             return "Success - record indexed on ES"
         } catch(error) {
-            console.error('SERVICES es-interface indexRecordToSpecificIndex_NEW error:', error)
-            return error
+            console.error('SERVICE es-interface indexRecordToSpecificIndex_NEW error:', error)
+            throw error
         }
     },
 
@@ -329,8 +298,8 @@ export default ({ strapi }) => ({
             const pluginConfig = await strapi.config.get('plugin.esplugin')
             return await this.indexRecordToSpecificIndex({ itemId, itemData }, pluginConfig.indexAliasName)
         } catch(error) {
-            console.error('SERVICES es-interface indexData error:', error)
-            return error
+            console.error('SERVICE es-interface indexData error:', error)
+            throw error
         }
     },
 
@@ -349,8 +318,8 @@ export default ({ strapi }) => ({
             let work2 = await client.indices.refresh({ index: idxName })
             return 'Delete success'
         } catch(error) {
-            console.error('SERVICES es-interface removeItemFromIndex error:', error)
-            return error
+            console.error('SERVICE es-interface removeItemFromIndex error:', error)
+            throw error
         }
     },
 
@@ -364,8 +333,8 @@ export default ({ strapi }) => ({
     //         })
     //         await client.indices.refresh({ index: iName })
             // } catch(error) {
-            //     console.error('SERVICES es-interface updateDataToSpecificIndex error:', error)
-            //     return error
+            //     console.error('SERVICE es-interface updateDataToSpecificIndex error:', error)
+            //     throw error
             // }
     // },
 
@@ -408,8 +377,8 @@ export default ({ strapi }) => ({
             
             return result
         } catch(error) {
-            console.error('SERVICES es-interface searchData error:', error)
-            return error
+            console.error('SERVICE es-interface searchData error:', error)
+            throw error
         }
     }
 

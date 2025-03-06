@@ -26,7 +26,7 @@ export const requestUpdateIndex = async (indexUUID:string, payload:Partial<Regis
     })
     .catch((error) => {
         console.log("requestUpdateIndex ERROR: ", error)
-        return error
+        throw error
     })
 
 }

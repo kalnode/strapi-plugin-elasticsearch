@@ -6,8 +6,8 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import pluginId from '../../pluginId'
-import { Link, Box, Button, Tooltip, Icon, Typography, RadioGroup, Radio, ModalLayout, ModalHeader, ModalFooter, ModalBody, ToggleInput, TextButton, TextInput, Flex, Textarea, Switch, SingleSelect, SingleSelectOption, TabGroup, Tabs, Tab, TabPanels, TabPanel, Grid, Field } from '@strapi/design-system'
-import { apiUpdateIndex, apiSyncIndex, apiGetMappings, apiDeleteESIndex, apiGetIndex, apiCreateESindex, apiIndexRecords } from '../../utils/apiUrls'
+import { Checkbox, Link, Box, Button, Tooltip, Icon, Typography, RadioGroup, Radio, ModalLayout, ModalHeader, ModalFooter, ModalBody, ToggleInput, TextButton, TextInput, Flex, Textarea, Switch, SingleSelect, SingleSelectOption, TabGroup, Tabs, Tab, TabPanels, TabPanel, Grid, Field } from '@strapi/design-system'
+import { apiUpdateIndex, apiCloneESIndex, apiRebuildESIndex, apiSyncIndex, apiGetMappings, apiDeleteESIndex, apiGetIndex, apiCreateESindex, apiIndexRecords } from '../../utils/apiUrls'
 import axiosInstance from '../../utils/axiosInstance'
 import { LoadingIndicatorPage, useNotification } from '@strapi/helper-plugin'
 import { Pencil, Trash, ExclamationMarkCircle, Plus } from '@strapi/icons'
@@ -25,31 +25,32 @@ export const Index = ({ indexUUID }:Props) => {
     // ===============================
 
     const [isInProgress, setIsInProgress] = useState<boolean>(false)
-    const [disableControls, setDisableControls] = useState<boolean>(false)
-    const [indexOriginal,setIndexOriginal] = useState<RegisteredIndex>()
-    const [index,setIndex] = useState<RegisteredIndex>()
-    const [mappings, setMappings] = useState<Array<Mapping>>()
-    const [showNameAliasModal, setShowNameAliasModal] = useState<boolean>(false)
-    const [showMappingDynamicModal, setShowMappingDynamicModal] = useState<boolean>(false)
-
+    const [disableFormControls, setDisableFormControls] = useState<boolean>(false)
     const showNotification = useNotification()
 
-    const changesExist = useMemo(() => JSON.stringify(index) != JSON.stringify(indexOriginal), [index])
+    const [mappings, setMappings] = useState<Array<Mapping>>()
+    const [indexOriginal,setIndexOriginal] = useState<RegisteredIndex>()
+    const [index,setIndex] = useState<RegisteredIndex>()
+    const indexChangesExist = useMemo(() => JSON.stringify(index) != JSON.stringify(indexOriginal), [index])
+    
+    const [showModal_changeNameAlias, setShowModal_changeNameAlias] = useState<boolean>(false)
+    const [showModal_dynamicMapping, setShowModal_dynamicMapping] = useState<boolean>(false)
+    const [showModal_deleteIndex, setShowModal_deleteIndex] = useState<boolean>(false)
+    const [showModal_cloneIndex, setShowModal_cloneIndex] = useState<boolean>(false)
+    const [showModal_rebuildIndex, setShowModal_rebuildIndex] = useState<boolean>(false)
+
+    const [newIndexName, setNewIndexName] = useState<string>('')
+    const [useNamePrepend, setUseNamePrepend] = useState<boolean>(false)
+    const namePrepend = "strapi_es_plugin_"
 
     const resetForm = () => {
         setIndex(indexOriginal)
     }
 
-    // TODO: Early work; keep for now.
-    // const convertEmptyStringsToNulls = (object:object) => {
-    //     return Object.keys(object).reduce((acc, key) => {
-    //         // TODO: Type this correctly... or... maybe we don't need this func at all, so blow it away.
-    //         // @ts-ignore
-    //         acc[key] = object[key] === '' ? null : object[key]
-    //         return acc
-    //     }, {})
-    // }
-
+    const resetNewName = () => {
+        setNewIndexName('')
+        setUseNamePrepend(false)
+    }
 
     useEffect(() => {
         if (indexUUID) {
@@ -59,54 +60,49 @@ export const Index = ({ indexUUID }:Props) => {
     }, [])
 
     useEffect(() => {
-        setDisableControls(isInProgress)
+        setDisableFormControls(isInProgress)
     }, [isInProgress])
 
     // ===============================
     // API REQUESTS
     // ===============================
 
-    const requestGetIndex = async () => {
+    const handleAPIerror = (context:string, payload:any, inhibitUINotification?: boolean) => {
+        const message = payload.response.data.error.message ? payload.response.data.error.message : payload
+        console.log(`COMPONENT Index - ${context} error: ${message}`)
+        showNotification({
+            type: "warning", message: "Error: " + message, timeout: 5000
+        })
+    }
 
+    const requestGetIndex = async () => {
         if (indexUUID) {
             setIsInProgress(true)
-            let work = await axiosInstance.get(apiGetIndex(indexUUID))
+            await axiosInstance.get(apiGetIndex(indexUUID))
             .then( (response) => {
-                if (response.data) {
-                    console.log("Index dsata is: ", response.data)
-                    return response.data
-                }
+                setIndexOriginal(response.data)
+                setIndex(response.data)
             })
             .catch((error) => {
-                console.log("COMPONENT Index - requestGetIndex error", error)
-                showNotification({
-                    type: "warning", message: "An error has encountered: " + error, timeout: 5000
-                })
+                handleAPIerror('requestGetIndex', error)
             })
             .finally(() => {
                 setIsInProgress(false)
             })
-
-            setIndexOriginal(work)
-            setIndex(work)
         }
-
     }
 
     const requestCreateIndexOnES = async () => {
         if (indexUUID) {
             setIsInProgress(true)
             await axiosInstance.get(apiCreateESindex(indexUUID))
-            // .then( (response) => {
-            //     if (response.data) {
-            //         return response.data
-            //     }
-            // })
-            .catch((error) => {
-                console.log("COMPONENT Index - requestCreateIndexOnES error", error)
+            .then( (response) => {
                 showNotification({
-                    type: "warning", message: "An error has encountered: " + error, timeout: 5000
+                    type: "success", message: response.data, timeout: 5000
                 })
+            })
+            .catch((error) => {
+                handleAPIerror('requestCreateIndexOnES', error)
             })
             .finally(() => {
                 setIsInProgress(false)
@@ -118,16 +114,53 @@ export const Index = ({ indexUUID }:Props) => {
         if (index) {
             setIsInProgress(true)
             await axiosInstance.get(apiDeleteESIndex(index.index_name))
-            // .then( (response) => {
-            //     if (response.data) {
-            //         return response.data
-            //     }
-            // })
-            .catch((error) => {
-                console.log("COMPONENT Index - requestDeleteIndexOnES error", error)
+            .then( (response) => {
                 showNotification({
-                    type: "warning", message: "An error has encountered: " + error, timeout: 5000
+                    type: "success", message: "Index deleted on ES instance", timeout: 5000
                 })
+            })
+            .catch((error) => {
+                handleAPIerror('requestDeleteIndexOnES', error)
+            })
+            .finally(() => {
+                setIsInProgress(false)
+            })
+        }
+    }
+
+    const requestRebuildIndexOnES = async () => {
+        if (index) {
+            setIsInProgress(true)
+            await axiosInstance.post(apiRebuildESIndex(index.index_name), {
+                data: newIndexName
+            })
+            .then( (response) => {
+                showNotification({
+                    type: "success", message: "Index re-built on ES instance", timeout: 5000
+                })
+            })
+            .catch((error) => {
+                handleAPIerror('requestRebuildIndexOnES', error)
+            })
+            .finally(() => {
+                setIsInProgress(false)
+            })
+        }
+    }
+
+    const requestCloneIndexOnES = async () => {
+        if (index) {
+            setIsInProgress(true)
+            await axiosInstance.post(apiCloneESIndex(index.index_name), {
+                data: newIndexName
+            })
+            .then( (response) => {
+                showNotification({
+                    type: "success", message: "Index cloned on ES instance", timeout: 5000
+                })
+            })
+            .catch((error) => {
+                handleAPIerror('requestCloneIndexOnES', error)
             })
             .finally(() => {
                 setIsInProgress(false)
@@ -144,10 +177,7 @@ export const Index = ({ indexUUID }:Props) => {
             }
         })
         .catch((error) => {
-            console.log("COMPONENT Index - error:", error)
-            showNotification({
-                type: "warning", message: "An error has encountered: " + error, timeout: 5000
-            })
+            handleAPIerror('requestIndexAllRecords', error)
         })
         .finally(() => {
             setIsInProgress(false)
@@ -156,7 +186,7 @@ export const Index = ({ indexUUID }:Props) => {
 
     const requestUpdateIndex = async () => {
 
-        if (index && changesExist) {
+        if (index && indexChangesExist) {
             setIsInProgress(true)
 
             let payload:RegisteredIndex = index
@@ -180,10 +210,7 @@ export const Index = ({ indexUUID }:Props) => {
                 }
             })
             .catch((error) => {
-                console.log("COMPONENT Index - requestUpdateIndex error:", error)
-                showNotification({
-                    type: "warning", message: "An error has encountered: " + error, timeout: 5000
-                })
+                handleAPIerror('requestUpdateIndex', error)
             })
             .finally(() => {
                 setIsInProgress(false)
@@ -204,10 +231,7 @@ export const Index = ({ indexUUID }:Props) => {
             }
         })
         .catch((error) => {
-            console.log("COMPONENT Index - requestGetMappings error", error)
-            showNotification({
-                type: "warning", message: "An error has encountered: " + error, timeout: 5000
-            })
+            handleAPIerror('requestGetMappings', error)
         })
         .finally(() => {
             setIsInProgress(false)
@@ -223,10 +247,7 @@ export const Index = ({ indexUUID }:Props) => {
             console.log("Sync response is: ", response)
         })
         .catch((error) => {
-            console.log("COMPONENT Index - requestSyncIndex error:", error)
-            showNotification({
-                type: "warning", message: "An error has encountered: " + error, timeout: 5000
-            })
+            handleAPIerror('requestSyncIndex', error)
         })
         .finally(() => {
             setIsInProgress(false)
@@ -259,7 +280,7 @@ export const Index = ({ indexUUID }:Props) => {
 
                     <Flex gap={4}>
 
-                        { changesExist && (
+                        { indexChangesExist && (
                             <>
                                 <Icon as={ExclamationMarkCircle} />
                                 <Typography variant="sigma">Unsaved changes</Typography>
@@ -269,7 +290,7 @@ export const Index = ({ indexUUID }:Props) => {
                             </>
                         )}
 
-                        <Button onClick={ () => requestUpdateIndex() } variant="secondary" disabled={!changesExist}>
+                        <Button onClick={ () => requestUpdateIndex() } variant="secondary" disabled={!indexChangesExist}>
                             Save
                         </Button>
                         <Button onClick={ () => requestSyncIndex() } variant="secondary">
@@ -318,7 +339,7 @@ export const Index = ({ indexUUID }:Props) => {
 
                         {/* TODO: justifyItems="end" doesn't seem to work as a Strapi attribute. For now: using it in style=. */}
                         <Box flex="1" style={{ justifyItems: 'flex-end' }}>
-                            <Button variant="secondary" onClick={ () => setShowNameAliasModal(true) }>
+                            <Button variant="secondary" onClick={ () => setShowModal_changeNameAlias(true) }>
                                 Change
                             </Button>
                         </Box>
@@ -353,7 +374,7 @@ export const Index = ({ indexUUID }:Props) => {
                                     Current: { index.mapping_type }
 
                                     <Button variant="primary" 
-                                    onClick={ () => setShowMappingDynamicModal(true) }
+                                    onClick={ () => setShowModal_dynamicMapping(true) }
                                     style={{ color:'white' }}>
                                         Change Dynamic Mapping
                                     </Button>
@@ -362,7 +383,7 @@ export const Index = ({ indexUUID }:Props) => {
                                     <Typography variant="beta">Mappings</Typography>
                                     Current active (with active fields): { mappings && mappings.filter( (x:Mapping) => !x.disabled && (x.fields && Object.keys(x.fields).length > 0) ).length }
                                     <Link to={`/plugins/${pluginId}/indexes/${index.uuid}/mappings`}>
-                                        <Button variant="primary" disabled={disableControls} style={{ color:'white' }}>
+                                        <Button variant="primary" disabled={disableFormControls} style={{ color:'white' }}>
                                             Manage Mappings
                                         </Button>
                                     </Link>
@@ -373,24 +394,32 @@ export const Index = ({ indexUUID }:Props) => {
                         </Flex>                        
                     </Box>
 
-                    <Box width="100%" background="neutral0" padding={8} shadow="filterShadow">
-                        <Button variant="secondary" disabled={disableControls} onClick={ () => requestCreateIndexOnES() }>
-                            Create index on ES instance with current mappings
+                    <Flex direction="column" alignItems="start" gap={4} width="100%" background="neutral0" padding={8} shadow="filterShadow">
+
+                        <Typography variant="beta">ES Actions</Typography>
+
+                        <Button variant="secondary" disabled={disableFormControls} onClick={ () => requestCreateIndexOnES() }>
+                            Create index on ES
+                            <br />(with current mappings)
                         </Button>
 
-                        <Button variant="secondary" disabled={disableControls} onClick={ () => requestDeleteIndexOnES() }>
+                        <Button variant="secondary" disabled={disableFormControls} onClick={ () => setShowModal_deleteIndex(true) }>
                             Delete index
                         </Button>
 
-                        <Button variant="secondary" disabled={disableControls} onClick={ () => console.log("Re-build index") }>
+                        <Button variant="secondary" disabled={disableFormControls} onClick={ () => {resetNewName();setShowModal_cloneIndex(true)} }>
+                            Clone index
+                        </Button>
+
+                        <Button variant="secondary" disabled={disableFormControls} onClick={ () => {resetNewName();setShowModal_rebuildIndex(true)} }>
                             Re-build index
                         </Button>
 
-                        <Button variant="secondary" disabled={disableControls} onClick={ () => requestIndexAllRecords() }>
+                        <Button variant="secondary" disabled={disableFormControls} onClick={ () => requestIndexAllRecords() }>
                             Index all records
                         </Button>
 
-                    </Box>
+                    </Flex>
                     
                 </Flex>
                 </>
@@ -400,8 +429,8 @@ export const Index = ({ indexUUID }:Props) => {
             {/* ---------------------------------------------- */}
             {/* MODAL: CHANGE INDEX NAME/ALIAS */}
             {/* ---------------------------------------------- */}
-            { showNameAliasModal && (
-                <ModalLayout onClose={() => setShowNameAliasModal(false) }>
+            { showModal_changeNameAlias && (
+                <ModalLayout onClose={() => setShowModal_changeNameAlias(false) }>
                     {/* labelledBy="title" */}
                     <ModalHeader>
                         <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
@@ -416,20 +445,20 @@ export const Index = ({ indexUUID }:Props) => {
                             </Box>
                         )}
 
-                        ( user journey will be invoked on re-building the entire index)
+                        ( user journey will be invoked on cloning or re-indexing the entire index, with a chance to choose new name )
                     </ModalBody>
                     <ModalFooter
                         startActions={<>
-                            <Button onClick={ () => setShowNameAliasModal(false) } variant="secondary">
+                            <Button onClick={ () => setShowModal_changeNameAlias(false) } variant="secondary">
                                 Cancel
                             </Button>
                         </>}
                         endActions={<>
-                            <Flex width="100%" justifyContent="end" gap={4}>
-                            <Button onClick={ () => setShowNameAliasModal(false) } variant="primary">
-                                Cancel
+                            <Button
+                            disabled={disableFormControls}
+                            onClick={ () => setShowModal_changeNameAlias(false) } variant="primary">
+                                Ok
                             </Button>
-                            </Flex>
                         </>}
                     />
                 </ModalLayout>
@@ -437,10 +466,10 @@ export const Index = ({ indexUUID }:Props) => {
 
 
             {/* ---------------------------------------------- */}
-            {/* MODAL: CHANGE INDEX NAME/ALIAS */}
+            {/* MODAL: DYNAMIC MAPPING */}
             {/* ---------------------------------------------- */}
-            { showMappingDynamicModal && index && indexOriginal && (
-                <ModalLayout onClose={() => {setIndex({...index, mapping_type: indexOriginal.mapping_type as unknown as typeof mappingTypes });setShowMappingDynamicModal(false)} }>
+            { showModal_dynamicMapping && index && indexOriginal && (
+                <ModalLayout onClose={() => {setIndex({...index, mapping_type: indexOriginal.mapping_type as unknown as typeof mappingTypes });setShowModal_dynamicMapping(false)} }>
                     {/* labelledBy="title" */}
                     <ModalHeader>
                         <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
@@ -457,7 +486,7 @@ export const Index = ({ indexUUID }:Props) => {
                                     <Switch
                                         onClick={ () => setIndex({...index, mapping_type: index.mapping_type ? false : true }) }
                                         selected={ index.mapping_type ? true : null }
-                                        disabled={disableControls}
+                                        disabled={disableFormControls}
                                         visibleLabels
                                         onLabel = 'Enabled'
                                         offLabel = 'Disabled'
@@ -508,21 +537,176 @@ export const Index = ({ indexUUID }:Props) => {
                     <ModalFooter
                         startActions={<>
                             { index && indexOriginal && (
-                                <Button onClick={ () => {setIndex({...index, mapping_type: indexOriginal.mapping_type as unknown as typeof mappingTypes });setShowMappingDynamicModal(false)} } variant="secondary">
+                                <Button onClick={ () => {setIndex({...index, mapping_type: indexOriginal.mapping_type as unknown as typeof mappingTypes });setShowModal_dynamicMapping(false)} } variant="secondary">
                                     Cancel
                                 </Button>
                             )}
                         </>}
                         endActions={<>
-                            { index && indexOriginal && (
-                                <Button onClick={ () => setShowMappingDynamicModal(false) } variant="primary">
-                                    Ok
-                                </Button>
-                            )}
+                            <Button
+                            disabled={disableFormControls}
+                            onClick={ () => setShowModal_dynamicMapping(false) } variant="primary">
+                                Done
+                            </Button>
                         </>}
                     />
                 </ModalLayout>
 
+            ) }
+
+
+
+            {/* ---------------------------------------------- */}
+            {/* MODAL: CLONE INDEX */}
+            {/* ---------------------------------------------- */}
+            { showModal_cloneIndex && (
+                <ModalLayout onClose={() => setShowModal_cloneIndex(false) }>
+                    {/* labelledBy="title" */}
+                    <ModalHeader>
+                        <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
+                            Clone index on ES
+                        </Typography>
+                    </ModalHeader>
+                    <ModalBody>
+                        <Flex direction="column" alignItems="start" gap={8}>
+                            <Flex direction="column" alignItems="start" gap={4} width="100%">
+                                <>
+                                Cloning the index will result in... (xxx)
+                                </>
+                            </Flex>
+                            <Flex direction="column" alignItems="start" gap={4}>
+                                <Typography as="h2" variant="beta">Set name for cloned index</Typography>
+                                <Typography variant="delta">
+                                    It must be different than xxx.
+                                </Typography>
+                                <Flex gap={4}>
+                                    <Flex gap={4} alignItems="end" width="100%">
+                                        {/* {useNamePrepend && (<>strapi_es_plugin_</>) } */}
+                                        <Box width="100%">
+                                            <TextInput value={newIndexName} onChange={ (e:Event) => setNewIndexName((e.target as HTMLInputElement).value) } label="New index name" placeholder="Enter a new index name, e.g. 'myWebsite_testIndex'" name="newIndexName" />
+                                        </Box>
+                                    </Flex>
+                                    <Flex gap={4}>
+                                        <Checkbox aria-label="Add prepend text" className="checkbox" checked={useNamePrepend} onChange={ () => setUseNamePrepend(!useNamePrepend) } />
+                                        <Box onClick={ () => setUseNamePrepend(!useNamePrepend) } cursor="pointer">Prepend with "{namePrepend}"</Box>
+                                    </Flex>
+                                </Flex>
+                            </Flex>
+                        </Flex>
+                    </ModalBody>
+                    <ModalFooter
+                        startActions={<>
+                            <Button onClick={ () => setShowModal_cloneIndex(false) } variant="secondary">
+                                Cancel
+                            </Button>
+                        </>}
+                        endActions={<>
+                            <Flex width="100%" justifyContent="end" gap={4}>
+                                <Flex>
+                                    {useNamePrepend && (<>{namePrepend}</>) }
+                                    {newIndexName}
+                                </Flex>
+                                <Button
+                                disabled={disableFormControls || !newIndexName}
+                                onClick={ () => {setShowModal_cloneIndex(false);requestCloneIndexOnES()} } variant="primary">
+                                    Clone index
+                                </Button>
+                            </Flex>
+                        </>}
+                    />
+                </ModalLayout>
+            ) }
+
+
+            {/* ---------------------------------------------- */}
+            {/* MODAL: DELETE ES INDEX */}
+            {/* ---------------------------------------------- */}
+            { showModal_deleteIndex && (
+                <ModalLayout onClose={() => setShowModal_deleteIndex(false) }>
+                    {/* labelledBy="title" */}
+                    <ModalHeader>
+                        <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
+                            Delete Index
+                        </Typography>
+                    </ModalHeader>
+                    <ModalBody>
+                        Proceed to delete the index on ES?
+                    </ModalBody>
+                    <ModalFooter
+                        startActions={<>
+                            <Button onClick={ () => setShowModal_deleteIndex(false) } variant="secondary">
+                                Cancel
+                            </Button>
+                        </>}
+                        endActions={<>
+                            <Button
+                            disabled={disableFormControls}
+                            onClick={ () => {setShowModal_deleteIndex(false);requestDeleteIndexOnES()} } variant="primary">
+                                Delete index
+                            </Button>
+                        </>}
+                    />
+                </ModalLayout>
+            ) }
+
+            {/* ---------------------------------------------- */}
+            {/* MODAL: REBUILD INDEX */}
+            {/* ---------------------------------------------- */}
+            { showModal_rebuildIndex && (
+                <ModalLayout onClose={() => setShowModal_rebuildIndex(false) }>
+                    {/* labelledBy="title" */}
+                    <ModalHeader>
+                        <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
+                            Re-build ES index
+                        </Typography>
+                    </ModalHeader>
+                    <ModalBody>
+                        <Flex direction="column" alignItems="start" gap={8}>
+                            <Flex direction="column" alignItems="start" gap={4} width="100%">
+                                <>
+                                Re-building the index will result in a new index with xxx, yyy, zzz.
+                                </>
+                            </Flex>
+                            <Flex direction="column" alignItems="start" gap={4}>
+                                <Typography as="h2" variant="beta">Set name for newly re-built index</Typography>
+                                <Typography variant="delta">
+                                    You can name this anything you want, but it's best to follow a pattern.
+                                </Typography>
+                                <Flex gap={4}>
+                                    <Flex gap={4} alignItems="end" width="100%">
+                                        <Box width="100%">
+                                            <TextInput value={newIndexName} onChange={ (e:Event) => setNewIndexName((e.target as HTMLInputElement).value) } label="New index name" placeholder="Enter a new index name, e.g. 'myWebsite_testIndex'" name="newIndexName" />
+                                        </Box>
+                                    </Flex>
+                                    <Flex gap={4}>
+                                        <Checkbox aria-label="Add prepend text" className="checkbox" checked={useNamePrepend} onChange={ () => setUseNamePrepend(!useNamePrepend) } />
+                                        <Box onClick={ () => setUseNamePrepend(!useNamePrepend) } cursor="pointer">Prepend with "{namePrepend}"</Box>
+                                    </Flex>
+                                </Flex>
+                            </Flex>
+                        </Flex>
+                    </ModalBody>
+                    <ModalFooter
+                        startActions={<>
+                            <Button onClick={ () => setShowModal_rebuildIndex(false) } variant="secondary">
+                                Cancel
+                            </Button>
+                        </>}
+                        endActions={<>
+                            <Flex width="100%" justifyContent="end" gap={4}>
+                                <Flex>
+                                    {useNamePrepend && (<>{namePrepend}</>) }
+                                    {newIndexName}
+                                </Flex>
+                                <Button
+                                disabled={disableFormControls || !newIndexName}
+                                onClick={ () => {setShowModal_rebuildIndex(false);requestRebuildIndexOnES()} } variant="primary">
+                                    Re-build index
+                                </Button>
+                            </Flex>
+                        </>}
+                    />
+                </ModalLayout>
             ) }
 
         </Flex>

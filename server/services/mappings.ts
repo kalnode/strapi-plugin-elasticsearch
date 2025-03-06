@@ -39,7 +39,7 @@ export default ({ strapi }) => ({
 
         } catch(error) {
             console.error('SERVICE mappings getMapping - error:', error)
-            return error
+            throw error
         }
         
     },
@@ -115,7 +115,7 @@ export default ({ strapi }) => ({
 
         } catch(error) {
             console.error('SERVICE mappings getMappings - error:', error)
-            return error
+            throw error
         }      
 
     },
@@ -163,7 +163,7 @@ export default ({ strapi }) => ({
 
         } catch(error) {
             console.error('SERVICE mappings createMapping - error:', error)
-            return error
+            throw error
         }
 
     },
@@ -221,7 +221,7 @@ export default ({ strapi }) => ({
 
         } catch(error) {
             console.error('SERVICE mappings updateMapping - error:', error)
-            return error
+            throw error
         }
 
     },
@@ -285,7 +285,7 @@ export default ({ strapi }) => ({
 
         } catch(error) {
             console.error('SERVICE mappings updateMappings - error:', error)
-            return error
+            throw error
         }
 
     },
@@ -310,7 +310,7 @@ export default ({ strapi }) => ({
             }
         } catch(error) {
             console.error('SERVICE mappings attachMapping - error:', error)
-            return error
+            throw error
         }
     },
 
@@ -327,7 +327,7 @@ export default ({ strapi }) => ({
             }
         } catch(error) {
             console.error('SERVICE mappings detachMapping - error:', error)
-            return error
+            throw error
         }
     },
 
@@ -377,7 +377,7 @@ export default ({ strapi }) => ({
 
         } catch(error) {
             console.error('SERVICE mappings deleteMapping - error:', error)
-            return error
+            throw error
         }
     }
 

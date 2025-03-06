@@ -250,7 +250,7 @@ export default ({ strapi }) => ({
 
         } catch(error) {
             console.error('SERVICE indexes getESMapping - error:', error)
-            return error
+            throw error
         }
 
    
@@ -514,7 +514,7 @@ export default ({ strapi }) => ({
             
         } catch(error) {
             console.error('SERVICE helper getContentTypes - error:', error)
-            return error
+            throw error
         }       
     }
 

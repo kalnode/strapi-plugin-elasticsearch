@@ -31,6 +31,8 @@ export const apiCreateESindex = (indexUUID:string) => `/${pluginId}/create-es-in
 export const apiIndexRecords = (indexUUID:string) => `/${pluginId}/index-records/${indexUUID}`
 
 // ES
+export const apiCloneESIndex = (indexName:string) => `/${pluginId}/clone-es-index/${indexName}`
+export const apiRebuildESIndex = (indexName:string) => `/${pluginId}/rebuild-es-index/${indexName}`
 export const apiDeleteESIndex = (indexName:string) => `/${pluginId}/delete-es-index/${indexName}`
 export const apiSyncIndex = (indexUUID:string) => `/${pluginId}/sync-index/${indexUUID}`
 

@@ -21,8 +21,8 @@ export const requestAPI_DeleteMapping = async (mapping:Mapping, indexUUID?:strin
             }
         }
     } catch (error) {
-        console.log('requestAPI_DeleteMapping error occurred', error)
-        return error
+        console.error('requestAPI_DeleteMapping error occurred', error)
+        throw error
     }
 
     

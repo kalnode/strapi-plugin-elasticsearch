@@ -37,7 +37,7 @@ export default ({ strapi }) => ({
 
         } catch(error) {
             console.error('SERVICE indexes getIndex - error:', error)
-            return error
+            throw error
         }
 
     },
@@ -75,7 +75,7 @@ export default ({ strapi }) => ({
 
         } catch(error) {
             console.error('SERVICE indexes getIndexes - error:', error)
-            return error
+            throw error
         }
 
     },
@@ -137,7 +137,7 @@ export default ({ strapi }) => ({
 
         } catch(error) {
             console.error('SERVICE indexes createIndex - error:', error)
-            return error
+            throw error
         }
 
     },
@@ -175,7 +175,7 @@ export default ({ strapi }) => ({
 
     //     } catch(error) {
     //         console.error('SERVICE indexes toggleDynamicMappingOnIndex - error:', error)
-    //         return error
+    //         throw error
     //     }
 
     // },
@@ -214,7 +214,7 @@ export default ({ strapi }) => ({
 
         } catch(error) {
             console.error('SERVICE indexes updateIndex - error:', error)
-            return error
+            throw error
         }
 
     },
@@ -247,7 +247,7 @@ export default ({ strapi }) => ({
 
         } catch(error) {
             console.error('SERVICE indexes syncMappingsWithExternal - error:', error)
-            return error
+            throw error
         }
 
     },
@@ -352,7 +352,7 @@ export default ({ strapi }) => ({
 
         } catch(error) {
             console.error('SERVICE indexes syncIndexWithExternal - error:', error)
-            return error
+            throw error
         }
 
     },
@@ -402,7 +402,7 @@ export default ({ strapi }) => ({
 
         } catch(error) {
             console.error('SERVICE indexes deleteIndex - error:', error)
-            return error
+            throw error
         }
 
     },
@@ -416,16 +416,28 @@ export default ({ strapi }) => ({
 
             let index = await indexesService.getIndex(indexUUID)
             if (index) {
-                await esInterface.createIndex(index.index_name)
-                await this.syncIndexWithExternal(indexUUID)
-                return "Success - Created ES index"
+
+                try {
+                    await esInterface.createIndex(index.index_name)
+                } catch(error) {
+                    throw error
+                }
+
+                try {
+                    await this.syncIndexWithExternal(indexUUID)
+                } catch(error) {
+                    return "Success - Created ES index, however no mappings were applied since they're empty."
+                }
+
+                return "Success - Created ES index and sync'd"
+
             } else {
-                throw "No index found"
+                throw "No registered index found"
             }
 
         } catch(error) {
             console.error('SERVICE indexes createESindex - error:', error)
-            return error
+            throw error
         }
 
     },
@@ -444,7 +456,7 @@ export default ({ strapi }) => ({
 
         } catch(error) {
             console.error('SERVICE indexes getESMapping - error:', error)
-            return error
+            throw error
         }
 
     }

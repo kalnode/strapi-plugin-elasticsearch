@@ -42,6 +42,16 @@ export const ComponentIndexes = () => {
     // API REQUESTS
     // ===============================
 
+    const handleAPIerror = (context:string, payload:any, inhibitUINotification?: boolean) => {
+        const message = payload.response.data.error.message ? payload.response.data.error.message : payload
+        console.log(`COMPONENT Indexes - ${context} error: ${message}`)
+        if (!inhibitUINotification) {
+            showNotification({
+                type: "warning", message: "Error: " + message, timeout: 5000
+            })
+        }
+    }
+
     const requestGetRegisteredIndexes = async () => {
         setIsInProgress(true)
         await axiosInstance.get(apiGetIndexes)
@@ -53,10 +63,7 @@ export const ComponentIndexes = () => {
             }
         })
         .catch((error) => {
-            console.log("COMPONENT Indexes - requestGetRegisteredIndexes error", error)
-            showNotification({
-                type: "warning", message: "An error has encountered: " + error, timeout: 5000
-            })
+            handleAPIerror('requestGetRegisteredIndexes', error, true)
         })
         .finally(() => {
             setIsInProgress(false)
@@ -72,10 +79,7 @@ export const ComponentIndexes = () => {
             }
         })
         .catch((error) => {
-            console.log("COMPONENT Indexes - requestCreateIndex error", error)
-            showNotification({
-                type: "warning", message: "An error has encountered: " + error, timeout: 5000
-            })
+            handleAPIerror('requestCreateIndex', error)
         })
         .finally(() => {
             setIsInProgress(false)
@@ -94,10 +98,7 @@ export const ComponentIndexes = () => {
             }
         })
         .catch((error) => {
-            console.log("COMPONENT Indexes - requestGetESIndexes error", error)
-            showNotification({
-                type: "warning", message: "An error has encountered: " + error, timeout: 5000
-            })
+            handleAPIerror('requestGetESIndexes', error)
         })
         .finally(() => {
             setIsInProgress(false)
@@ -116,10 +117,7 @@ export const ComponentIndexes = () => {
                 }
             })
             .catch((error) => {
-                console.log("COMPONENT Indexes - requestDeleteIndex error", error)
-                showNotification({
-                    type: "warning", message: "An error has encountered: " + error, timeout: 5000
-                })
+                handleAPIerror('requestDeleteIndex', error)
             })
             .finally(() => {
                 setIsInProgress(false)
@@ -343,7 +341,7 @@ export const ComponentIndexes = () => {
                                         offLabel = 'No'
                                     />
                                 </Flex>
-                            </Flex>                            
+                            </Flex>
                         </Flex>
                     </ModalBody>
                     <ModalFooter
