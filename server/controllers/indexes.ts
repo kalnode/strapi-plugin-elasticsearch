@@ -19,14 +19,6 @@ export default ({ strapi }) => {
         }
     }
 
-    const getESIndexes = async (ctx) => {
-         try {
-            return await ESindexes.getIndexes()
-        } catch (error) {
-            ctx.throw(500, error)
-        }
-    }
-
     const createIndex = async (ctx) => {
         const { body } = ctx.request
         try {
@@ -89,7 +81,6 @@ export default ({ strapi }) => {
     return {
         getIndex,
         getIndexes,
-        getESIndexes,
         createIndex,
         deleteIndex,
         updateIndex,

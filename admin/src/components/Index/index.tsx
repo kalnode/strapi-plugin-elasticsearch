@@ -128,11 +128,14 @@ export const Index = ({ indexUUID }:Props) => {
         }
     }
 
-    const requestRebuildIndexOnES = async () => {
-        if (index) {
+    const requestRebuildIndexOnES = async (newNameForRebuiltIndex:string) => {
+        if (index && newNameForRebuiltIndex) {
             setIsInProgress(true)
-            await axiosInstance.post(apiRebuildESIndex(index.index_name), {
-                data: newIndexName
+            await axiosInstance.post(apiRebuildESIndex, {
+                data: {
+                    indexName: index.index_name,
+                    targetName: newNameForRebuiltIndex
+                }
             })
             .then( (response) => {
                 showNotification({
@@ -148,11 +151,14 @@ export const Index = ({ indexUUID }:Props) => {
         }
     }
 
-    const requestCloneIndexOnES = async () => {
-        if (index) {
+    const requestCloneIndexOnES = async (newNameForClonedIndex:string) => {
+        if (index && newNameForClonedIndex) {
             setIsInProgress(true)
-            await axiosInstance.post(apiCloneESIndex(index.index_name), {
-                data: newIndexName
+            await axiosInstance.post(apiCloneESIndex, {
+                data: {
+                    indexName: index.index_name,
+                    targetName: newNameForClonedIndex
+                }
             })
             .then( (response) => {
                 showNotification({
@@ -438,14 +444,16 @@ export const Index = ({ indexUUID }:Props) => {
                         </Typography>
                     </ModalHeader>
                     <ModalBody>
-                        { index && (
+                        {/* { index && (
                             <Box width="100%" padding={8}>
                                 <TextInput value={ index.index_name ? index.index_name : '' } onChange={ (e:Event) => setIndex({ ...index, index_name: (e.target as HTMLInputElement).value }) } label="Index name" placeholder="Enter index name" name="Index name field" />
                                 <TextInput value={ index.index_alias ? index.index_alias : '' } onChange={ (e:Event) => setIndex({ ...index, index_alias: (e.target as HTMLInputElement).value }) } label="Alias name" placeholder="Enter alias name" name="Index alias field" />
                             </Box>
-                        )}
+                        )} */}
 
-                        ( user journey will be invoked on cloning or re-indexing the entire index, with a chance to choose new name )
+                        Renaming of an index can only be done in an indirect way, by creating a new index with your desired name. With a new index, settings can be copied over and or indexing of records.
+                        Through this plugin you can achieve this by cloning or re-indexing the entire index.
+
                     </ModalBody>
                     <ModalFooter
                         startActions={<>
@@ -458,6 +466,37 @@ export const Index = ({ indexUUID }:Props) => {
                             disabled={disableFormControls}
                             onClick={ () => setShowModal_changeNameAlias(false) } variant="primary">
                                 Ok
+                            </Button>
+                        </>}
+                    />
+                </ModalLayout>
+            ) }
+
+            {/* ---------------------------------------------- */}
+            {/* MODAL: DELETE ES INDEX */}
+            {/* ---------------------------------------------- */}
+            { showModal_deleteIndex && (
+                <ModalLayout onClose={() => setShowModal_deleteIndex(false) }>
+                    {/* labelledBy="title" */}
+                    <ModalHeader>
+                        <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
+                            Delete Index
+                        </Typography>
+                    </ModalHeader>
+                    <ModalBody>
+                        Proceed to delete the index on ES?
+                    </ModalBody>
+                    <ModalFooter
+                        startActions={<>
+                            <Button onClick={ () => setShowModal_deleteIndex(false) } variant="secondary">
+                                Cancel
+                            </Button>
+                        </>}
+                        endActions={<>
+                            <Button
+                            disabled={disableFormControls}
+                            onClick={ () => {setShowModal_deleteIndex(false);requestDeleteIndexOnES()} } variant="primary">
+                                Delete index
                             </Button>
                         </>}
                     />
@@ -571,25 +610,23 @@ export const Index = ({ indexUUID }:Props) => {
                         <Flex direction="column" alignItems="start" gap={8}>
                             <Flex direction="column" alignItems="start" gap={4} width="100%">
                                 <>
-                                Cloning the index will result in... (xxx)
+                                (Description of ES clone steps)
                                 </>
                             </Flex>
                             <Flex direction="column" alignItems="start" gap={4}>
-                                <Typography as="h2" variant="beta">Set name for cloned index</Typography>
+                                <Typography as="h2" variant="beta">Name for new cloned index</Typography>
                                 <Typography variant="delta">
-                                    It must be different than xxx.
+                                    The name must be unique and different than the original index.
                                 </Typography>
+                                <Flex gap={4} alignItems="end" width="100%">
+                                    {/* {useNamePrepend && (<>strapi_es_plugin_</>) } */}
+                                    <Box width="100%">
+                                        <TextInput value={newIndexName} onChange={ (e:Event) => setNewIndexName((e.target as HTMLInputElement).value) } label="New index name" placeholder="Enter a new index name, e.g. 'myWebsite_testIndex'" name="newIndexName" />
+                                    </Box>
+                                </Flex>
                                 <Flex gap={4}>
-                                    <Flex gap={4} alignItems="end" width="100%">
-                                        {/* {useNamePrepend && (<>strapi_es_plugin_</>) } */}
-                                        <Box width="100%">
-                                            <TextInput value={newIndexName} onChange={ (e:Event) => setNewIndexName((e.target as HTMLInputElement).value) } label="New index name" placeholder="Enter a new index name, e.g. 'myWebsite_testIndex'" name="newIndexName" />
-                                        </Box>
-                                    </Flex>
-                                    <Flex gap={4}>
-                                        <Checkbox aria-label="Add prepend text" className="checkbox" checked={useNamePrepend} onChange={ () => setUseNamePrepend(!useNamePrepend) } />
-                                        <Box onClick={ () => setUseNamePrepend(!useNamePrepend) } cursor="pointer">Prepend with "{namePrepend}"</Box>
-                                    </Flex>
+                                    <Checkbox aria-label="Add prepend text" className="checkbox" checked={useNamePrepend} onChange={ () => setUseNamePrepend(!useNamePrepend) } />
+                                    <Box onClick={ () => setUseNamePrepend(!useNamePrepend) } cursor="pointer">Prepend with "{namePrepend}"</Box>
                                 </Flex>
                             </Flex>
                         </Flex>
@@ -608,42 +645,16 @@ export const Index = ({ indexUUID }:Props) => {
                                 </Flex>
                                 <Button
                                 disabled={disableFormControls || !newIndexName}
-                                onClick={ () => {setShowModal_cloneIndex(false);requestCloneIndexOnES()} } variant="primary">
+                                onClick={ () => {
+                                        if (newIndexName) {
+                                            setShowModal_cloneIndex(false)
+                                            const newName = useNamePrepend ? namePrepend + newIndexName : newIndexName
+                                            requestCloneIndexOnES(newName)
+                                        }
+                                    }} variant="primary">
                                     Clone index
                                 </Button>
                             </Flex>
-                        </>}
-                    />
-                </ModalLayout>
-            ) }
-
-
-            {/* ---------------------------------------------- */}
-            {/* MODAL: DELETE ES INDEX */}
-            {/* ---------------------------------------------- */}
-            { showModal_deleteIndex && (
-                <ModalLayout onClose={() => setShowModal_deleteIndex(false) }>
-                    {/* labelledBy="title" */}
-                    <ModalHeader>
-                        <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
-                            Delete Index
-                        </Typography>
-                    </ModalHeader>
-                    <ModalBody>
-                        Proceed to delete the index on ES?
-                    </ModalBody>
-                    <ModalFooter
-                        startActions={<>
-                            <Button onClick={ () => setShowModal_deleteIndex(false) } variant="secondary">
-                                Cancel
-                            </Button>
-                        </>}
-                        endActions={<>
-                            <Button
-                            disabled={disableFormControls}
-                            onClick={ () => {setShowModal_deleteIndex(false);requestDeleteIndexOnES()} } variant="primary">
-                                Delete index
-                            </Button>
                         </>}
                     />
                 </ModalLayout>
@@ -664,24 +675,22 @@ export const Index = ({ indexUUID }:Props) => {
                         <Flex direction="column" alignItems="start" gap={8}>
                             <Flex direction="column" alignItems="start" gap={4} width="100%">
                                 <>
-                                Re-building the index will result in a new index with xxx, yyy, zzz.
+                                (Description of ES re-build steps)
                                 </>
                             </Flex>
                             <Flex direction="column" alignItems="start" gap={4}>
-                                <Typography as="h2" variant="beta">Set name for newly re-built index</Typography>
+                                <Typography as="h2" variant="beta">Name for newly re-built index</Typography>
                                 <Typography variant="delta">
-                                    You can name this anything you want, but it's best to follow a pattern.
+                                    The name must be unique and different than the original index.
                                 </Typography>
+                                <Flex gap={4} alignItems="end" width="100%">
+                                    <Box width="100%">
+                                        <TextInput value={newIndexName} onChange={ (e:Event) => setNewIndexName((e.target as HTMLInputElement).value) } label="New index name" placeholder="Enter a new index name, e.g. 'myWebsite_testIndex'" name="newIndexName" />
+                                    </Box>
+                                </Flex>
                                 <Flex gap={4}>
-                                    <Flex gap={4} alignItems="end" width="100%">
-                                        <Box width="100%">
-                                            <TextInput value={newIndexName} onChange={ (e:Event) => setNewIndexName((e.target as HTMLInputElement).value) } label="New index name" placeholder="Enter a new index name, e.g. 'myWebsite_testIndex'" name="newIndexName" />
-                                        </Box>
-                                    </Flex>
-                                    <Flex gap={4}>
-                                        <Checkbox aria-label="Add prepend text" className="checkbox" checked={useNamePrepend} onChange={ () => setUseNamePrepend(!useNamePrepend) } />
-                                        <Box onClick={ () => setUseNamePrepend(!useNamePrepend) } cursor="pointer">Prepend with "{namePrepend}"</Box>
-                                    </Flex>
+                                    <Checkbox aria-label="Add prepend text" className="checkbox" checked={useNamePrepend} onChange={ () => setUseNamePrepend(!useNamePrepend) } />
+                                    <Box onClick={ () => setUseNamePrepend(!useNamePrepend) } cursor="pointer">Prepend with "{namePrepend}"</Box>
                                 </Flex>
                             </Flex>
                         </Flex>
@@ -700,7 +709,13 @@ export const Index = ({ indexUUID }:Props) => {
                                 </Flex>
                                 <Button
                                 disabled={disableFormControls || !newIndexName}
-                                onClick={ () => {setShowModal_rebuildIndex(false);requestRebuildIndexOnES()} } variant="primary">
+                                onClick={ () => {
+                                        if (newIndexName) {
+                                            setShowModal_rebuildIndex(false)
+                                            const newName = useNamePrepend ? namePrepend + newIndexName : newIndexName
+                                            requestRebuildIndexOnES(newName)
+                                        }
+                                    }} variant="primary">
                                     Re-build index
                                 </Button>
                             </Flex>

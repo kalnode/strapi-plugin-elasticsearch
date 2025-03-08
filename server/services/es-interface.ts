@@ -132,6 +132,124 @@ export default ({ strapi }) => ({
         }
     },
 
+    async cloneIndex(indexName:estypes.IndexName, targetName:estypes.IndexName) {
+
+        try {
+
+            this.checkClient()
+            const exists = await client.indices.exists({ index: indexName })
+            const existsTarget = await client.indices.exists({ index: targetName })
+
+            if (!exists) {
+                throw "Original ES index not found; no cloning occurred"
+            }
+
+            if (existsTarget) {
+                throw "Target index name already exists"
+            }
+
+            try {
+
+                // First, add a block to stop new writes happening during this process.
+                await client.indices.addBlock({
+                    index: indexName,
+                    block: "write",
+                })
+
+                // Second, actually clone the index
+                await client.indices.clone({
+                    index: indexName,
+                    target: targetName
+                })
+                .catch( (error) => {
+                    // TODO: Bug? There's perhaps some bug with this specific returned error from the ES api.
+                    // Ideally we just pass it with "throw error", like everywhere else, however server
+                    // console complains about "TypeError: Cannot set property statusCode of Error... which has only a getter...".
+                    // And as such it doesn't pass the ES error message back, this in admin UI we don't see a proper error message.
+                    // FOR NOW: This works and is displayed in admin UI:
+                    throw "Cannot clone index due to technical issue"
+                })
+
+                // TODO: Confirm this is proper ES way.
+                // It seems like to remove the earlier block, we use an entirely different API.
+                await client.indices.putSettings({
+                    index: indexName,
+                    settings: {
+                        blocks: {
+                            write: false
+                        }
+                    }
+                })
+            } catch(error) {
+                throw error
+            }
+
+            return "ES successfully cloned"
+
+        } catch(error) {
+            console.error('SERVICE es-interface cloneIndex error:', error)
+            throw error
+        }
+    },
+
+    async reindexIndex(indexName:estypes.IndexName, targetName:estypes.IndexName) {
+
+        try {
+
+            this.checkClient()
+            const exists = await client.indices.exists({ index: indexName })
+            const existsTarget = await client.indices.exists({ index: targetName })
+
+            if (!exists) {
+                throw "Original ES index not found; no cloning occurred"
+            }
+
+            if (existsTarget) {
+                throw "Target index name already exists"
+            }
+
+            try {
+                const workNewInstance = await client.indices.create({
+                    index: targetName
+                })
+                console.log("New index instance 111: ", workNewInstance)
+                const existsNew = await client.indices.exists({ index: targetName })
+                console.log("New index instance 222: ", existsNew)
+                if (existsNew) {
+                    const work = await client.reindex({
+                        source: {
+                            index: indexName
+                        },
+                        dest: {
+                            index: targetName
+                        }
+                    })
+                    .then( (response) => {
+                        console.log("reindex response is: ", response)
+                        return response
+                    })
+                    .catch( (error) => {
+                        throw error
+                    })
+
+                    if (work !== null && work !== undefined) {
+                        console.log("reindex work is: ", work)
+                        return "ES successfully re-indexed into new index"
+                    } else {
+                        throw "Reindexing unsuccessful"
+                    }
+                }
+
+            } catch(error) {
+                throw error
+            }
+
+        } catch(error) {
+            console.error('SERVICE es-interface reindexIndex error:', error)
+            throw error
+        }
+    },
+
     /**
      *
      * ALIASES

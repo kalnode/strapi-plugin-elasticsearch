@@ -59,7 +59,7 @@ export default ({ strapi }) => ({
             if (indexes) {
                 return indexes
             } else {
-                throw "No indexes found"
+                return []
             }
 
             // --------------------------
@@ -373,8 +373,8 @@ export default ({ strapi }) => ({
             // TODO: QUERY PLUGIN CACHE instead; one less db call. Or is it risky?
             let indexes:Array<RegisteredIndex> = await pluginStore.get({ key: 'indexes' })
 
-            if (indexes && Array.isArray(indexes)) {
-                let foundIndexNumber:number = indexes.findIndex( (x:RegisteredIndex) => x.uuid === indexUUID)
+            if (indexes && Array.isArray(indexes) && indexes.length) {
+                const foundIndexNumber:number = indexes.findIndex( (x:RegisteredIndex) => x.uuid === indexUUID)
 
                 if (foundIndexNumber >= 0) {
 
@@ -388,10 +388,8 @@ export default ({ strapi }) => ({
 
                 }
             }
-            if (indexes.length === 0) {
-                indexes = []
-            }
-            await pluginStore.set({ key: 'indexes', value: indexes.length ? indexes : null })
+
+            await pluginStore.set({ key: 'indexes', value: indexes && indexes.length ? indexes : null })
 
             // --------------------------
             // EARLY DEV: DB PARADIGM

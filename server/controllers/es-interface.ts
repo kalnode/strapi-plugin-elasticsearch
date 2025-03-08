@@ -2,8 +2,15 @@ export default ({ strapi }) => {
     
     const ESindexes = strapi.plugins['esplugin'].services.esInterface
 
+    const getESIndexes = async (ctx) => {
+        try {
+           return await ESindexes.getIndexes()
+       } catch (error) {
+           ctx.throw(500, error)
+       }
+    }
+
     const deleteIndex = async (ctx) => {
-        console.log("Controller ES deleteIndex 111", ctx.params.indexName)
         try {
             return await ESindexes.deleteIndex(ctx.params.indexName)
         } catch (error) {
@@ -11,19 +18,28 @@ export default ({ strapi }) => {
         }
     }
 
-    // const createIndex = async (ctx) => {
-    //     const { body } = ctx.request
-    //     try {
-    //         return await indexes.createIndex(body.data.indexName, body.data.addToExternalIndex)
-    //     } catch (error) {
-    //         ctx.throw(500, error)
-    //     }
-    // }
-
+    const cloneIndex = async (ctx) => {
+        const { body } = ctx.request
+        try {
+            return await ESindexes.cloneIndex(body.data.indexName, body.data.targetName)
+        } catch (error) {
+            ctx.throw(500, error)
+        }
+    }
     
-
+    const reindexIndex = async (ctx) => {
+        const { body } = ctx.request
+        try {
+            return await ESindexes.reindexIndex(body.data.indexName, body.data.targetName)
+        } catch (error) {
+            ctx.throw(500, error)
+        }
+    }
 
     return {
-        deleteIndex
+        getESIndexes,
+        deleteIndex,
+        cloneIndex,
+        reindexIndex
     }
 }

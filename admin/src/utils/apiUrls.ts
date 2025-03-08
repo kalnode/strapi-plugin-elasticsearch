@@ -27,13 +27,13 @@ export const apiGetIndex = (indexUUID:string) => `/${pluginId}/get-index/${index
 export const apiCreateIndex = `/${pluginId}/create-index`
 export const apiDeleteIndex = `/${pluginId}/delete-index`
 export const apiUpdateIndex = (indexUUID:string) => `/${pluginId}/update-index/${indexUUID}`
-export const apiCreateESindex = (indexUUID:string) => `/${pluginId}/create-es-index/${indexUUID}`
 export const apiIndexRecords = (indexUUID:string) => `/${pluginId}/index-records/${indexUUID}`
 
 // ES
-export const apiCloneESIndex = (indexName:string) => `/${pluginId}/clone-es-index/${indexName}`
-export const apiRebuildESIndex = (indexName:string) => `/${pluginId}/rebuild-es-index/${indexName}`
+export const apiCreateESindex = (indexUUID:string) => `/${pluginId}/create-es-index/${indexUUID}`
 export const apiDeleteESIndex = (indexName:string) => `/${pluginId}/delete-es-index/${indexName}`
+export const apiCloneESIndex = `/${pluginId}/clone-es-index`
+export const apiRebuildESIndex = `/${pluginId}/rebuild-es-index`
 export const apiSyncIndex = (indexUUID:string) => `/${pluginId}/sync-index/${indexUUID}`
 
 

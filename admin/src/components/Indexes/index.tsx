@@ -152,7 +152,7 @@ export const ComponentIndexes = () => {
 
     const createIndexActual = () => {
         setModalCreateIndexShow(false)
-        let name = useNamePrepend ? namePrepend + newIndexName : newIndexName
+        const name = useNamePrepend ? namePrepend + newIndexName : newIndexName
         requestCreateIndex(name, addToElasticsearch)
     }
 
